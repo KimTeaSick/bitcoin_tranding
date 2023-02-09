@@ -1,10 +1,16 @@
-import string
 from dotenv import load_dotenv
 from pybithumb import Bithumb
 import os 
 import requests
 import json
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+app = FastAPI()
+app.add_middleware(
+  CORSMiddleware,
+  allow_origins=["*"]
+)
 load_dotenv()
 secretKey = os.environ.get('SECLET_KEY')
 connenctKey = os.environ.get('CONNECT_KEY')
@@ -20,6 +26,12 @@ class BitThumbPrivate():
   def callGetTradingFee(self):
     print(self.bithumb.get_trading_fee("BTC"))
 
+  def getBitCoinList(self, coin):
+    url = f"https://api.bithumb.com/public/ticker/{coin}_KRW"
+    headers = {"accept": "application/json"}
+    response = json.loads(requests.get(url, headers=headers).text)
+    return response
+
   def buy(self, coin, unit):
     print(self.bithumb.buy_market_order(coin, unit)) #params 1: 종목, 2: 갯수
     print('buy')
@@ -28,9 +40,15 @@ class BitThumbPrivate():
     print(self.bithumb.sell_market_order(coin, unit)) #params 1: 종목, 2: 갯수
     print('sell')
 
-  def getCandleStick(self):
-    df = Bithumb.get_candlestick("BTC", chart_intervals="1m")
+  def getCandleStick(self, coin):
+    df = Bithumb.get_candlestick(coin, chart_intervals="1m")
     print(df.tail(5400))
+    return df
+
+  def getCoinOrderBook(self, coin):
+    orderBook = self.bithumb.get_orderbook(coin)
+    print(orderBook)
+    return orderBook
 
   def checkAccount(self):
     KRW = self.bithumb.get_balance('BTC')[2]
@@ -92,6 +110,26 @@ class BitThumbPrivate():
 
 
 bit = BitThumbPrivate()
-bit.setBuyCondition()
+bit.getCandleStick('BTC')
 
 # while True:
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
+@app.get("/getBitcoinInfo")
+def getBitcoinInfo():
+  data = bit.getBitCoinList('ALL')
+  return data
+
+@app.get("/getDetailBTCInfo/{item_id}")
+def getDetailBTCInfo(item_id):
+  data = bit.getBitCoinList(item_id)
+  return data
+
+@app.get("/getCandleChart/{item_id}")
+def getCandleStick(item_id):
+  data = bit.getCandleStick(item_id)
+  return data
+
