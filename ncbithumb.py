@@ -1,10 +1,13 @@
-from dotenv import load_dotenv
+from fastapi import FastAPI
+from pandas import DataFrame
 from pybithumb import Bithumb
-import os 
+from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
+import pandas as pd
+import numpy as np
 import requests
 import json
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+import os 
 
 app = FastAPI()
 app.add_middleware(
@@ -41,9 +44,22 @@ class BitThumbPrivate():
     print('sell')
 
   def getCandleStick(self, coin):
-    df = Bithumb.get_candlestick(coin, chart_intervals="1m")
-    print(df.tail(5400))
-    return df
+    dataList = []
+    url = f"https://api.bithumb.com/public/candlestick/{coin}_KRW/24h"
+    headers = {"accept": "application/json"}
+    response = json.loads(requests.get(url, headers=headers).text)['data']
+    df = DataFrame(response, columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
+    for i in range(0, len(df)):
+      data = df.iloc[i]
+      data.Date = int(data.Date)
+      data.Open = float(data.Open)
+      data.Close = float(data.Close)
+      data.High = float(data.High)
+      data.Low = float(data.Low)
+      data.Volume = float(data.Volume)
+      dataList.append(data)
+    _d = tuple(dataList)
+    return _d
 
   def getCoinOrderBook(self, coin):
     orderBook = self.bithumb.get_orderbook(coin)
@@ -110,7 +126,6 @@ class BitThumbPrivate():
 
 
 bit = BitThumbPrivate()
-bit.getCandleStick('BTC')
 
 # while True:
 
@@ -133,3 +148,6 @@ def getCandleStick(item_id):
   data = bit.getCandleStick(item_id)
   return data
 
+@app.get("/checkAccount")
+def checkAccount():
+  return bit.checkAccount()
