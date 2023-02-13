@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import numpy as np
+import asyncio
+import websockets
 import requests
 import json
 import os 
@@ -124,8 +126,24 @@ class BitThumbPrivate():
         coinName = coinName.upper()
         self.sell(coinName, float(coin[1]))
 
+  async def bithumb_ws_client(self):
+    uri = "wss://pubwss.bithumb.com/pub/ws"
+    async with websockets.connect(uri, ping_interval=None) as websocket:
+      subscribe_fmt = {
+          "type":"ticker", 
+          "symbols": ["ALL_KRW"],
+          "tickTypes": ["1H"]
+      }
+      subscribe_data = json.dumps(subscribe_fmt)
+      await websocket.send(subscribe_data)
+      while True:
+        data = await websocket.recv()
+        data = json.loads(data)
+        print(data)
+
 
 bit = BitThumbPrivate()
+
 
 # while True:
 
@@ -151,3 +169,8 @@ def getCandleStick(item_id):
 @app.get("/checkAccount")
 def checkAccount():
   return bit.checkAccount()
+
+@app.get("/ws")
+async def main():
+  data = await bit.bithumb_ws_client()
+  return data
