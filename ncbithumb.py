@@ -3,11 +3,16 @@ from pandas import DataFrame
 from pybithumb import Bithumb
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+from dbConnection import *
+from sql import *
+from scheduler import *
 import pandas as pd
 import numpy as np
-import asyncio
+import schedule
 import websockets
 import requests
+import asyncio
+import time 
 import json
 import os 
 
@@ -16,6 +21,7 @@ app.add_middleware(
   CORSMiddleware,
   allow_origins=["*"]
 )
+
 load_dotenv()
 secretKey = os.environ.get('SECLET_KEY')
 connenctKey = os.environ.get('CONNECT_KEY')
@@ -35,6 +41,7 @@ class BitThumbPrivate():
     url = f"https://api.bithumb.com/public/ticker/{coin}_KRW"
     headers = {"accept": "application/json"}
     response = json.loads(requests.get(url, headers=headers).text)
+    print(response)
     return response
 
   def buy(self, coin, unit):
@@ -126,25 +133,55 @@ class BitThumbPrivate():
         coinName = coinName.upper()
         self.sell(coinName, float(coin[1]))
 
+  def coinNameList(self):
+      coinNames = self.bithumb.get_tickers()
+      for index in range(len(coinNames)):
+        coinNames[index] += "_KRW"
+      return coinNames
+
+  def testInsert(self, sql, val):
+    mycursor = mydb.cursor(prepared=True)
+    mycursor.execute(sql, val)
+    mydb.commit()
+    mycursor.close()
+    
+  def show(slef):
+    print("1")
+    return
+
+  def Insert1m(self):
+    schedule.every(3).seconds.do(self.show)
+    time.sleep(1)
+    return
+
   async def bithumb_ws_client(self):
     uri = "wss://pubwss.bithumb.com/pub/ws"
+    coinNames = self.coinNameList()
     async with websockets.connect(uri, ping_interval=None) as websocket:
       subscribe_fmt = {
           "type":"ticker", 
-          "symbols": ["ALL_KRW"],
-          "tickTypes": ["1H"]
+          "symbols": coinNames,
+          "tickTypes": ["30M"]
       }
       subscribe_data = json.dumps(subscribe_fmt)
       await websocket.send(subscribe_data)
       while True:
+        schedule.run_pending()
         data = await websocket.recv()
         data = json.loads(data)
-        print(data)
+        data = data.get('content')
+        if type(data) == dict:
+          # self.Insert1m()
+          print(2)
+          # self.testInsert(insertTrandingSql, [data.get('date')+data.get('time'), data.get('symbol'), data.get('closePrice'),data.get('openPrice')
+          # ,data.get('lowPrice'),data.get('highPrice'),data.get('volume'),data.get('chgRate')])
+          # print(data.get('date')+data.get('time'))
+
 
 
 bit = BitThumbPrivate()
 
-
+bit.coinNameList()
 # while True:
 
 @app.get("/")
@@ -168,9 +205,16 @@ def getCandleStick(item_id):
 
 @app.get("/checkAccount")
 def checkAccount():
-  return bit.checkAccount()
+  balance =  bit.checkAccount()
+  myCoinList = bit.getMyCoinList()
+  return (balance, myCoinList)
 
 @app.get("/ws")
 async def main():
   data = await bit.bithumb_ws_client()
+  data = await bit.Insert1m()
   return data
+
+@app.post("/testInsert")
+def test():
+  bit.testInsert()
