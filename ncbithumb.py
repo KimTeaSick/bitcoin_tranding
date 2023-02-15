@@ -214,7 +214,3 @@ async def main():
   data = await bit.bithumb_ws_client()
   data = await bit.Insert1m()
   return data
-
-@app.post("/testInsert")
-def test():
-  bit.testInsert()
