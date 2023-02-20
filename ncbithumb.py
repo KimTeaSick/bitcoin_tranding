@@ -1,11 +1,13 @@
-from fastapi import FastAPI
-from pandas import DataFrame
-from pybithumb import Bithumb
-from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from dotenv import load_dotenv
+from pybithumb import Bithumb
+from pandas import DataFrame
+from fastapi import FastAPI
+from typing import Optional
 from dbConnection import *
-from sql import *
 from scheduler import *
+from sql import *
 import pandas as pd
 import numpy as np
 import schedule
@@ -41,7 +43,6 @@ class BitThumbPrivate():
     url = f"https://api.bithumb.com/public/ticker/{coin}_KRW"
     headers = {"accept": "application/json"}
     response = json.loads(requests.get(url, headers=headers).text)
-    print(response)
     return response
 
   def buy(self, coin, unit):
@@ -52,9 +53,9 @@ class BitThumbPrivate():
     print(self.bithumb.sell_market_order(coin, unit)) #params 1: 종목, 2: 갯수
     print('sell')
 
-  def getCandleStick(self, coin):
+  def getCandleStick(self, item):
     dataList = []
-    url = f"https://api.bithumb.com/public/candlestick/{coin}_KRW/24h"
+    url = f"https://api.bithumb.com/public/candlestick/{item.id}_KRW/{item.term}"
     headers = {"accept": "application/json"}
     response = json.loads(requests.get(url, headers=headers).text)['data']
     df = DataFrame(response, columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
@@ -171,11 +172,7 @@ class BitThumbPrivate():
         data = json.loads(data)
         data = data.get('content')
         if type(data) == dict:
-          # self.Insert1m()
           print(2)
-          # self.testInsert(insertTrandingSql, [data.get('date')+data.get('time'), data.get('symbol'), data.get('closePrice'),data.get('openPrice')
-          # ,data.get('lowPrice'),data.get('highPrice'),data.get('volume'),data.get('chgRate')])
-          # print(data.get('date')+data.get('time'))
 
 
 
@@ -183,6 +180,11 @@ bit = BitThumbPrivate()
 
 bit.coinNameList()
 # while True:
+
+class Item(BaseModel):
+  id:  Optional[str] = None
+  term: Optional[str] = None
+
 
 @app.get("/")
 def read_root():
@@ -198,9 +200,10 @@ def getDetailBTCInfo(item_id):
   data = bit.getBitCoinList(item_id)
   return data
 
-@app.get("/getCandleChart/{item_id}")
-def getCandleStick(item_id):
-  data = bit.getCandleStick(item_id)
+@app.post("/getCandleChart")
+def getCandleStick(item: Item):
+  print(item)
+  data = bit.getCandleStick(item)
   return data
 
 @app.get("/checkAccount")
