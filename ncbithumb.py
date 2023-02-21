@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from typing import Optional
 from dbConnection import *
 from scheduler import *
+from parameter import *
 from sql import *
 import pandas as pd
 import numpy as np
@@ -50,6 +51,7 @@ class BitThumbPrivate():
     print('buy')
 
   def sell(self, coin, unit):
+    print( coin, unit )
     print(self.bithumb.sell_market_order(coin, unit)) #params 1: 종목, 2: 갯수
     print('sell')
 
@@ -69,7 +71,7 @@ class BitThumbPrivate():
       data.Volume = float(data.Volume)
       dataList.append(data)
     _d = tuple(dataList)
-    return _d
+    return _d[-120:-1]
 
   def getCoinOrderBook(self, coin):
     orderBook = self.bithumb.get_orderbook(coin)
@@ -181,9 +183,7 @@ bit = BitThumbPrivate()
 bit.coinNameList()
 # while True:
 
-class Item(BaseModel):
-  id:  Optional[str] = None
-  term: Optional[str] = None
+
 
 
 @app.get("/")
@@ -201,7 +201,7 @@ def getDetailBTCInfo(item_id):
   return data
 
 @app.post("/getCandleChart")
-def getCandleStick(item: Item):
+def getCandleStick(item: GetCandleStickBody):
   print(item)
   data = bit.getCandleStick(item)
   return data
@@ -217,3 +217,11 @@ async def main():
   data = await bit.bithumb_ws_client()
   data = await bit.Insert1m()
   return data
+
+@app.post("/sell")
+def sell(item:BuyAndSell):
+  bit.sell(item.coin, float(item.unit))
+
+@app.post("/buy")
+def buy(item:BuyAndSell):
+  print(item)
