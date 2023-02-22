@@ -47,13 +47,12 @@ class BitThumbPrivate():
     return response
 
   def buy(self, coin, unit):
-    print(self.bithumb.buy_market_order(coin, unit)) #params 1: 종목, 2: 갯수
-    print('buy')
+    buyLog = self.bithumb.buy_market_order(coin, unit) #params 1: 종목, 2: 갯수
+    self.testInsert(insertTradingLog, buyLog)
 
   def sell(self, coin, unit):
-    print( coin, unit )
-    print(self.bithumb.sell_market_order(coin, unit)) #params 1: 종목, 2: 갯수
-    print('sell')
+    sellLog = self.bithumb.sell_market_order(coin, unit) #params 1: 종목, 2: 갯수
+    self.testInsert(insertTradingLog, sellLog)
 
   def getCandleStick(self, item):
     dataList = []
@@ -224,4 +223,4 @@ def sell(item:BuyAndSell):
 
 @app.post("/buy")
 def buy(item:BuyAndSell):
-  print(item)
+  bit.buy(item.coin, float(item.unit))
