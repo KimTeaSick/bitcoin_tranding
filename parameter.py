@@ -9,3 +9,11 @@ class GetCandleStickBody(BaseModel):
 class BuyAndSell(BaseModel):
   coin: str
   unit: str
+
+class getOrderListBody(BaseModel):
+  page: str
+
+class getAvgData(BaseModel):
+  range: int
+  coin: str
+  term: str

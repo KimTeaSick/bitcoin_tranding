@@ -1,5 +1,5 @@
-import mysql.connector
 from dotenv import load_dotenv
+import mysql.connector
 import os 
 
 load_dotenv()
@@ -17,4 +17,20 @@ mydb = mysql.connector.connect(
     passwd = PASSWORD,
     database = DATABASE
 )
+
+def Insert( sql, val ):
+    mycursor = mydb.cursor(prepared=True)
+    mycursor.execute(sql, val)
+    mydb.commit()
+    mycursor.close()
+
+def Select( sql ):
+    mycursor = mydb.cursor(prepared=True)
+    mycursor.execute(sql)
+    result = mycursor.fetchall()
+    selectData = []
+    for data in result:
+        selectData.append(data)
+    mycursor.close()
+    return selectData
 
