@@ -4,6 +4,7 @@ import numpy as np
 import requests
 import json
 import math
+
 class MongoDB():
     client = MongoClient("mongodb://192.168.10.204:27017/")
     mydb = client["nc_bit_trading"]

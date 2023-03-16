@@ -191,3 +191,25 @@ class BitThumbPrivate():
       orderDesc = (data[1], data[2], data[3], 'KRW')
       orderList.append(self.bithumb.get_order_completed(orderDesc)['data'])
     return orderList
+
+  def getRecommendPrice(self):
+    priceList = []
+    coinList = list(self.getBitCoinList('ALL')['data'].keys())[0:-1]
+    for coin in coinList:
+      flag = True
+      url = f"https://api.bithumb.com/public/candlestick/"+coin+"_KRW/5M"
+      headers = {"accept": "application/json"}
+      data = json.loads(requests.get(url, headers=headers).text)['data']
+      df = pd.DataFrame(data, columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
+      AR = tuple(df['Close'].rolling(window = 5).mean().fillna('undefined'))
+      AR_BASE = AR[-10: -1]
+      BASE = df['Close'].values.tolist()
+      for term in range(0, 5):
+        # print('df[term - 1]',BASE[len(df) - (term + 1)])
+        result = float(BASE[len(BASE) - (term + 1)]) - float(AR_BASE[len(AR_BASE) - (term + 1)])
+        if result < 0:
+          flag = False
+      if flag == True:
+        priceList.append(coin)
+    print(priceList)
+    return priceList
