@@ -10,6 +10,7 @@ import websockets
 import schedule
 import requests
 import asyncio
+import time
 import json
 import os 
 
@@ -24,34 +25,24 @@ headers = {"accept": "application/json"}
 class BitThumbPrivate():
   def __init__(self):
     self.bithumb = Bithumb(connenctKey, secretKey)
+    self.coinList = list(self.getBitCoinList('ALL')['data'].keys())[0:-1]
 
-  def callGetTradingFee(self):
+  def getMyPossessionCoinList(self):
+    myCoinList = Select(getMyCoinListSql)
+    return myCoinList
+
+  def callGetTradingFee(self): # 수수료 구하기
     print(self.bithumb.get_trading_fee("BTC"))
 
-  def getBitCoinList(self, coin):
+  def getBitCoinList(self, coin): #코인 리스트, 코인 정보 가져오기
     url = f"https://api.bithumb.com/public/ticker/{coin}_KRW"
     headers = {"accept": "application/json"}
     response = json.loads(requests.get(url, headers=headers).text)
     return response
 
-  def buy(self, coin, unit):
-    buyLog = self.bithumb.buy_market_order(coin, unit) #params 1: 종목, 2: 갯수
-    if(type(buyLog) == tuple):
-      Insert(insertTradingLog, buyLog)
-      return 200
-    else:
-      return 404
-    
 
-  def sell(self, coin, unit):
-    sellLog = self.bithumb.sell_market_order(coin, unit) #params 1: 종목, 2: 갯수
-    if(type(sellLog) == tuple):
-      Insert(insertTradingLog, sellLog)
-      return 200
-    else:
-      return 404
 
-  def getCandleStick(self, item):
+  def getCandleStick(self, item): #차트 데이터
     dataList = []
     url = f"https://api.bithumb.com/public/candlestick/{item.id}_KRW/{item.term}"
     headers = {"accept": "application/json"}
@@ -71,18 +62,17 @@ class BitThumbPrivate():
         dataList.append(data)
       _d = tuple(dataList)
       return _d[-121:-1]
-    # return _d
 
-  def getCoinOrderBook(self, coin):
+  def getCoinOrderBook(self, coin): #코인 거래 내역
     orderBook = self.bithumb.get_orderbook(coin)
     return orderBook
 
-  def checkAccount(self):
+  def checkAccount(self): #보유 예수금 목록
     KRW = self.bithumb.get_balance('BTC')
     KRW = KRW[2]
     return KRW
 
-  def setBuyCondition(self):
+  def setBuyCondition(self): #매수 조건
     url = f"https://api.bithumb.com/public/ticker/ALL_KRW"
     headers = {"accept": "application/json"}
     response = json.loads(requests.get(url, headers=headers).text)
@@ -96,7 +86,7 @@ class BitThumbPrivate():
       print(item[0])
     return matchList
 
-  def getMyCoinList(self):
+  def getMyCoinList(self): #현재 보유 코인 종류
     coinList = self.bithumb.get_balance('All')
     coinList = coinList['data']
     coinTotalList = dict.items(coinList)
@@ -110,10 +100,9 @@ class BitThumbPrivate():
         if item[0] != 'total_krw': 
           if item[0] != 'total_bm':
             myCoinList.append(item)
-    print("myCoinList myCoinList myCoinList", myCoinList)
     return myCoinList
 
-  def getTransactionHistory(self, target):
+  def getTransactionHistory(self, target): # 거래내역
     print(self.bithumb.get_transaction_history(target))
 
   def getOrderCompleted(self):
@@ -186,16 +175,16 @@ class BitThumbPrivate():
       prev = str((int(page) - 1) * 12)
 
     selectData = Select(orderListSql(count, prev))
+    print("selectData",selectData)
     orderList = []
     for data in selectData:
-      orderDesc = (data[1], data[2], data[3], 'KRW')
+      orderDesc = (data[2], data[1], data[3], 'KRW')
       orderList.append(self.bithumb.get_order_completed(orderDesc)['data'])
     return orderList
-
+  
   def getRecommendPrice(self):
     priceList = []
-    coinList = list(self.getBitCoinList('ALL')['data'].keys())[0:-1]
-    for coin in coinList:
+    for coin in self.coinList:
       flag = True
       url = f"https://api.bithumb.com/public/candlestick/"+coin+"_KRW/5M"
       headers = {"accept": "application/json"}
@@ -205,11 +194,131 @@ class BitThumbPrivate():
       AR_BASE = AR[-10: -1]
       BASE = df['Close'].values.tolist()
       for term in range(0, 5):
-        # print('df[term - 1]',BASE[len(df) - (term + 1)])
+        if term == 0:
+          separation = (float(BASE[len(BASE) - (term + 1)]) / float(AR_BASE[len(AR_BASE) - (term + 1)])) * 100
         result = float(BASE[len(BASE) - (term + 1)]) - float(AR_BASE[len(AR_BASE) - (term + 1)])
         if result < 0:
           flag = False
+          break
       if flag == True:
-        priceList.append(coin)
-    print(priceList)
+        priceList.append({"coin": {"coin":coin, "data":self.getBitCoinList(coin)["data"]}, "separation": separation})
     return priceList
+
+  def possessoionCoinInfo(self):
+    coinList = self.getMyCoinList()
+    coinNameList =[]
+    returnList = []
+    orderList = []
+    for i in coinList:
+      coinInfo = self.getBitCoinList(str(i[0]).replace('total_',""))
+      coinNameList.append(str(i[0]).replace('total_',""))
+      coinValue = float(coinInfo['data']['closing_price']) * round(float(i[1]), 4)
+
+    selectData = Select(dashOrderListSql())
+    orderList = []
+    for data in selectData:
+      orderDesc = (data[1], data[2], data[3], 'KRW')
+      orderList.append(self.bithumb.get_order_completed(orderDesc)['data'])
+      returnList.append({
+        "coin" : str(i[0]).replace('total_',""), 
+        "info" : { 
+                "now_price" : coinValue,
+                "buy_price" : coinValue /  round(float(i[1]), 4),
+                "buy_total_price" : float( coinValue /  round(float(i[1]), 4)) * round(float(i[1]), 4),
+                "evaluate_price" : float(coinInfo['data']['closing_price']) * round(float(i[1]), 4), #평가금액
+                "profit" : float(coinValue) - float(coinInfo['data']['closing_price']) * round(float(i[1]), 4)
+                }, 
+      })
+    print("coinNameList", coinNameList)
+
+  def buy(self, coin, unit): #매수
+    buyLog = self.bithumb.buy_market_order(coin, unit) #params 1: 종목, 2: 갯수
+    time.sleep(0.1)
+    if(type(buyLog) == tuple):
+      detailLog = self.bithumb.get_order_completed(buyLog)['data']
+      if len(detailLog['contract']) > 0:
+        Insert(insertTradingLog, [
+          buyLog[0],
+          buyLog[1],
+          buyLog[2],
+          buyLog[3],
+          detailLog['order_qty'],
+          detailLog['contract'][0]['price'],
+          detailLog['contract'][0]['fee'],
+          detailLog['contract'][0]['total'],
+        ])
+        myCoinList = self.getMyPossessionCoinList()
+        print(myCoinList)
+        if len(myCoinList) == 0:
+          Insert(insertPossessionCoin,[
+            buyLog[1],
+            detailLog['order_qty'],
+            detailLog['contract'][0]['price'],
+            detailLog['contract'][0]['total'],
+            detailLog['contract'][0]['fee']
+          ])
+        for coin in myCoinList:
+          print(coin)
+          print("detailLog",detailLog)
+          if coin[0] == buyLog[1]:
+            print('Yes!!!')
+            Insert(buyUpdatePossessionCoin,[
+            float(detailLog['order_qty']) + float(coin[1]),
+            (float(detailLog['contract'][0]['price']) + float(coin[2]) ) / 2,
+            float(detailLog['contract'][0]['total']) + float(coin[3]),
+            float(detailLog['contract'][0]['fee']) + float(coin[4]),
+            buyLog[1],
+          ])
+            break
+          else:
+            print('NO!!!')
+            Insert(insertPossessionCoin,[
+              buyLog[1],
+              detailLog['order_qty'],
+              detailLog['contract'][0]['price'],
+              detailLog['contract'][0]['total'],
+              detailLog['contract'][0]['fee']
+            ])
+            break
+      return 200
+    else:
+      return 404
+
+
+  def sell(self, coin, unit): #매도
+    sellLog = self.bithumb.sell_market_order(coin, unit) #params 1: 종목, 2: 갯수
+    time.sleep(0.1)
+    print(sellLog)
+    if(type(sellLog) == tuple):
+      detailLog = self.bithumb.get_order_completed(sellLog)['data']
+      if len(detailLog['contract']) > 0:
+        Insert(insertTradingLog, [
+          sellLog[0],
+          sellLog[1],
+          sellLog[2],
+          sellLog[3],
+          detailLog['order_qty'],
+          detailLog['contract'][0]['price'],
+          detailLog['contract'][0]['fee'],
+          detailLog['contract'][0]['total'],
+        ])
+        myCoinList = self.getMyPossessionCoinList()
+        print('Start !!!')
+        for coin in myCoinList:
+          print("123123", float(coin[1]) - float(detailLog['order_qty']))
+          print("123123", float(coin[1]) - float(detailLog['order_qty']) < 0.00)
+          if (float(coin[1]) - float(detailLog['order_qty'])) == 0.0:
+            print('Yes!!!')
+            Delete( deletePossessionCoin, [coin[0]] )
+            break
+          else:
+            print('NO!!!')
+            Update(sellUpdatePossessionCoin,[
+              float(coin[1]) - float(detailLog['order_qty']),
+              float(coin[3]) - float(detailLog['contract'][0]['total']),
+              sellLog[1],
+            ])
+            break
+        return 200
+      else:
+        return 404

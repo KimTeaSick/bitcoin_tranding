@@ -24,6 +24,18 @@ def Insert( sql, val ):
     mydb.commit()
     mycursor.close()
 
+def Update( sql, val ):
+    mycursor = mydb.cursor(prepared=True)
+    mycursor.execute(sql, val)
+    mydb.commit()
+    mycursor.close()
+
+def Delete( sql, val ):
+    mycursor = mydb.cursor(prepared=True)
+    mycursor.execute(sql, val)
+    mydb.commit()
+    mycursor.close()
+
 def Select( sql ):
     mycursor = mydb.cursor(prepared=True)
     mycursor.execute(sql)
@@ -33,4 +45,3 @@ def Select( sql ):
         selectData.append(data)
     mycursor.close()
     return selectData
-

@@ -72,6 +72,10 @@ def getOrderList(item: getOrderListBody):
 def sendAvgData(item: getAvgData):
   return mongo.getAvgData(item.range, item.coin, item.term)
 
-@app.post("/getRecommendPrice")
+@app.get("/getRecommendPrice")
 def getRecommendPrice():
   return bit.getRecommendPrice()
+
+@app.get("/getPossessoionCoinInfo")
+def getPossessoionCoinInfo():
+  return bit.possessoionCoinInfo()

@@ -16,10 +16,13 @@ class MongoDB():
         headers = {"accept": "application/json"}
         data = json.loads(requests.get(url, headers=headers).text)['data']
         df = pd.DataFrame(data, columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
-        AR = df['Close'].rolling(window=avgRange).mean().fillna('undefined')
-        response = tuple(AR)[-121:-1]
+        AR = tuple(df['Close'].rolling(window=avgRange).mean().fillna('undefined'))
+        response = AR[-121:-1]
+        BASE = df['Close'].values.tolist()
         for index in range(0, 2):
-            if response[-index] > float(df['Close'][len(df)-(index+1)]):
+            result = float(BASE[len(BASE) - (index + 1)]) - float(response[len(response) - (index + 1)])
+            print(coin, result)
+            if result < 0:
                 trend = False
         print("trend",trend)
         return {trend, response}
