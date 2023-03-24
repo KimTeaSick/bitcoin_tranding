@@ -204,32 +204,38 @@ class BitThumbPrivate():
         priceList.append({"coin": {"coin":coin, "data":self.getBitCoinList(coin)["data"]}, "separation": separation})
     return priceList
 
-  def possessoionCoinInfo(self):
-    coinList = self.getMyCoinList()
-    coinNameList =[]
-    returnList = []
-    orderList = []
-    for i in coinList:
-      coinInfo = self.getBitCoinList(str(i[0]).replace('total_',""))
-      coinNameList.append(str(i[0]).replace('total_',""))
-      coinValue = float(coinInfo['data']['closing_price']) * round(float(i[1]), 4)
 
-    selectData = Select(dashOrderListSql())
-    orderList = []
-    for data in selectData:
-      orderDesc = (data[1], data[2], data[3], 'KRW')
-      orderList.append(self.bithumb.get_order_completed(orderDesc)['data'])
+
+
+
+
+  def possessoionCoinInfo(self):
+    possessionCoin = Select(getMyCoinListSql)
+    print(possessionCoin)
+    if len(possessionCoin) == 0:
+      return 203
+    returnList = []
+    for coin in possessionCoin:
+      coinInfo = self.getBitCoinList(coin[0])['data']
+      coinValue = float(coinInfo['closing_price'])
+      print(coinValue)
       returnList.append({
-        "coin" : str(i[0]).replace('total_',""), 
+        "coin" : coin[0], 
         "info" : { 
+                "unit" : coin[1],
                 "now_price" : coinValue,
-                "buy_price" : coinValue /  round(float(i[1]), 4),
-                "buy_total_price" : float( coinValue /  round(float(i[1]), 4)) * round(float(i[1]), 4),
-                "evaluate_price" : float(coinInfo['data']['closing_price']) * round(float(i[1]), 4), #평가금액
-                "profit" : float(coinValue) - float(coinInfo['data']['closing_price']) * round(float(i[1]), 4)
+                "buy_price" : coin[2],
+                "buy_total_price" : coin[3],
+                "evaluate_price" : float(coinValue) * float(coin[1]), #평가금액
+                "profit" : float(coinValue) * float(coin[1]) - float(coin[3]),
+                "rate" : float(coinValue) * float(coin[1]) - float(coin[3]) / float(coin[3]) 
                 }, 
       })
-    print("coinNameList", coinNameList)
+    return returnList
+
+
+
+
 
   def buy(self, coin, unit): #매수
     buyLog = self.bithumb.buy_market_order(coin, unit) #params 1: 종목, 2: 갯수

@@ -15,7 +15,4 @@ def orderListSql(page, prev):
 
 orderListCountSql = 'SELECT count(idx) as count FROM nc_r_trading_t'
 
-def dashOrderListSql():
-  return 'select * from( select * from tb_test where (code, date_time) in ( select code, max(date_time) as date_time from tb_test group by code ) order by date_time desc ) t group by t.code'
-
-getMyCoinListSql = 'select * from nc_r_possession_coin_t'
+getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t'
