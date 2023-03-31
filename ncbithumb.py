@@ -68,14 +68,29 @@ def getOrderList(item: getOrderListBody):
   pageCount = page.orderListPageCount()
   return {"data": bit.getOrderList(item.page), "page": pageCount}
 
+@app.post('/getDateOrderList')
+def getDateOrderList(item: getDateOrderListBody):
+  print(item)
+  # return bit.getDateOrderList(item.date, item.page)
+  return {"data": bit.getDateOrderList(item.date, item.page), "page": 1}
+
+
 @app.post("/getAvgData")
-def sendAvgData(item: getAvgData):
+def sendAvgData(item: getAvgDataBody):
   return mongo.getAvgData(item.range, item.coin, item.term)
 
 @app.get("/getRecommendPrice")
 def getRecommendPrice():
   return bit.getRecommendPrice()
 
-@app.get("/getPossessoionCoinInfo")
+@app.get("/dash/getPossessoionCoinInfo")
 def getPossessoionCoinInfo():
   return bit.possessoionCoinInfo()
+
+@app.get('/dash/accountInfo/')
+def getAccountInfo(date1, date2):
+  return bit.dashProperty([str(date1), str(date2)])
+
+@app.post('/autotrading')
+async def autoTrading():
+  await bit.autoTrading()

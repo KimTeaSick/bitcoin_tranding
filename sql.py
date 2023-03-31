@@ -13,6 +13,13 @@ deletePossessionCoin = 'DELETE FROM nc_r_possession_coin_t WHERE coin = %s'
 def orderListSql(page, prev):
   return 'SELECT * FROM nc_r_trading_t ORDER BY idx DESC limit ' + page + ' offset ' + prev
 
+
+def dateOrderListSql(page, prev, dateStart, dateEnd):
+  return 'SELECT * FROM nc_r_trading_t  WHERE create_at > ' + dateStart + ' AND create_at < ' + dateEnd + ' ORDER BY idx DESC limit ' + page + ' offset ' + prev 
+
+def todayOrderListSql(dateStart, dateEnd):
+  return 'SELECT * FROM nc_r_trading_t  WHERE create_at > ' + dateStart + ' AND create_at < ' + dateEnd 
+
 orderListCountSql = 'SELECT count(idx) as count FROM nc_r_trading_t'
 
 getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t'

@@ -13,7 +13,14 @@ class BuyAndSell(BaseModel):
 class getOrderListBody(BaseModel):
   page: str
 
-class getAvgData(BaseModel):
+class getAvgDataBody(BaseModel):
   range: int
   coin: str
   term: str
+
+class getDateOrderListBody(BaseModel):
+  date: list
+  page: str
+
+class getAccountInfoBody(BaseModel):
+  date: list

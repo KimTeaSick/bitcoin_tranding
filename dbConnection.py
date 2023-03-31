@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
 import mysql.connector
+import asyncio
 import os 
 
 load_dotenv()
@@ -10,38 +11,51 @@ USERNAME = os.environ.get('USERNAME')
 PASSWORD = os.environ.get('PASSWORD')
 
 
+class MySql():
+    def __init__(self):
+        self.mydb = mysql.connector.connect(
+            host = HOST,
+            user = USERNAME,
+            passwd = PASSWORD,
+            database = DATABASE
+        )
 
-mydb = mysql.connector.connect(
-    host = HOST,
-    user = USERNAME,
-    passwd = PASSWORD,
-    database = DATABASE
-)
+    def Insert( self, sql, val ):
+        try:
+            mycursor = self.mydb.cursor(prepared=True)
+            mycursor.execute(sql, val)
+            self.mydb.commit()
+            mycursor.close()
+        except mysql.connector.Error as err:
+            self.mydb.reconnect()
 
-def Insert( sql, val ):
-    mycursor = mydb.cursor(prepared=True)
-    mycursor.execute(sql, val)
-    mydb.commit()
-    mycursor.close()
+    def Update(self, sql, val ):
+        try:
+            mycursor = self.mydb.cursor(prepared=True)
+            mycursor.execute(sql, val)
+            self.mydb.commit()
+            mycursor.close()
+        except mysql.connector.Error as err:
+            self.mydb.reconnect()    
 
-def Update( sql, val ):
-    mycursor = mydb.cursor(prepared=True)
-    mycursor.execute(sql, val)
-    mydb.commit()
-    mycursor.close()
+    def Delete(self, sql, val ):
+        try:
+            mycursor = self.mydb.cursor(prepared=True)
+            mycursor.execute(sql, val)
+            self.mydb.commit()
+            mycursor.close()
+        except mysql.connector.Error as err:
+            self.mydb.reconnect()    
 
-def Delete( sql, val ):
-    mycursor = mydb.cursor(prepared=True)
-    mycursor.execute(sql, val)
-    mydb.commit()
-    mycursor.close()
-
-def Select( sql ):
-    mycursor = mydb.cursor(prepared=True)
-    mycursor.execute(sql)
-    result = mycursor.fetchall()
-    selectData = []
-    for data in result:
-        selectData.append(data)
-    mycursor.close()
-    return selectData
+    def Select(self, sql ):
+        try:
+            mycursor = self.mydb.cursor(prepared=True)
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+            selectData = []
+            for data in result:
+                selectData.append(data)
+            mycursor.close()
+            return selectData   
+        except mysql.connector.Error as err:
+            self.mydb.reconnect()   
