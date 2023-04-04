@@ -24,3 +24,12 @@ class getDateOrderListBody(BaseModel):
 
 class getAccountInfoBody(BaseModel):
   date: list
+
+class getSearchOptionBody(BaseModel):  
+  name:str
+  price: str
+  trends: str
+  avg_volume: str
+  first_disparity: str
+  second_disparity: str
+  transaction_amount: str

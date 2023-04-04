@@ -64,9 +64,10 @@ def myProperty():
   return bit.myProperty()
   
 @app.post('/getOrderList')
-def getOrderList(item: getOrderListBody):
-  pageCount = page.orderListPageCount()
-  return {"data": bit.getOrderList(item.page), "page": pageCount}
+async def getOrderList(item: getOrderListBody):
+  pageCount = await page.orderListPageCount()
+  data = await bit.getOrderList(item.page)
+  return {"data": data, "page": pageCount}
 
 @app.post('/getDateOrderList')
 def getDateOrderList(item: getDateOrderListBody):
@@ -74,23 +75,41 @@ def getDateOrderList(item: getDateOrderListBody):
   # return bit.getDateOrderList(item.date, item.page)
   return {"data": bit.getDateOrderList(item.date, item.page), "page": 1}
 
-
 @app.post("/getAvgData")
 def sendAvgData(item: getAvgDataBody):
   return mongo.getAvgData(item.range, item.coin, item.term)
 
-@app.get("/getRecommendPrice")
-def getRecommendPrice():
-  return bit.getRecommendPrice()
+@app.get("/dash/getRecommendPrice")
+async def getRecommendPrice():
+  response = await bit.getRecommendPrice()
+  return response
 
 @app.get("/dash/getPossessoionCoinInfo")
-def getPossessoionCoinInfo():
-  return bit.possessoionCoinInfo()
+async def getPossessoionCoinInfo():
+  response = await bit.possessoionCoinInfo()
+  return response 
 
 @app.get('/dash/accountInfo/')
-def getAccountInfo(date1, date2):
-  return bit.dashProperty([str(date1), str(date2)])
+async def getAccountInfo(date1, date2):
+  response = await bit.dashProperty([str(date1), str(date2)])
+  return response
 
 @app.post('/autotrading')
 async def autoTrading():
   await bit.autoTrading()
+
+@app.get('/setting/getDisparity')
+async def getDisparity():
+  response = await bit.getDisparityOption()
+  return response
+
+@app.post('/setting/registerSearchOption')
+async def insertSearchOption(item: getSearchOptionBody):
+  print("item", item)
+  response = await bit.insertSearchOption(item)
+  return response
+
+@app.post('/setting/updateSearchOption')
+async def updateSearchOption(item: getSearchOptionBody):
+  response = await bit.updateSearchOption(item)
+  return response

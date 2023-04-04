@@ -20,7 +20,7 @@ class MySql():
             database = DATABASE
         )
 
-    def Insert( self, sql, val ):
+    async def Insert( self, sql, val ):
         try:
             mycursor = self.mydb.cursor(prepared=True)
             mycursor.execute(sql, val)
@@ -29,7 +29,7 @@ class MySql():
         except mysql.connector.Error as err:
             self.mydb.reconnect()
 
-    def Update(self, sql, val ):
+    async def Update(self, sql, val ):
         try:
             mycursor = self.mydb.cursor(prepared=True)
             mycursor.execute(sql, val)
@@ -38,7 +38,7 @@ class MySql():
         except mysql.connector.Error as err:
             self.mydb.reconnect()    
 
-    def Delete(self, sql, val ):
+    async def Delete(self, sql, val ):
         try:
             mycursor = self.mydb.cursor(prepared=True)
             mycursor.execute(sql, val)
@@ -47,7 +47,7 @@ class MySql():
         except mysql.connector.Error as err:
             self.mydb.reconnect()    
 
-    def Select(self, sql ):
+    async def Select(self, sql ):
         try:
             mycursor = self.mydb.cursor(prepared=True)
             mycursor.execute(sql)
