@@ -20,7 +20,7 @@ class MySql():
             database = DATABASE
         )
 
-    async def Insert( self, sql, val ):
+    def Insert( self, sql, val ):
         try:
             mycursor = self.mydb.cursor(prepared=True)
             mycursor.execute(sql, val)

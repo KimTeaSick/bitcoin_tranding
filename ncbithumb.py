@@ -50,13 +50,14 @@ async def main():
   return data
 
 @app.post("/sell")
-def sell(item:BuyAndSell):
-  res = bit.sell(item.coin, float(item.unit))
+async def sell(item:BuyAndSell):
+  print("item",item)
+  res = await bit.sell(item.coin, float(item.unit))
   return res
 
 @app.post("/buy")
-def buy(item:BuyAndSell):
-  res = bit.buy(item.coin, float(item.unit))
+async def buy(item:BuyAndSell):
+  res = await bit.buy(item.coin, float(item.unit))
   return res
 
 @app.get("/myProperty")
@@ -103,13 +104,22 @@ async def getDisparity():
   response = await bit.getDisparityOption()
   return response
 
+@app.post('/setting/updateDisparity')
+async def getDisparity(item: updateDisparityOptionBody):
+  response = await bit.updateDisparityOption(item)
+  return response
+
+@app.get('/setting/getSearchOptionList')
+async def getSearchOptionList():
+  response = await bit.getSearchOptionList()
+  return response
+
 @app.post('/setting/registerSearchOption')
-async def insertSearchOption(item: getSearchOptionBody):
-  print("item", item)
-  response = await bit.insertSearchOption(item)
+def insertSearchOption(item: updateSearchOptionBody):
+  response = bit.insertSearchOption(item)
   return response
 
 @app.post('/setting/updateSearchOption')
-async def updateSearchOption(item: getSearchOptionBody):
+async def updateSearchOption(item: updateSearchOptionBody):
   response = await bit.updateSearchOption(item)
   return response

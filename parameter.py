@@ -28,8 +28,18 @@ class getAccountInfoBody(BaseModel):
 class getSearchOptionBody(BaseModel):  
   name:str
   price: str
+  trends_term: str
   trends: str
   avg_volume: str
   first_disparity: str
   second_disparity: str
   transaction_amount: str
+
+class updateSearchOptionBody(getSearchOptionBody):
+  idx: int
+
+class  updateDisparityOptionBody(BaseModel):
+  line_one: dict
+  line_two: dict
+  line_three: dict
+  

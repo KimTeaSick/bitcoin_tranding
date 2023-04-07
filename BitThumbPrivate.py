@@ -1,7 +1,6 @@
 from dotenv import load_dotenv
 from pybithumb import Bithumb
 from datetime import datetime
-from datetime import timezone
 from pandas import DataFrame
 from dbConnection import *
 from parameter import *
@@ -33,8 +32,8 @@ class BitThumbPrivate():
     self.bitLib = bitLib()
     self.mysql = MySql()
 
-  def getMyPossessionCoinList(self):
-    myCoinList = self.mysql.Select(getMyCoinListSql)
+  async def getMyPossessionCoinList(self):
+    myCoinList = await self.mysql.Select(getMyCoinListSql)
     return myCoinList
 
   def callGetTradingFee(self): # 수수료 구하기
@@ -151,9 +150,7 @@ class BitThumbPrivate():
     money += account
     return money
   
-
 ## 거래 내역 조회 및 검색 기능
-
   async def getOrderList(self, page):
     count = "14"
     if(page == 1):
@@ -184,6 +181,8 @@ class BitThumbPrivate():
   async def dashProperty(self, date):
     coinList = self.getMyCoinList()
     time.sleep(1)
+    dt = datetime.now()
+    print(dt)
     list = []
     fee = 0
     totalMoney = 0
@@ -211,7 +210,7 @@ class BitThumbPrivate():
 
   def getDisparity(self, coin, disparity):
     flag = True
-    url = f"https://api.bithumb.com/public/candlestick/"+coin[0]+"_KRW/5M"
+    url = f"https://api.bithumb.com/public/candlestick/"+coin[0]+"_KRW/6h"
     headers = {"accept": "application/json"}
     data = json.loads(requests.get(url, headers=headers).text)['data']
     df = pd.DataFrame(data, columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
@@ -275,14 +274,42 @@ class BitThumbPrivate():
 # Setting Page 
   async def getDisparityOption(self):
     options = await self.mysql.Select(getDisparityOptionSql)
-    print(options)
+    options = { options[0][1]:{"idx":options[0][0], "name":options[0][1],"range":options[0][2], "color":options[0][3]},
+                options[1][1]:{"idx":options[1][0], "name":options[1][1],"range":options[1][2], "color":options[1][3]},
+                options[2][1]:{"idx":options[2][0], "name":options[2][1],"range":options[2][2], "color":options[2][3]} }
     return options
   
-  async def insertSearchOption(self, item):
-    await self.mysql.Insert(insertSearchOptionSql,[
+  async def updateDisparityOption(self, item):
+    try:
+      for data in item:
+        await self.mysql.Update(updateDisparityOptionSql,[str(data[1]['range']), data[1]['color'], data[1]['name']])
+      return 200
+    except:
+      return 303
+  
+  async def getSearchOptionList(self):
+    value = await self.mysql.Select(selectSearchOptionSql)
+    optionList = []
+    for data in value:
+      optionList.append({
+        "idx": data[0], 
+        "name": data[1], 
+        "first_disparity": data[2], 
+        "second_disparity": data[3], 
+        "trends": data[4], 
+        "trends_term":data[5],
+        "avg_volume": data[6], 
+        "transaction_amount": data[7], 
+        "price": data[8]})
+    print(optionList)
+    return optionList
+
+  def insertSearchOption(self, item):
+    self.mysql.Insert(insertSearchOptionSql,[
       item.name, 
       item.first_disparity, 
       item.second_disparity, 
+      item.trends_term, 
       item.trends, 
       item.avg_volume, 
       item.transaction_amount, 
@@ -294,12 +321,13 @@ class BitThumbPrivate():
       item.name,
       item.first_disparity, 
       item.second_disparity, 
+      item.trends_term, 
       item.trends, 
       item.avg_volume, 
       item.transaction_amount, 
-      item.price
+      item.price,
+      item.idx
     ])
-
 
 # Auto But and Selling
   async def autoTrading(self):
@@ -337,11 +365,15 @@ class BitThumbPrivate():
                 print("minus", possessionCoinInfo)
                 self.sell(possessionCoinInfo[0], float(possessionCoinInfo[1]))
                 await self.autoTrading()
-  def buy(self, coin, unit): #매수
+  
+  async def buy(self, coin, unit): #매수
     buyLog = self.bithumb.buy_market_order(coin, unit) #params 1: 종목, 2: 갯수
     time.sleep(0.1)
+    print(buyLog)
     if(type(buyLog) == tuple):
+      print(1)
       detailLog = self.bithumb.get_order_completed(buyLog)['data']
+      print("detailLog",detailLog)
       if len(detailLog['contract']) > 0:
         self.mysql.Insert(insertTradingLog, [
           buyLog[0],
@@ -353,7 +385,7 @@ class BitThumbPrivate():
           detailLog['contract'][0]['fee'],
           detailLog['contract'][0]['total'],
         ])
-        myCoinList = self.getMyPossessionCoinList()
+        myCoinList = await self.getMyPossessionCoinList()
         print(myCoinList)
         if len(myCoinList) == 0:
           self.mysql.Insert(insertPossessionCoin,[
@@ -389,7 +421,8 @@ class BitThumbPrivate():
       return 200
     else:
       return 404
-  def sell(self, coin, unit): #매도
+    
+  async def sell(self, coin, unit): #매도
     sellLog = self.bithumb.sell_market_order(coin, unit) #params 1: 종목, 2: 갯수
     time.sleep(0.1)
     print(sellLog)
@@ -406,7 +439,7 @@ class BitThumbPrivate():
           detailLog['contract'][0]['fee'],
           detailLog['contract'][0]['total'],
         ])
-        myCoinList = self.getMyPossessionCoinList()
+        myCoinList = await self.getMyPossessionCoinList()
         print('Start !!!')
         for coin in myCoinList:
           print("123123", float(coin[1]) - float(detailLog['order_qty']))

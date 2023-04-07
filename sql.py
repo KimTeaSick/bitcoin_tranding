@@ -29,10 +29,12 @@ def getDBCoinList(price, transaction_price):
 
 deleteCoinSql = 'SELECT FROM nc_r_coin_list_t WHERE coin_name = %s'
 
-getDisparityOptionSql = 'SELECT option_name, option_value, option_color from nc_b_option_t WHERE option_name = "line_one" or option_name = "line_two" or option_name = "line_three"'
+getDisparityOptionSql = 'SELECT disparity_idx, disparity_name, disparity_value, disparity_color from nc_b_disparity_option_t WHERE disparity_name = "line_one" or disparity_name = "line_two" or disparity_name = "line_three"'
 
-updateDisparityOptionSql = 'UPDATE nc_b_option_t SET option_value = %s, option_color = %s WHERE option_name = %s'
+updateDisparityOptionSql  = 'UPDATE nc_b_disparity_option_t SET disparity_value = %s, disparity_color = %s WHERE disparity_name = %s'
 
-insertSearchOptionSql = 'INSERT INTO nc_b_search_option_t (name, first_disparity, second_disparity, trends, avg_volume, transaction_amount, price) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+selectSearchOptionSql = 'SELECT * FROM nc_b_search_option_t'
 
-updateSearchOptionSql = 'UPDATE nc_b_search_option_t SET name = %s , first_disparity = %s , second_disparity = %s , trends = %s , avg_volume = %s , transaction_amount = %s , price = %s '
+insertSearchOptionSql = 'INSERT INTO nc_b_search_option_t (name, first_disparity, second_disparity,trends_term, trends, avg_volume, transaction_amount, price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+
+updateSearchOptionSql = 'UPDATE nc_b_search_option_t SET name = %s , first_disparity = %s , second_disparity = %s ,trends_term = %s, trends = %s , avg_volume = %s , transaction_amount = %s , price = %s WHERE idx = %s'
