@@ -43,3 +43,5 @@ class  updateDisparityOptionBody(BaseModel):
   line_two: dict
   line_three: dict
   
+class updateUseSearchOptionBody(BaseModel):
+  num: str

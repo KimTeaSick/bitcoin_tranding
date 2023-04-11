@@ -35,6 +35,13 @@ updateDisparityOptionSql  = 'UPDATE nc_b_disparity_option_t SET disparity_value 
 
 selectSearchOptionSql = 'SELECT * FROM nc_b_search_option_t'
 
-insertSearchOptionSql = 'INSERT INTO nc_b_search_option_t (name, first_disparity, second_disparity,trends_term, trends, avg_volume, transaction_amount, price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+selectUseSearchOptionSql = 'SELECT search_idx FROM nc_b_use_search_option_t'
 
-updateSearchOptionSql = 'UPDATE nc_b_search_option_t SET name = %s , first_disparity = %s , second_disparity = %s ,trends_term = %s, trends = %s , avg_volume = %s , transaction_amount = %s , price = %s WHERE idx = %s'
+def selectActiveSearchOptionSql(option_idx): 
+  return 'SELECT first_disparity, second_disparity, trends, trends_idx, avg_volume, transaction_amount, price FROM nc_b_search_option_t WHERE idx = ' + option_idx
+
+insertSearchOptionSql = 'INSERT INTO nc_b_search_option_t (name, first_disparity, second_disparity,trends_idx, trends, avg_volume, transaction_amount, price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+
+updateSearchOptionSql = 'UPDATE nc_b_search_option_t SET name = %s , first_disparity = %s , second_disparity = %s ,trends_idx = %s, trends = %s , avg_volume = %s , transaction_amount = %s , price = %s WHERE idx = %s'
+
+updateUseSearchOption = 'UPDATE nc_b_use_search_option_t SET search_idx = %s '

@@ -4,13 +4,17 @@ from datetime import datetime
 from pandas import DataFrame
 from dbConnection import *
 from parameter import *
+from multiprocessing import Pool
+import multiprocessing as mp
 from lib import * 
 from sql import *
 from dbConnection import MySql
 import pandas as pd
 import numpy as np
 import websockets
+import threading
 import schedule
+import numba
 import requests
 import asyncio
 import time
@@ -29,6 +33,7 @@ class BitThumbPrivate():
   def __init__(self):
     self.bithumb = Bithumb(connenctKey, secretKey)
     self.coinList = list(self.getBitCoinList('ALL')['data'].keys())[0:-1]
+    self.recommandCoinList = []
     self.bitLib = bitLib()
     self.mysql = MySql()
 
@@ -44,7 +49,7 @@ class BitThumbPrivate():
     headers = {"accept": "application/json"}
     response = json.loads(requests.get(url, headers=headers).text)
     return response
-
+  
   def getCandleStick(self, item): #차트 데이터
     dataList = []
     url = f"https://api.bithumb.com/public/candlestick/{item.id}_KRW/{item.term}"
@@ -177,7 +182,7 @@ class BitThumbPrivate():
       orderList.append(self.bithumb.get_order_completed(orderDesc)['data'])
     return orderList
 
-## 대시보드 계좌 정보 
+## Dash Page
   async def dashProperty(self, date):
     coinList = self.getMyCoinList()
     time.sleep(1)
@@ -208,40 +213,71 @@ class BitThumbPrivate():
       accountData = [totalMoney, account, buyingMoney, sellingMoney, fee]
       return accountData
 
-  def getDisparity(self, coin, disparity):
+  def getDisparity(self, coin, disparity, trends):
+    print(" 1 ::::::::::: ", coin)
     flag = True
     url = f"https://api.bithumb.com/public/candlestick/"+coin[0]+"_KRW/6h"
     headers = {"accept": "application/json"}
     data = json.loads(requests.get(url, headers=headers).text)['data']
+    print(" 2 ::::::::::: get Data")
     df = pd.DataFrame(data, columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
     AR = tuple(df['Close'].rolling(window = 5).mean().fillna('undefined'))
     AR_BASE = AR[-10: -1]
     BASE = df['Close'].values.tolist()
-    for term in range(0, 5):
+    print(" 3 ::::::::::: make AVG Data")
+    for term in range(0, int(trends)):
+      print(" 4 ::::::::::: Data carculate")
       if term == 0:
         separation = (float(BASE[len(BASE) - (term + 1)]) / float(AR_BASE[len(AR_BASE) - (term + 1)])) * 100
-        if separation < disparity:
+        if separation < int(disparity):
           return ''
       result = float(BASE[len(BASE) - (term + 1)]) - float(AR_BASE[len(AR_BASE) - (term + 1)])
       if result < 0:
         flag = False
         return ''
     if flag == True:
-      return ({"coin": {"coin":coin[0], "data":self.getBitCoinList(coin[0])["data"]}, "separation": separation})
-    
+      self.recommandCoinList.append({"coin": {"coin":coin[0], "data":self.getBitCoinList(coin[0])["data"]}, "separation": separation})
+
+  async def test(self, coinList, first_disparity, trends):
+    for coin in coinList:
+      self.getDisparity(coin, first_disparity, trends)
+
   async def getRecommendPrice(self):
     try:
+      start = time.time()
+      num_cores = mp.cpu_count()
+      pool = Pool(num_cores)
       priceList = []
-      coinList = await self.mysql.Select(getDBCoinList('500', '1000000'))
+      getUseOption = await self.mysql.Select(selectUseSearchOptionSql)
+      print("getUseOption ::::::: ", getUseOption)
+      options = await self.mysql.Select(selectActiveSearchOptionSql(getUseOption[0][0]))
+      print("getUseOptions ::::::: ", num_cores)
+      first_disparity = options[0][0]
+      second_disparity = options[0][1]
+      trends = options[0][2]
+      trends_idx = options[0][3] 
+      avg_volume = options[0][4]
+      transaction_amount = options[0][5] #use
+      price = options[0][6] #use
+      print(first_disparity, second_disparity, trends, trends_idx, avg_volume, transaction_amount, price)
+      coinList = await self.mysql.Select(getDBCoinList(price, transaction_amount))
+      print(coinList)
       time.sleep(1)
       if len(coinList) == 0:
         return 201
       else:
-        for coin in coinList:
-          value = self.getDisparity(coin, 100)
-          if value != '':
-            priceList.append(value)
-      return priceList
+        pool.map(await self.test(coinList, first_disparity, trends))
+          # value.start
+          # value = self.getDisparity(coin, first_disparity, trends)
+          # if value != '':
+            # priceList.append(value)
+      end = time.time()
+      pool.close()
+      pool.join()
+      print("priceList", priceList)
+      print("수행시간: %f 초" % (end - start))
+      return self.recommandCoinList
+      # return priceList
     except:
       return 333
 
@@ -297,7 +333,7 @@ class BitThumbPrivate():
         "first_disparity": data[2], 
         "second_disparity": data[3], 
         "trends": data[4], 
-        "trends_term":data[5],
+        "trends_idx":data[5],
         "avg_volume": data[6], 
         "transaction_amount": data[7], 
         "price": data[8]})
@@ -309,7 +345,7 @@ class BitThumbPrivate():
       item.name, 
       item.first_disparity, 
       item.second_disparity, 
-      item.trends_term, 
+      item.trends_idx, 
       item.trends, 
       item.avg_volume, 
       item.transaction_amount, 
@@ -321,13 +357,21 @@ class BitThumbPrivate():
       item.name,
       item.first_disparity, 
       item.second_disparity, 
-      item.trends_term, 
+      item.trends_idx, 
       item.trends, 
       item.avg_volume, 
       item.transaction_amount, 
       item.price,
       item.idx
     ])
+
+  async def updateUseSearchOption(self, num):
+    print("numnum :::::::::", num)
+    try:
+      await self.mysql.Update(updateUseSearchOption, [ num ])
+      return 200
+    except:
+      return 303
 
 # Auto But and Selling
   async def autoTrading(self):

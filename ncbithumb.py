@@ -72,7 +72,6 @@ async def getOrderList(item: getOrderListBody):
 
 @app.post('/getDateOrderList')
 def getDateOrderList(item: getDateOrderListBody):
-  print(item)
   # return bit.getDateOrderList(item.date, item.page)
   return {"data": bit.getDateOrderList(item.date, item.page), "page": 1}
 
@@ -98,6 +97,10 @@ async def getAccountInfo(date1, date2):
 @app.post('/autotrading')
 async def autoTrading():
   await bit.autoTrading()
+
+@app.post('/setting/updateUseSearchOption')
+async def updateUseSearchOption(item:updateUseSearchOptionBody):
+  return await bit.updateUseSearchOption(item.num)
 
 @app.get('/setting/getDisparity')
 async def getDisparity():
