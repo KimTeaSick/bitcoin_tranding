@@ -252,13 +252,13 @@ class BitThumbPrivate():
       print("getUseOption ::::::: ", getUseOption)
       options = await self.mysql.Select(selectActiveSearchOptionSql(getUseOption[0][0]))
       print("getUseOptions ::::::: ", num_cores)
-      first_disparity = options[0][0]
-      second_disparity = options[0][1]
-      trends = options[0][2]
-      trends_idx = options[0][3] 
-      avg_volume = options[0][4]
-      transaction_amount = options[0][5] #use
-      price = options[0][6] #use
+      first_disparity = options[0][0] #이격도 1 < 검색 이격도
+      second_disparity = options[0][1] # 이격도 2 > 검색 이격도
+      trends = options[0][2] # 추세
+      trends_idx = options[0][3] # 평균선 idx
+      avg_volume = options[0][4] # 평균 거래량
+      transaction_amount = options[0][5] # 거래 대금
+      price = options[0][6] # 가격 
       print(first_disparity, second_disparity, trends, trends_idx, avg_volume, transaction_amount, price)
       coinList = await self.mysql.Select(getDBCoinList(price, transaction_amount))
       print(coinList)
