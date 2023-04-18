@@ -119,6 +119,7 @@ async def getSearchOptionList():
 
 @app.post('/setting/registerSearchOption')
 def insertSearchOption(item: updateSearchOptionBody):
+  print(item)
   response = bit.insertSearchOption(item)
   return response
 

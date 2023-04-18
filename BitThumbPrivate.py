@@ -166,6 +166,7 @@ class BitThumbPrivate():
     orderList = []
     for data in selectData:
       orderDesc = (data[2], data[1], data[3], 'KRW')
+      print(self.bithumb.get_order_completed(orderDesc))
       orderList.append(self.bithumb.get_order_completed(orderDesc)['data'])
     return orderList
   
@@ -214,29 +215,28 @@ class BitThumbPrivate():
       return accountData
 
   def getDisparity(self, coin, disparity, trends):
-    print(" 1 ::::::::::: ", coin)
     flag = True
     url = f"https://api.bithumb.com/public/candlestick/"+coin[0]+"_KRW/6h"
     headers = {"accept": "application/json"}
     data = json.loads(requests.get(url, headers=headers).text)['data']
-    print(" 2 ::::::::::: get Data")
     df = pd.DataFrame(data, columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
     AR = tuple(df['Close'].rolling(window = 5).mean().fillna('undefined'))
     AR_BASE = AR[-10: -1]
     BASE = df['Close'].values.tolist()
-    print(" 3 ::::::::::: make AVG Data")
     for term in range(0, int(trends)):
-      print(" 4 ::::::::::: Data carculate")
-      if term == 0:
-        separation = (float(BASE[len(BASE) - (term + 1)]) / float(AR_BASE[len(AR_BASE) - (term + 1)])) * 100
-        if separation < int(disparity):
+      try:
+        if term == 0:
+          separation = (float(BASE[len(BASE) - (term + 1)]) / float(AR_BASE[len(AR_BASE) - (term + 1)])) * 100
+          if separation < int(disparity):
+            return ''
+        result = float(BASE[len(BASE) - (term + 1)]) - float(AR_BASE[len(AR_BASE) - (term + 1)])
+        if result < 0:
+          flag = False
           return ''
-      result = float(BASE[len(BASE) - (term + 1)]) - float(AR_BASE[len(AR_BASE) - (term + 1)])
-      if result < 0:
-        flag = False
+        if flag == True:
+          return {"coin": {"coin":coin[0], "data":self.getBitCoinList(coin[0])["data"]}, "separation": separation}
+      except:
         return ''
-    if flag == True:
-      self.recommandCoinList.append({"coin": {"coin":coin[0], "data":self.getBitCoinList(coin[0])["data"]}, "separation": separation})
 
   async def test(self, coinList, first_disparity, trends):
     for coin in coinList:
@@ -244,14 +244,10 @@ class BitThumbPrivate():
 
   async def getRecommendPrice(self):
     try:
-      start = time.time()
-      num_cores = mp.cpu_count()
-      pool = Pool(num_cores)
       priceList = []
       getUseOption = await self.mysql.Select(selectUseSearchOptionSql)
       print("getUseOption ::::::: ", getUseOption)
       options = await self.mysql.Select(selectActiveSearchOptionSql(getUseOption[0][0]))
-      print("getUseOptions ::::::: ", num_cores)
       first_disparity = options[0][0] #이격도 1 < 검색 이격도
       second_disparity = options[0][1] # 이격도 2 > 검색 이격도
       trends = options[0][2] # 추세
@@ -266,18 +262,13 @@ class BitThumbPrivate():
       if len(coinList) == 0:
         return 201
       else:
-        pool.map(await self.test(coinList, first_disparity, trends))
-          # value.start
-          # value = self.getDisparity(coin, first_disparity, trends)
-          # if value != '':
-            # priceList.append(value)
-      end = time.time()
-      pool.close()
-      pool.join()
-      print("priceList", priceList)
-      print("수행시간: %f 초" % (end - start))
-      return self.recommandCoinList
-      # return priceList
+        for coin in coinList:
+          value = self.getDisparity(coin, first_disparity, trends)
+          if value != '':
+            print("append List ! :::::::: ")
+            priceList.append(value)
+        print("priceList :::::::::: ", priceList)
+        return tuple(priceList)
     except:
       return 333
 
