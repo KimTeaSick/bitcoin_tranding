@@ -47,7 +47,7 @@ class MySql():
         except mysql.connector.Error as err:
             self.mydb.reconnect()    
 
-    async def Select(self, sql ):
+    async def Select(self, sql):
         try:
             mycursor = self.mydb.cursor(prepared=True)
             mycursor.execute(sql)
