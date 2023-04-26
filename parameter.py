@@ -45,3 +45,7 @@ class  updateDisparityOptionBody(BaseModel):
   
 class updateUseSearchOptionBody(BaseModel):
   num: str
+
+class updateCoinWarning(BaseModel):
+  value: str
+  coin_name:str

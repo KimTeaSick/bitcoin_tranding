@@ -17,23 +17,28 @@ def todayOrderListSql(dateStart, dateEnd):
 orderListCountSql = 'SELECT count(idx) as count FROM nc_r_trading_t'
 
 getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t'
+deleteCoinSql = 'SELECT FROM nc_r_coin_list_t WHERE coin_name = %s'
 def getDBCoinList(price, transaction_price): 
   return 'SELECT coin_name FROM nc_r_coin_list_t WHERE price >= ' + price + ' AND price IS NOT NULL AND transaction_price >= ' + transaction_price
-deleteCoinSql = 'SELECT FROM nc_r_coin_list_t WHERE coin_name = %s'
 
 getDisparityOptionSql = 'SELECT disparity_idx, disparity_name, disparity_value, disparity_color from nc_b_disparity_option_t WHERE disparity_name = "line_one" or disparity_name = "line_two" or disparity_name = "line_three"'
 updateDisparityOptionSql  = 'UPDATE nc_b_disparity_option_t SET disparity_value = %s, disparity_color = %s WHERE disparity_name = %s'
 
 selectSearchOptionSql = 'SELECT * FROM nc_b_search_option_t'
 selectUseSearchOptionSql = 'SELECT search_idx FROM nc_b_use_search_option_t'
-def selectActiveSearchOptionSql(option_idx): 
-  return 'SELECT first_disparity, second_disparity, trends, trends_idx, avg_volume, transaction_amount, price FROM nc_b_search_option_t WHERE idx = ' + option_idx
 insertSearchOptionSql = 'INSERT INTO nc_b_search_option_t (name, first_disparity, second_disparity,trends_idx, trends, avg_volume, transaction_amount, price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
 updateSearchOptionSql = 'UPDATE nc_b_search_option_t SET name = %s , first_disparity = %s , second_disparity = %s ,trends_idx = %s, trends = %s , avg_volume = %s , transaction_amount = %s , price = %s WHERE idx = %s'
 updateUseSearchOption = 'UPDATE nc_b_use_search_option_t SET search_idx = %s '
+def selectActiveSearchOptionSql(option_idx): 
+  return 'SELECT first_disparity, second_disparity, trends, trends_idx, avg_volume, transaction_amount, price FROM nc_b_search_option_t WHERE idx = ' + option_idx
 
-insertRecommendCoin = 'Insert into nc_r_recommend_coin_t (coin_name, catch_price) values (%s, %s)'
-selectRecommendCoin = 'Select * from nc_r_recommend_coin_t'
-deleteRecommendCoin = 'DELETE FROM nc_r_recommend_coin_t'
+insertRecommendCoin = 'Insert into nc_f_recommend_coin_t (coin_name, catch_price) values (%s, %s)'
+selectRecommendCoin = 'Select * from nc_f_recommend_coin_t'
+deleteRecommendCoin = 'DELETE FROM nc_f_recommend_coin_t'
 
 insertLog = 'INSERT INTO nc_b_log_t (log_idx, log_content) VALUES (%s, %s)'
+
+def selectWarningFlag(coin_name): 
+  return 'Select warning from nc_r_coin_list_t WHERE coin_name = ' + "'" + coin_name + "'" 
+
+updateWarningFlag = 'UPDATE nc_r_coin_list_t SET warning = %s WHERE coin_name = %s'
