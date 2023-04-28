@@ -215,6 +215,15 @@ class BitThumbPrivate():
       accountData = [totalMoney, account, buyingMoney, sellingMoney, fee]
       return accountData
 
+  async def getRecommendCoin(self):
+    DB_DATA = await self.mysql.Select(selectRecommendCoin)
+    recommendCoinList = []
+    for coin in DB_DATA:
+      data = self.getBitCoinList(coin[0])['data']
+      recommendCoinList.append({"coin":coin[0], "data":data})
+    print("recommendCoinList", recommendCoinList)
+    return recommendCoinList
+
   async def getDisparity(self, coin, disparity, trends):
     flag = True
     url = f"https://api.bithumb.com/public/candlestick/"+coin[0]+"_KRW/6h"
@@ -376,6 +385,7 @@ class BitThumbPrivate():
 # Auto But and Selling
 
   async def buy(self, coin, unit): #매수
+    print("coin, unit :::::::::::: ", coin, unit)
     buyLog = self.bithumb.buy_market_order(coin, unit) #params 1: 종목, 2: 갯수
     time.sleep(0.1)
     print(buyLog)
@@ -456,6 +466,7 @@ class BitThumbPrivate():
           print('Delete complate')
           return 200
         else:
+          print('float(sellCoin[0][1]) - float(detailLog[)', float(sellCoin[0][1]) - float(detailLog['order_qty']))
           await self.mysql.Update(sellUpdatePossessionCoin,[
             float(sellCoin[0][1]) - float(detailLog['order_qty']),
             float(sellCoin[0][3]) - float(detailLog['contract'][0]['total']),
@@ -505,10 +516,10 @@ class BitThumbPrivate():
       asyncio.create_task(self.updatePossessionCoin())
       await asyncio.sleep(1)
       coinNames = []
-      print("self.possessionCoinList", self.possessionCoinList)
+      # print("self.possessionCoinList", self.possessionCoinList)
       for i in self.possessionCoinList:
         coinNames.append(i[0])
-      print("coinNames", coinNames)
+      # print("coinNames", coinNames)
       async with websockets.connect(uri, ping_interval=None) as websocket:
         while True:
           subscribe_fmt = {
@@ -524,15 +535,15 @@ class BitThumbPrivate():
           if type(data) == dict:
             for myCoin in self.possessionCoinList:
               if myCoin[0] == data['symbol']:
-                if ((float(data['closePrice']) - float(myCoin[2])) / float(myCoin[2])) * 100 > 0.015:
+                if ((float(data['closePrice']) - float(myCoin[2])) / float(myCoin[2])) * 100 > 0.03:
                   await self.sell(str(myCoin[0]).replace("_KRW", ""), float(myCoin[1]))
                   print("BEST SELL ::::::: ",str(myCoin[0]).replace("_KRW", ""), str(myCoin[1]))
-                elif (((float(data['closePrice']) - float(myCoin[2])) / float(myCoin[2])) * 100) - 100 < 99.9:
+                elif (((float(data['closePrice']) - float(myCoin[2])) / float(myCoin[2])) * 100) - 100 < 99.7:
                   await self.sell(str(myCoin[0]).replace("_KRW", ""), float(myCoin[1]))
                   print("WEST SELL ::::::: ",str(myCoin[0]).replace("_KRW", ""), str(myCoin[1]))
                 else:
-                  print("BEST SELL ::::::: ",str(myCoin[0]).replace("_KRW", ""), str(myCoin[1]))
-                  print("WEST SELL ::::::: ",((float(data['closePrice']) - float(myCoin[2])) / float(myCoin[2]) * 100) - 100 )
+                  print("SELL INFO BEST ::::::: ",str(myCoin[0]).replace("_KRW", ""), str(myCoin[1]))
+                  print("SELL INFO WEST ::::::: ",((float(data['closePrice']) - float(myCoin[2])) / float(myCoin[2]) * 100) - 100 )
     except:
       print("303")
 
@@ -577,10 +588,13 @@ class BitThumbPrivate():
                   if(self.myDeposit > 1000):
                     usePrice = self.myDeposit * 0.7
                     buyUnit = usePrice / float(data['closePrice'])
+                    print("buyUnit :::::::::::::::::::::: ", buyUnit)
                     print("self.myTotalMoney", self.myTotalMoney)
                     if buyUnit * float(data['closePrice']) > 1000:
-                      await self.buy(str(data['symbol']).replace("_KRW", ""), buyUnit)
-                      print("BUY :::::::: ", str(data['symbol']).replace("_KRW", ""), data['closePrice'])
+                      if buyUnit > 0.0001:
+                        await self.buy(str(data['symbol']).replace("_KRW", ""), buyUnit)
+                        print("BUY :::::::: ", str(data['symbol']).replace("_KRW", ""), data['closePrice'])
+                        print("buyUnit :::::::: ", buyUnit)
                     else:
                       print("최소주문 금액에 해당하지 않습니다. :::::::: ")
                   else:

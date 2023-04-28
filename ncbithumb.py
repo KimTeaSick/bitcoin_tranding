@@ -81,6 +81,11 @@ def sendAvgData(item: getAvgDataBody):
   print("item: getAvgDataBody", item)
   return mongo.getAvgData(item.range, item.coin, item.term)
 
+@app.get("/dash/recommendCoin")
+async def getRecommendCoin():
+  response = await bit.getRecommendCoin()
+  return response
+
 @app.get("/dash/getRecommendPrice")
 async def getRecommendPrice():
   response = await bit.getRecommendPrice()
