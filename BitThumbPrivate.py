@@ -382,6 +382,21 @@ class BitThumbPrivate():
     except:
       return 303
 
+  async def getSearchCondition(self):
+    conditionList = []
+    conditionValue = await self.mysql.Select(getConditionList)
+    for condition in conditionValue:
+      conditionList.append({"idx":condition[0], "group_idx":condition[1], "group_name":condition[2], "condition":condition[3]})
+    return conditionList
+  
+  async def getConditionGroupList(self):
+    groupList = []
+    groupValue = await self.mysql.Select(getConditionGroupList)
+    for group in groupValue:
+      groupList.append({"idx": group[0], "group_name":group[1]})
+    return groupList
+
+
 # Auto But and Selling
 
   async def buy(self, coin, unit): #매수

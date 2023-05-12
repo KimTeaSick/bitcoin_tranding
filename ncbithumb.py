@@ -142,3 +142,11 @@ async def updateWarning(item: updateCoinWarning):
     return 200
   except:
     return 303
+  
+@app.get("/autotrading/getConditionList")
+async def getConditionList():
+  return await bit.getSearchCondition()
+
+@app.get("/autotrading/getConditionGroupList")
+async def getConditionGroupList():
+  return await bit.getConditionGroupList()

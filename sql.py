@@ -42,3 +42,6 @@ def selectWarningFlag(coin_name):
   return 'Select warning from nc_r_coin_list_t WHERE coin_name = ' + "'" + coin_name + "'" 
 
 updateWarningFlag = 'UPDATE nc_r_coin_list_t SET warning = %s WHERE coin_name = %s'
+
+getConditionList = 'SELECT a.idx, a.group_idx, b.group_name, a.condition_name FROM nc_b_condition a LEFT JOIN nc_b_condition_group b ON a.group_idx = b.idx'
+getConditionGroupList = 'SELECT * FROM nc_b_condition_group'
