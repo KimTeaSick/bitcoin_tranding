@@ -25,6 +25,14 @@ class getDateOrderListBody(BaseModel):
 class getAccountInfoBody(BaseModel):
   date: list
 
+class getRecommendOption(BaseModel):
+    Price: dict
+    TransactionAmount: dict
+    MASP: dict
+    Disparity: dict
+    Trend: dict
+    MACD: dict
+
 class getSearchOptionBody(BaseModel):  
   name:str
   price: str
@@ -38,7 +46,7 @@ class getSearchOptionBody(BaseModel):
 class updateSearchOptionBody(getSearchOptionBody):
   idx: int
 
-class  updateDisparityOptionBody(BaseModel):
+class updateDisparityOptionBody(BaseModel):
   line_one: dict
   line_two: dict
   line_three: dict

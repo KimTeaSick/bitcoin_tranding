@@ -6,11 +6,18 @@ from mongoDB import MongoDB
 from dbConnection import *
 from parameter import *
 from sql import *
+import datetime
 
 app = FastAPI()
+
+origins = ["*"]
+
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=["*"]
+  allow_origins=["*"],
+  allow_credentials=True,
+  allow_methods=["*"],
+  allow_headers=["*"],
 )
 
 bit = BitThumbPrivate()
@@ -79,9 +86,12 @@ def getDateOrderList(item: getDateOrderListBody):
 def sendAvgData(item: getAvgDataBody):
   return mongo.getAvgData(item.range, item.coin, item.term)
 
-@app.get("/dash/getRecommendPrice")
-async def getRecommendPrice():
-  response = await bit.getRecommendPrice()
+@app.post("/dash/getRecommendCoin")
+async def getRecommendPrice(item: getRecommendOption):
+  now1 = datetime.datetime.now()
+  response = await bit.getRecommendCoin(item)
+  now2 = datetime.datetime.now()
+  print(now2 - now1)
   return response
 
 @app.get("/dash/getPossessoionCoinInfo")

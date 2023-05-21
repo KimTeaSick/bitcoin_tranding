@@ -4,12 +4,11 @@ import asyncio
 import os 
 
 load_dotenv()
-PORT = os.environ.get('PORT')
-HOST = os.environ.get('HOST')
-DATABASE = os.environ.get('DATABASE')
-USERNAME = os.environ.get('USERNAME')
-PASSWORD = os.environ.get('PASSWORD')
-
+PORT = "3306"
+HOST = "192.168.10.208"
+DATABASE = "nc_bit_trading"
+USERNAME = "ipxnms"
+PASSWORD = "$kim99bsd00"
 
 class MySql():
     def __init__(self):
@@ -49,7 +48,7 @@ class MySql():
 
     async def Select(self, sql ):
         try:
-            mycursor = self.mydb.cursor(prepared=True)
+            mycursor = self.mydb.cursor(prepared=False)
             mycursor.execute(sql)
             result = mycursor.fetchall()
             selectData = []
@@ -58,4 +57,4 @@ class MySql():
             mycursor.close()
             return selectData   
         except mysql.connector.Error as err:
-            self.mydb.reconnect()   
+            self.mydb.reconnect()

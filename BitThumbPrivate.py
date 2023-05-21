@@ -20,10 +20,20 @@ import asyncio
 import time
 import json
 import os 
+import recommend
+from database import engine, SessionLocal
+from sqlalchemy.orm import Session
+import models
+
+try:
+    db = SessionLocal()
+    db: Session
+finally:
+    db.close()
 
 load_dotenv()
-secretKey = os.environ.get('SECLET_KEY')
-connenctKey = os.environ.get('CONNECT_KEY')
+secretKey = "07c1879d34d18036405f1c4ae20d3023"
+connenctKey = "9ae8ae53e7e0939722284added991d55"
 
 h ="24h"
 url = f"https://api.bithumb.com/public/candlestick/BTC_KRW/{h}"
@@ -242,44 +252,112 @@ class BitThumbPrivate():
     for coin in coinList:
       self.getDisparity(coin, first_disparity, trends)
 
-  async def getRecommendPrice(self):
-    try:
-      start = time.time()
-      num_cores = mp.cpu_count()
-      pool = Pool(num_cores)
-      priceList = []
-      getUseOption = await self.mysql.Select(selectUseSearchOptionSql)
-      print("getUseOption ::::::: ", getUseOption)
-      options = await self.mysql.Select(selectActiveSearchOptionSql(getUseOption[0][0]))
-      print("getUseOptions ::::::: ", num_cores)
-      first_disparity = options[0][0]
-      second_disparity = options[0][1]
-      trends = options[0][2]
-      trends_idx = options[0][3] 
-      avg_volume = options[0][4]
-      transaction_amount = options[0][5] #use
-      price = options[0][6] #use
-      print(first_disparity, second_disparity, trends, trends_idx, avg_volume, transaction_amount, price)
-      coinList = await self.mysql.Select(getDBCoinList(price, transaction_amount))
-      print(coinList)
-      time.sleep(1)
-      if len(coinList) == 0:
-        return 201
-      else:
-        pool.map(await self.test(coinList, first_disparity, trends))
-          # value.start
-          # value = self.getDisparity(coin, first_disparity, trends)
-          # if value != '':
-            # priceList.append(value)
-      end = time.time()
-      pool.close()
-      pool.join()
-      print("priceList", priceList)
-      print("수행시간: %f 초" % (end - start))
-      return self.recommandCoinList
-      # return priceList
-    except:
-      return 333
+  async def getRecommendCoin(self, item):
+    print(item)
+    options = []
+
+    # 사용 옵션 확인 및 변환
+    for i in item:
+      if i[1]['flag'] != '0':
+        if i[0] == 'Price':
+          options.append({'option':'Price', 'low_price':i[1]['low_price'], 'high_price':i[1]['high_price']})
+
+        if i[0] == 'TransactionAmount':
+          options.append({'option':'TransactionAmount', 'low_transaction_amount':i[1]['low_transaction_amount'], 'high_transaction_amount':i[1]['high_transaction_amount']})
+
+        if i[0] == 'MASP':
+          options.append({'option':'MASP', 'chart_term':i[1]['chart_term'], 'first_disparity':i[1]['first_disparity'], 'second_disparity':i[1]['second_disparity'], 'comparison':i[1]['comparison']})
+
+        if i[0] == 'Disparity':
+          options.append({'option':'Disparity', 'chart_term':i[1]['chart_term'], 'disparity_term':i[1]['disparity_term'], 'low_disparity':i[1]['low_disparity'], 'high_disparity':i[1]['high_disparity']})
+
+        if i[0] == 'Trend':
+          options.append({'option':'Trend', 'chart_term':i[1]['chart_term'], 'trend_term':i[1]['trend_term'], 'trend_type':i[1]['trend_type'], 'trend_reverse':i[1]['trend_reverse']})
+
+        if i[0] == 'MACD':
+          options.append({'option':'MACD', 'chart_term':i[1]['chart_term'], 'short_disparity':i[1]['short_disparity'], 'long_disparity':i[1]['long_disparity'], 'up_down':i[1]['up_down']})
+
+    # 검색 코인 receive
+    coins = recommend.recommendCoin(options)
+
+    url = "https://api.bithumb.com/public/ticker/ALL_KRW"
+    headers = {"accept": "application/json"}
+
+    response = requests.get(url, headers=headers)
+    data = response.json()["data"]
+
+    PriceRecommend = coins['Price'][:-1].split()
+    TrAmtRecommend = coins['TransactionAmount'][:-1].split()
+    DisparityRecommend = coins['Disparity'][:-1].split()
+    TrendRecommend = coins['Trend'][:-1].split()
+    MacdRecommend = coins['MACD'][:-1].split()
+    MaspRecommend = coins['MASP'][:-1].split()
+
+    recommendCoins = []
+    coinList = db.query(models.coinList).all()
+    for coin in coinList:
+      recommendCoins.append(coin.coin_name)
+
+    for i in item:
+      if i[1]['flag'] != '0':
+        if i[0] == 'Price':
+          recommendCoins = set(recommendCoins) & set(PriceRecommend)
+
+        if i[0] == 'TransactionAmount':
+          recommendCoins = set(recommendCoins) & set(TrAmtRecommend)
+
+        if i[0] == 'Disparity':
+          recommendCoins = set(recommendCoins) & set(DisparityRecommend)
+
+        if i[0] == 'Trend':
+          recommendCoins = set(recommendCoins) & set(TrendRecommend)
+
+        if i[0] == 'MACD':
+          recommendCoins = set(recommendCoins) & set(MacdRecommend)
+
+        if i[0] == 'MASP':
+          recommendCoins = set(recommendCoins) & set(MaspRecommend)
+
+    priceDict = []
+    TrAmtDict = []
+    DisparityDict = []
+    MaspDict = []
+    TrendDict = []
+    MacdDict = []
+
+    recommendDict = []
+
+    for coin in PriceRecommend:
+      name = coin[:-4]
+      priceDict.append({name:data[name]})
+
+    for coin in TrAmtRecommend:
+      name = coin[:-4]
+      TrAmtDict.append({name:data[name]})
+
+    for coin in MaspRecommend:
+      name = coin[:-4]
+      MaspDict.append({name:data[name]})
+
+    for coin in DisparityRecommend:
+      name = coin[:-4]
+      DisparityDict.append({name:data[name]})
+
+    for coin in TrendRecommend:
+      name = coin[:-4]
+      TrendDict.append({name:data[name]})
+
+    for coin in MacdRecommend:
+      name = coin[:-4]
+      MacdDict.append({name:data[name]})
+
+    for recommendCoin in recommendCoins:
+      name = recommendCoin[:-4]
+      #recommendDict.append({name:data[name]})
+
+    print(len(MacdDict))
+    
+    return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}
 
   async def possessoionCoinInfo(self):
     try:
