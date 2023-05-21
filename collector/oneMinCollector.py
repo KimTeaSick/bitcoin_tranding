@@ -37,8 +37,6 @@ class MyThread(threading.Thread):
             response = requests.get(url)
             data = response.json()["data"]
 
-            time = datetime.datetime.now()
-
             try:
                 # 데이터프레임 df 생성
                 df = pd.DataFrame(data, columns=['time', 'open', 'close', 'high', 'low', 'volume'])
@@ -50,8 +48,6 @@ class MyThread(threading.Thread):
                 df = df.set_index('time').resample('1T').asfreq()
                 df = df.fillna(0)
 
-                df3 = df[-100:]
-
                 dt = df2[len(df2) -1] // 1000
                 dt2 = datetime.datetime.fromtimestamp(dt)
 
@@ -61,11 +57,11 @@ class MyThread(threading.Thread):
 
                 # insert 할 내용 append
                 if int(dt) == int(unix_timestamp):
-                    currentPrice.append({'STime' : int(data2[0]/1000), 'Open': data2[1], 'Close': data2[2], 'High': data2[3], 'Low':data2[4], 'Volume': data2[5], 'coin_name': data2[6], 'time': data2[7]})
+                    currentPrice.append({'STime' : int(data2[0]/1000), 'Open': data2[1], 'Close': data2[2], 'High': data2[3], 'Low':data2[4], 'Volume': data2[5], 'coin_name': data2[6], 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'empty_count':emptyCnt})
 
                 else:
                     emptyCnt = int(((unix_timestamp - dt) / 60) /1)
-                    currentPrice.append({'STime' : unix_timestamp, 'Open': data2[1], 'Close': data2[2], 'High': data2[3], 'Low': data2[4], 'Volume': data2[5], 'coin_name': data2[6], 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'empty_count':emptyCnt})
+                    currentPrice.append({'STime' : unix_timestamp, 'Open': data2[1], 'Close': data2[2], 'High': data2[3], 'Low': data2[4], 'Volume': 0, 'coin_name': data2[6], 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'empty_count':emptyCnt})
 
                 print(currentPrice[-1])
 
@@ -99,8 +95,6 @@ if __name__ == '__main__':
 
     db.bulk_insert_mappings(models.coinMinPrice, currentPrice)
 
-    db.query(models.coinCurrentCandlePrice).delete()
-    db.bulk_insert_mappings(models.coinCurrentCandlePrice, currentPrice)
     db.commit()
 
     now2 = datetime.datetime.now()

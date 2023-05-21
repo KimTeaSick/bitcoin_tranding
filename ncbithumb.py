@@ -136,3 +136,33 @@ def insertSearchOption(item: updateSearchOptionBody):
 async def updateSearchOption(item: updateSearchOptionBody):
   response = await bit.updateSearchOption(item)
   return response
+
+@app.post('/option/insertOption')
+async def updateSearchOption(item: insertOption):
+  response = await bit.insertOption(item)
+  return response
+
+@app.get('/option/optionList')
+async def getOptionList():
+  response = await bit.optionList()
+  return response
+
+@app.post('/option/optionDetail')
+async def selectOptionDetail(item: getOptionDetail):
+  response = await bit.optionDetail(item)
+  return response
+
+@app.post('/option/updateOption')
+async def UpdateOption(item: updateOption):
+  response = await bit.updateOption(item)
+  return response
+
+@app.post('/option/deleteOption')
+async def OptionDelete(item: deleteOption):
+  response = await bit.deleteOption(item)
+  return response
+
+@app.post('/option/useOption')
+async def OptionUsed(item: useOption):
+  response = await bit.useOption(item)
+  return response

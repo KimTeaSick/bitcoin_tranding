@@ -53,3 +53,30 @@ class updateDisparityOptionBody(BaseModel):
   
 class updateUseSearchOptionBody(BaseModel):
   num: str
+
+class insertOption(BaseModel):
+    Name: str
+    Price: dict
+    TransactionAmount: dict
+    MASP: dict
+    Disparity: dict
+    Trend: dict
+    MACD: dict
+
+class getOptionDetail(BaseModel):  
+  option: str
+
+class updateOption(BaseModel):  
+    Name: str
+    Price: dict
+    TransactionAmount: dict
+    MASP: dict
+    Disparity: dict
+    Trend: dict
+    MACD: dict
+
+class deleteOption(BaseModel):  
+  option: str
+
+class useOption(BaseModel):  
+  option: str

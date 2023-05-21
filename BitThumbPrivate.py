@@ -12,18 +12,15 @@ from dbConnection import MySql
 import pandas as pd
 import numpy as np
 import websockets
-import threading
 import schedule
-import numba
 import requests
-import asyncio
 import time
 import json
-import os 
 import recommend
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 import models
+import datetime
 
 try:
     db = SessionLocal()
@@ -272,7 +269,7 @@ class BitThumbPrivate():
           options.append({'option':'Disparity', 'chart_term':i[1]['chart_term'], 'disparity_term':i[1]['disparity_term'], 'low_disparity':i[1]['low_disparity'], 'high_disparity':i[1]['high_disparity']})
 
         if i[0] == 'Trend':
-          options.append({'option':'Trend', 'chart_term':i[1]['chart_term'], 'trend_term':i[1]['trend_term'], 'trend_type':i[1]['trend_type'], 'trend_reverse':i[1]['trend_reverse']})
+          options.append({'option':'Trend', 'chart_term':i[1]['chart_term'], 'trend_term':i[1]['trend_term'], 'trend_type':i[1]['trend_type'], 'trend_reverse':i[1]['trend_reverse'], "MASP":i[1]['MASP']})
 
         if i[0] == 'MACD':
           options.append({'option':'MACD', 'chart_term':i[1]['chart_term'], 'short_disparity':i[1]['short_disparity'], 'long_disparity':i[1]['long_disparity'], 'up_down':i[1]['up_down']})
@@ -293,11 +290,22 @@ class BitThumbPrivate():
     MacdRecommend = coins['MACD'][:-1].split()
     MaspRecommend = coins['MASP'][:-1].split()
 
+    time = str(datetime.datetime.now() - datetime.timedelta(minutes= 10))
+    findIndex = db.query(models.coinPrice1M).filter(models.coinPrice1M.time.like(f'{time[:-10]}%')).first()
+    ToDf = db.query(models.coinPrice1M).filter(models.coinPrice1M.idx > findIndex.idx).all()
+
+    dfList = []
+    for i in ToDf:
+        dfList.append({'coin_name':i.coin_name, 'time':i.time, 'Close':i.Close, 'Volume':i.Volume, 'TransactioAmount': float(i.Close) * float(i.Volume)})
+
+    df = pd.DataFrame(dfList)
+
     recommendCoins = []
     coinList = db.query(models.coinList).all()
     for coin in coinList:
       recommendCoins.append(coin.coin_name)
 
+    # 추천 코인 교집합
     for i in item:
       if i[1]['flag'] != '0':
         if i[0] == 'Price':
@@ -318,6 +326,7 @@ class BitThumbPrivate():
         if i[0] == 'MASP':
           recommendCoins = set(recommendCoins) & set(MaspRecommend)
 
+    # 리턴할 정보 append
     priceDict = []
     TrAmtDict = []
     DisparityDict = []
@@ -327,37 +336,70 @@ class BitThumbPrivate():
 
     recommendDict = []
 
-    for coin in PriceRecommend:
-      name = coin[:-4]
-      priceDict.append({name:data[name]})
+    for coin in coinList:
+      if coin.coin_name in PriceRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
 
-    for coin in TrAmtRecommend:
-      name = coin[:-4]
-      TrAmtDict.append({name:data[name]})
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
 
-    for coin in MaspRecommend:
-      name = coin[:-4]
-      MaspDict.append({name:data[name]})
+        priceDict.append({name:data[name]})
 
-    for coin in DisparityRecommend:
-      name = coin[:-4]
-      DisparityDict.append({name:data[name]})
+      if coin.coin_name in TrAmtRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
 
-    for coin in TrendRecommend:
-      name = coin[:-4]
-      TrendDict.append({name:data[name]})
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
 
-    for coin in MacdRecommend:
-      name = coin[:-4]
-      MacdDict.append({name:data[name]})
+        TrAmtDict.append({name:data[name]})
 
-    for recommendCoin in recommendCoins:
-      name = recommendCoin[:-4]
-      #recommendDict.append({name:data[name]})
+      if coin.coin_name in MaspRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
 
-    print(len(MacdDict))
-    
-    return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+
+        MaspDict.append({name:data[name]})
+
+      if coin.coin_name in DisparityRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
+
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+
+        DisparityDict.append({name:data[name]})
+
+      if coin.coin_name in TrendRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
+
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+
+        TrendDict.append({name:data[name]})
+
+      if coin.coin_name in MacdRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
+
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+        MacdDict.append({name:data[name]})
+
+      if coin.coin_name in recommendCoins:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
+
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+
+        recommendDict.append({name:data[name]})
+
+    return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Disparity':DisparityDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}
 
   async def possessoionCoinInfo(self):
     try:
@@ -581,3 +623,236 @@ class BitThumbPrivate():
         return 200
       else:
         return 404
+  
+  async def insertOption(self, item):
+    try:
+      now1 = datetime.datetime.now()
+      print(item)
+      opName = ''
+      search_option = models.searchOption()
+      price_option = models.PriceOption()
+      transactionAmount_option = models.TransactionAmountOption()
+      MASP_option = models.MASPOption()
+      disparity_option = models.DisparityOption()
+      trend_option = models.TrendOption()
+      MACD_option = models.MACDOption()
+
+      #price_option.low_price = item['Price']['low_price']
+
+      for i in item:
+        if i[0] == 'Name':
+          opName = i[1]
+
+        if i[0] == 'Price':
+          price_option.low_price = i[1]['low_price']
+          price_option.high_price = i[1]['high_price']
+          db.add(price_option)
+
+        if i[0] == 'TransactionAmount':
+          transactionAmount_option.low_transaction_amount = i[1]['low_transaction_amount']
+          transactionAmount_option.high_transaction_amount = i[1]['high_transaction_amount']
+          db.add(transactionAmount_option)
+
+        if i[0] == 'MASP':
+          MASP_option.chart_term = i[1]['chart_term']
+          MASP_option.first_disparity = i[1]['first_disparity']
+          MASP_option.comparison = i[1]['comparison']
+          MASP_option.second_disparity = i[1]['second_disparity']
+          db.add(MASP_option)
+
+        if i[0] == 'Disparity':
+          disparity_option.chart_term = i[1]['chart_term']
+          disparity_option.disparity_term = i[1]['disparity_term']
+          disparity_option.low_disparity = i[1]['low_disparity']
+          disparity_option.high_disparity = i[1]['high_disparity']
+          db.add(disparity_option)
+
+        if i[0] == 'Trend':
+          trend_option.chart_term = i[1]['chart_term']
+          trend_option.MASP = i[1]['MASP']
+          trend_option.trend_term = i[1]['trend_term']
+          trend_option.trend_type = i[1]['trend_type']
+          trend_option.trend_reverse = i[1]['trend_reverse']
+          db.add(trend_option)
+
+        if i[0] == 'MACD':
+          MACD_option.chart_term = i[1]['chart_term']
+          MACD_option.short_disparity = i[1]['short_disparity']
+          MACD_option.long_disparity = i[1]['long_disparity']
+          MACD_option.up_down = i[1]['up_down']
+          db.add(MACD_option)
+
+      db.commit()
+
+      pri = db.query(models.PriceOption).order_by(models.PriceOption.idx.desc()).first()
+      tra = db.query(models.TransactionAmountOption).order_by(models.TransactionAmountOption.idx.desc()).first()
+      mas = db.query(models.MASPOption).order_by(models.MASPOption.idx.desc()).first()
+      dis = db.query(models.DisparityOption).order_by(models.DisparityOption.idx.desc()).first()
+      trd = db.query(models.TrendOption).order_by(models.TrendOption.idx.desc()).first()
+      mac = db.query(models.MACDOption).order_by(models.MACDOption.idx.desc()).first()
+
+      now2 = datetime.datetime.now()
+
+      search_option.name = opName
+      search_option.Price = pri.idx
+      search_option.Transaction_amount = tra.idx
+      search_option.MASP = mas.idx
+      search_option.Disparity = dis.idx
+      search_option.Trend = trd.idx
+      search_option.MACD = mac.idx
+      search_option.Create_date = datetime.datetime.now() 
+      search_option.used = 0
+
+      db.add(search_option)
+      db.commit()
+
+      print(now2 - now1)
+      return 'Insert sucess'
+
+    except Exception as e:
+      print(e)
+      return e
+
+  async def optionList(self):
+    now1 = datetime.datetime.now()
+    optionL = db.query(models.searchOption).all()
+
+    options = []
+
+    i = 1
+    for option in optionL:
+      options.append({'Name':option.name, 'Create_date':option.Create_date, 'Update_date': option.Update_date, 'used': option.used})
+
+    return options
+
+  async def optionDetail(self, item):
+    now1 = datetime.datetime.now()
+
+    optionL = db.query(models.searchOption).filter(models.searchOption.name == item.option).first()
+
+    pri = db.query(models.PriceOption).filter(models.PriceOption.idx == optionL.Price).first()
+    tra = db.query(models.TransactionAmountOption).filter(models.TransactionAmountOption.idx == optionL.Transaction_amount).first()
+    mas = db.query(models.MASPOption).filter(models.MASPOption.idx == optionL.MASP).first()
+    dis = db.query(models.DisparityOption).filter(models.DisparityOption.idx == optionL.Disparity).first()
+    trd = db.query(models.TrendOption).filter(models.TrendOption.idx == optionL.Trend).first()
+    mac = db.query(models.MACDOption).filter(models.MACDOption.idx == optionL.MACD).first()
+
+    now2 = datetime.datetime.now()
+    print(now2-now1)
+
+    return {optionL.name:{'Price':{"low_price": pri.low_price,"high_price": pri.high_price},
+                                   "TransactionAmount": {"low_transaction_amount": tra.low_transaction_amount,"high_transaction_amount":tra.high_transaction_amount},
+                                   "MASP": {"chart_term": mas.chart_term,"first_disparity": mas.first_disparity,"comparison": mas.comparison,"second_disparity": mas.second_disparity},
+                                   "Disparity": {"chart_term": dis.chart_term,"disparity_term": dis.disparity_term,"low_disparity": dis.low_disparity,"high_disparity": dis.high_disparity},
+                                   "Trend": {"chart_term": trd.chart_term,"MASP":trd.MASP,"trend_term": trd.trend_term,"trend_type": trd.trend_type,"trend_reverse": trd.trend_reverse},
+                                   "MACD": {"chart_term": mac.chart_term,"short_disparity": mac.short_disparity,"long_disparity": mac.long_disparity,"up_down": mac.up_down}}}
+
+  async def updateOption(self, item):
+      opName = ''
+      for i in item:
+        if i[0] == 'Name':
+          opName = i[1]
+
+        if i[0] == 'Price':
+          low_price = i[1]['low_price']
+          high_price = i[1]['high_price']
+
+        if i[0] == 'TransactionAmount':
+          low_transaction_amount = i[1]['low_transaction_amount']
+          high_transaction_amount = i[1]['high_transaction_amount']
+
+        if i[0] == 'MASP':
+          Schart_term = i[1]['chart_term']
+          first_disparity = i[1]['first_disparity']
+          comparison = i[1]['comparison']
+          second_disparity = i[1]['second_disparity']
+
+        if i[0] == 'Disparity':
+          Dchart_term = i[1]['chart_term']
+          disparity_term = i[1]['disparity_term']
+          low_disparity = i[1]['low_disparity']
+          high_disparity = i[1]['high_disparity']
+
+        if i[0] == 'Trend':
+          Tchart_term = i[1]['chart_term']
+          MASP = i[1]['MASP']
+          trend_term = i[1]['trend_term']
+          trend_type = i[1]['trend_type']
+          trend_reverse = i[1]['trend_reverse']
+
+        if i[0] == 'MACD':
+          Cchart_term = i[1]['chart_term']
+          short_disparity = i[1]['short_disparity']
+          long_disparity = i[1]['long_disparity']
+          up_down = i[1]['up_down']
+
+
+      optionL = db.query(models.searchOption).filter(models.searchOption.name == opName).first()
+
+      pri = db.query(models.PriceOption).filter(models.PriceOption.idx == optionL.Price).first()
+      tra = db.query(models.TransactionAmountOption).filter(models.TransactionAmountOption.idx == optionL.Transaction_amount).first()
+      mas = db.query(models.MASPOption).filter(models.MASPOption.idx == optionL.MASP).first()
+      dis = db.query(models.DisparityOption).filter(models.DisparityOption.idx == optionL.Disparity).first()
+      trd = db.query(models.TrendOption).filter(models.TrendOption.idx == optionL.Trend).first()
+      mac = db.query(models.MACDOption).filter(models.MACDOption.idx == optionL.MACD).first()
+
+      pri.low_price = low_price
+      pri.high_price = high_price
+      tra.low_transaction_amount = low_transaction_amount
+      tra.high_transaction_amount = high_transaction_amount
+      mas.chart_term = Schart_term
+      mas.first_disparity = first_disparity
+      mas.comparison = comparison
+      mas.second_disparity = second_disparity
+      trd.chart_term = Tchart_term
+      trd.MASP = MASP
+      trd.trend_term = trend_term
+      trd.trend_type = trend_type
+      trd.trend_reverse = trend_reverse
+      mac.chart_term = Cchart_term
+      mac.short_disparity = short_disparity
+      mac.long_disparity = long_disparity
+      mac.up_down = up_down
+
+      optionL.Update_date = datetime.datetime.now()
+
+      db.commit()
+
+
+      return {optionL.name:{'Price':{"low_price": pri.low_price,"high_price": pri.high_price},
+                                   "TransactionAmount": {"low_transaction_amount": tra.low_transaction_amount,"high_transaction_amount":tra.high_transaction_amount},
+                                   "MASP": {"chart_term": mas.chart_term,"first_disparity": mas.first_disparity,"comparison": mas.comparison,"second_disparity": mas.second_disparity},
+                                   "Disparity": {"chart_term": dis.chart_term,"disparity_term": dis.disparity_term,"low_disparity": dis.low_disparity,"high_disparity": dis.high_disparity},
+                                   "Trend": {"chart_term": trd.chart_term,"MASP":trd.MASP,"trend_term": trd.trend_term,"trend_type": trd.trend_type,"trend_reverse": trd.trend_reverse},
+                                   "MACD": {"chart_term": mac.chart_term,"short_disparity": mac.short_disparity,"long_disparity": mac.long_disparity,"up_down": mac.up_down}}}
+
+  async def deleteOption(self, item):
+    try:
+      optionL = db.query(models.searchOption).filter(models.searchOption.name == item.option).first()
+
+      db.query(models.PriceOption).filter(models.PriceOption.idx == optionL.Price).delete()
+      db.query(models.TransactionAmountOption).filter(models.TransactionAmountOption.idx == optionL.Transaction_amount).delete()
+      db.query(models.MASPOption).filter(models.MASPOption.idx == optionL.MASP).delete()
+      db.query(models.DisparityOption).filter(models.DisparityOption.idx == optionL.Disparity).delete()
+      db.query(models.TrendOption).filter(models.TrendOption.idx == optionL.Trend).delete()
+      db.query(models.MACDOption).filter(models.MACDOption.idx == optionL.MACD).delete()
+
+      db.query(models.searchOption).filter(models.searchOption.name == item.option).delete()
+      db.commit()
+      return 'delete sucess'
+
+    except Exception as e:
+      print(e)
+
+  async def useOption(self, item):
+    print(item)
+    useOption = db.query(models.searchOption).filter(models.searchOption.name == item.option).first()
+    optionL = db.query(models.searchOption).filter(models.searchOption.used == 1).all()
+
+    for option in optionL:
+      option.used = 0
+    
+    useOption.used = 1
+    useOption.Update_date = datetime.datetime.now()
+
+    db.commit()
