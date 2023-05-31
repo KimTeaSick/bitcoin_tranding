@@ -5,7 +5,7 @@ import os
 
 load_dotenv()
 PORT = "3306"
-HOST = "192.168.10.208"
+HOST = "192.168.10.202"
 DATABASE = "nc_bit_trading"
 USERNAME = "ipxnms"
 PASSWORD = "$kim99bsd00"

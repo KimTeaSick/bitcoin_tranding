@@ -21,9 +21,9 @@ now = datetime.datetime.now()
 unix_timestamp = int(now.timestamp() /60) * 60
 
 if str(now.strftime("%H%M")) == '0000':
-    db.query(models.coinCurrentPrice).delete()
+    db.query(model.coinCurrentPrice).delete()
 
-coinList = db.query(models.coinList).all()
+coinList = db.query(model.coinList).all()
 coins = []
 
 for coin in coinList:
@@ -39,7 +39,7 @@ for ticker in data:
         except Exception as e:
             print(e)
     else:
-        tick = models.coinCurrentPrice()
+        tick = model.coinCurrentPrice()
         tick.coin_name = ticker+'_KRW'
         tick.S_time = unix_timestamp
         tick.Open = data[ticker]['opening_price']
@@ -52,7 +52,7 @@ for ticker in data:
 
         db.add(tick)
 
-db.bulk_update_mappings(models.coinCurrentPrice, currentList)
+db.bulk_update_mappings(model.coinCurrentPrice, currentList)
 
 now2 = datetime.datetime.now()
 db.commit()

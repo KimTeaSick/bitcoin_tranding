@@ -1,6 +1,6 @@
 import websocket
 import json
-import models 
+import models
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 import datetime
@@ -12,7 +12,7 @@ try:
 finally:
     db.close()
 
-coinList = db.query(models.coinList).all()
+coinList = db.query(model.coinList).all()
 coinNames = []
 for coin in coinList:
     coinNames.append(coin.coin_name)
@@ -82,7 +82,7 @@ def collectNinsert(collector, coins):
     now1 = datetime.datetime.now()
     df = pd.DataFrame(collector)
 
-    current = db.query(models.coinCurrentPrice).all()
+    current = db.query(model.coinCurrentPrice).all()
 
     bulkinsert = []
 
@@ -112,7 +112,7 @@ def collectNinsert(collector, coins):
             bulkinsert.append({'coin_name': coin.coin_name, 'S_time': unix_timestamp, 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'Open': openPrice, 'Close': closePrice, 'High': maxPrice, 'Low': minPrice, 
                                'Avg_price': avgPrice, 'Transaction_amount': transaction_amount, 'Volume': volume, 'Disparity': disparity, 'Ask_price': 0})
 
-    db.bulk_insert_mappings(models.coinPrice1M, bulkinsert)
+    db.bulk_insert_mappings(model.coinPrice1M, bulkinsert)
     #db.bulk_update_mappings(models.coinCurrentPrice, bulkinsert)
 
     db.commit()

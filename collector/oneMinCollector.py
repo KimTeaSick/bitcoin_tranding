@@ -74,7 +74,7 @@ if __name__ == '__main__':
     now1 = datetime.datetime.now()
 
     threads = []
-    coinList = db.query(models.coinList).all()
+    coinList = db.query(model.coinList).all()
 
     headers = {"accept": "application/json"}
 
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     for t in threads:
         t.join()
 
-    db.bulk_insert_mappings(models.coinMinPrice, currentPrice)
+    db.bulk_insert_mappings(model.coinMinPrice, currentPrice)
 
     db.commit()
 

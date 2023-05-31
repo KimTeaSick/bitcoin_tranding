@@ -92,6 +92,7 @@ async def getRecommendPrice(item: getRecommendOption):
   response = await bit.getRecommendCoin(item)
   now2 = datetime.datetime.now()
   print(now2 - now1)
+
   return response
 
 @app.get("/dash/getPossessoionCoinInfo")

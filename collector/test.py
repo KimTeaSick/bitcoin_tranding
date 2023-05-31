@@ -1,9 +1,24 @@
-import pandas as pd
+import datetime
+from database import engine, SessionLocal
+from sqlalchemy.orm import Session
+import models
 
-# 가상의 데이터 생성
-data = pd.DataFrame({'Value': [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]})
+try:
+    db = SessionLocal()
+    db: Session
+finally:
+    db.close()
 
-# 4개씩 평균 계산
-averages = data['Value'].rolling(window=4).mean()
+now = datetime.datetime.now()
+now2 = int(int(now.timestamp()) /60) * 60 + (60*540)
 
-print(averages)
+#unixtimestamp = 1685104320
+
+#dbtime = datetime.datetime.utcfromtimestamp(unixtimestamp)
+
+print(datetime.datetime.utcfromtimestamp(now2))
+print(now2)
+
+#findIndex = db.query(models.coinPrice1M).filter(models.coinPrice1M.S_time >= now2).first()
+
+#print(findIndex.idx, findIndex.S_time, findIndex.time)

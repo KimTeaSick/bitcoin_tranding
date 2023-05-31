@@ -21,7 +21,7 @@ for dat in data:
     coinlist1.append(dat)
 
 coinlist2 = []
-coinList = db.query(models.coinList).all()
+coinList = db.query(model.coinList).all()
 for coin in coinList:
     coinlist2.append(coin.coin_name)
 
@@ -33,7 +33,7 @@ for coin in coinList:
         coin.delflag = 1
 
 for coin in coinlist3:
-    newCoin = models.coinList()
+    newCoin = model.coinList()
     newCoin.coin_name = coin
     newCoin.delflag = 0
     db.add(newCoin)
