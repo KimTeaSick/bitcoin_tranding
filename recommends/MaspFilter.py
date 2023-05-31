@@ -10,12 +10,12 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
         times = int(chart_term[:-1])
 
         if chart_term[-1] == 'm':
-            time = nowstamp - (bigger * (times) * 60)
+            masTime = nowstamp - (bigger * (times) * 60)
         if chart_term[-1] == 'h':
-            time = nowstamp - (bigger * (times) * 3600)
+            masTtime = nowstamp - (bigger * (times) * 3600)
 
         df = pd.DataFrame(dfList)
-        df2 = df.loc[df['S_time'] > time]
+        df2 = df.loc[df['S_time'] > masTime]
 
         for coin in coinList:
             try:

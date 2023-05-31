@@ -165,6 +165,7 @@ async def recommendCoin(options, mMax, hMax):
             if option['option'] =='Disparity':
                 term = option['chart_term']
                 if term[-1] == 'm':
+                    disparityL = disparityFilter.disparityRecommend(coins, option['chart_term'], option['disparity_term'], option['low_disparity'], option['high_disparity'])
                     times = int(option['chart_term'][:-1])
 
                     time = nowstamp - (int(times) * int(option['disparity_term']) * 60)
@@ -219,7 +220,6 @@ async def recommendCoin(options, mMax, hMax):
                 term = option['chart_term']
                 if term[-1] =='m':
                     TrendL = trendFilter.trendRecommend(nowstamp, coinNames, dfmList, term, option['MASP'], option['trend_term'], option['trend_type'], option['trend_reverse'])
-
 
                 if term[-1] =='h':
                     TrendL = trendFilter.trendRecommend(nowstamp, coinNames, dfhList, term, option['MASP'], option['trend_term'], option['trend_type'], option['trend_reverse'])
