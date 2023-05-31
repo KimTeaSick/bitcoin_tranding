@@ -12,6 +12,7 @@ import asyncio
 from recommends import priceFilter
 from recommends import transactionAmountFilter
 from recommends import MaspFilter
+from recommends import trendFilter
 
 async def recommendCoin(options, mMax, hMax):
         try:
@@ -24,7 +25,7 @@ async def recommendCoin(options, mMax, hMax):
         now1 = datetime.datetime.now()
         nowstamp = int(int(now1.timestamp()) /60) * 60 + (60*540)
         print(datetime.datetime.utcfromtimestamp(nowstamp))
-        print(mMax)
+
 
         # 분단위
         mNowStamp = nowstamp - (mMax * 60)
@@ -46,8 +47,6 @@ async def recommendCoin(options, mMax, hMax):
 
         for dfs in dfhSource:
             dfhList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':dfs.Close, 'Volume':dfs.Volume})
-
-        print(i, '9999999999999999999999999999999999999999999999999999999999999999999999999999999999999')
 
         dfm = pd.DataFrame(dfmList)
         dfh = pd.DataFrame(dfhList)
@@ -80,7 +79,8 @@ async def recommendCoin(options, mMax, hMax):
             if option['option'] =='MASP':
                 term = option['chart_term']
                 if term[-1] == 'm':
-                    #MaspL = MaspFilter.MaspRecommend(nowstamp, coinNames, dfmList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
+                    MaspL = MaspFilter.MaspRecommend(nowstamp, coinNames, dfmList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
+                    '''
                     bigger = int(option['first_disparity'])
                     if bigger < int(option['second_disparity']):
                         bigger = int(option['second_disparity'])
@@ -119,9 +119,11 @@ async def recommendCoin(options, mMax, hMax):
 
                         except Exception as e:
                             print(e, coin.coin_name, option['option'])
+                        '''
 
                 if term[-1] == 'h':
-                    #MaspL = MaspFilter.MaspRecommend(nowstamp, coinNames, dfhList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
+                    MaspL = MaspFilter.MaspRecommend(nowstamp, coinNames, dfhList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
+                    '''
                     bigger = int(option['first_disparity'])
                     if bigger < int(option['second_disparity']):
                         bigger = int(option['second_disparity'])
@@ -158,6 +160,7 @@ async def recommendCoin(options, mMax, hMax):
 
                         except Exception as e:
                             print(e, coin.coin_name, option['option'])
+                    '''
 
             if option['option'] =='Disparity':
                 term = option['chart_term']
@@ -215,156 +218,12 @@ async def recommendCoin(options, mMax, hMax):
             if option['option'] =='Trend':
                 term = option['chart_term']
                 if term[-1] =='m':
-                    times = int(option['chart_term'][:-1])
+                    TrendL = trendFilter.trendRecommend(nowstamp, coinNames, dfmList, term, option['MASP'], option['trend_term'], option['trend_type'], option['trend_reverse'])
 
-                    time = nowstamp - ((int(option['trend_term']) + int(option['MASP'])+2) * times * 60)
-
-                    df = dfm.loc[dfm['S_time'] > time]
-
-                    for coin in coinList:
-                        df2 = df.loc[df['coin_name'] == coin.coin_name]
-
-                        vol = df2['Volume'].sum()
-                        if vol == 0.0:
-                            continue
-
-                        df3 = df2[(len(df2) % times):]
-                        df3.reset_index(drop=True, inplace=True)
-
-                        # 리스트를 times개씩 묶기
-                        new_df = df3.groupby(np.arange(len(df3)) // times).mean(numeric_only=True)
-
-                        masp = new_df["Close"].rolling(window=int(option['MASP'])).mean()
-                        masp.fillna(0)
-
-                        z = 0
-                        if option['trend_type'] == 'up_trend' and int(option['trend_reverse']) == 0:
-                            for i in range(len(new_df)):
-                                if float(masp[i]) == 0:
-                                    continue
-
-                                if new_df['Close'][i] > float(masp[i]):
-                                    z += 1
-                                else:
-                                    z = 0
-
-                                if z == int(option['trend_term']):
-                                    TrendL += f'{coin.coin_name} '
-
-                        if option['trend_type'] == 'down_trend' and int(option['trend_reverse']) == 0:
-                            for i in range(len(new_df)):
-                                if float(masp[i]) == 0:
-                                    continue
-
-                                if new_df['Close'][i] < float(masp[i]):
-                                    z += 1
-                                else:
-                                    z = 0
-
-                                if z == int(option['trend_term']):
-                                    TrendL += f'{coin.coin_name} '
-
-                        if option['trend_type'] == 'up_trend' and int(option['trend_reverse']) == 1:
-                            for i in range(len(new_df)):
-                                if float(masp[i]) == 0:
-                                    continue
-
-                                if z == int(option['trend_term']):
-                                    if new_df['Close'].iloc[i] < float(masp[i]):
-                                        TrendL += f'{coin.coin_name} '
-
-                                if new_df['Close'].iloc[i] > float(masp[i]):
-                                    z += 1
-                                else:
-                                    z = 0
-
-                        if option['trend_type'] == 'down_trend' and int(option['trend_reverse']) == 1:
-                            for i in range(len(new_df)):
-                                if z == int(option['trend_term']):
-                                    if new_df['Close'].iloc[i] > float(masp[i]):
-                                        TrendL += f'{coin.coin_name} '
-
-                                if new_df['Close'].iloc[i] < float(masp[i]):
-                                    z += 1
-                                else:
-                                    z = 0
 
                 if term[-1] =='h':
-                    times = int(option['chart_term'][:-1])
-                    time = str(datetime.datetime.now() - datetime.timedelta(hours=((int(option['trend_term']) + int(option['MASP'])+2) * times)))
+                    TrendL = trendFilter.trendRecommend(nowstamp, coinNames, dfhList, term, option['MASP'], option['trend_term'], option['trend_type'], option['trend_reverse'])
 
-                    time = nowstamp - ((int(option['trend_term']) + int(option['MASP'])+2) * times * 3600)
-
-                    df = dfh.loc[dfh['S_time'] > time]
-
-                    for coin in coinList:
-                        df2 = df.loc[df['coin_name'] == coin.coin_name]
-
-                        vol = df2['Volume'].sum()
-                        if vol == 0.0:
-                            continue
-
-                        df3 = df2[(len(df2) % times):]
-                        df3.reset_index(drop=True, inplace=True)
-
-                        # 리스트를 times개씩 묶기
-                        new_df = df3.groupby(np.arange(len(df3)) // times).mean(numeric_only=True)
-
-                        masp = new_df["Close"].rolling(window=int(option['MASP'])).mean()
-                        masp.fillna(0)
-
-                        z = 0
-
-                        if option['trend_type'] == 'up_trend' and int(option['trend_reverse']) == 0:
-                            for i in range(len(new_df)):
-                                if float(masp[i]) == 0:
-                                    continue
-
-                                if new_df['Close'][i] > float(masp[i]):
-                                    z += 1
-                                else:
-                                    z = 0
-
-                                if z == int(option['trend_term']):
-                                    TrendL += f'{coin.coin_name} '
-
-                        if option['trend_type'] == 'down_trend' and int(option['trend_reverse']) == 0:
-                            for i in range(len(new_df)):
-                                if float(masp[i]) == 0:
-                                    continue
-
-                                if new_df['Close'][i] < float(masp[i]):
-                                    z += 1
-                                else:
-                                    z = 0
-
-                                if z == int(option['trend_term']):
-                                    TrendL += f'{coin.coin_name} '
-
-                        if option['trend_type'] == 'up_trend' and int(option['trend_reverse']) == 1:
-                            for i in range(len(new_df)):
-                                if float(masp[i]) == 0:
-                                    continue
-
-                                if z == int(option['trend_term']):
-                                    if new_df['Close'].iloc[i] < float(masp[i]):
-                                        TrendL += f'{coin.coin_name} '
-
-                                if new_df['Close'].iloc[i] > float(masp[i]):
-                                    z += 1
-                                else:
-                                    z = 0
-
-                        if option['trend_type'] == 'down_trend' and int(option['trend_reverse']) == 1:
-                            for i in range(len(new_df)):
-                                if z == int(option['trend_term']):
-                                    if new_df['Close'].iloc[i] > float(masp[i]):
-                                        TrendL += f'{coin.coin_name} '
-
-                                if new_df['Close'].iloc[i] < float(masp[i]):
-                                    z += 1
-                                else:
-                                    z = 0
 
             # MACD 옵션 
             if option['option'] =='MACD':
@@ -570,5 +429,5 @@ async def recommendCoin(options, mMax, hMax):
 
         now2 = datetime.datetime.now()
         print(now2 - now1)
-        print(PriceRecommend,'4444444444444444444444444444444444444444')
+        print(PriceRecommend)
         return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Disparity':DisparityDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}

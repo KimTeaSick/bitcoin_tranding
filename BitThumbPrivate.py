@@ -312,10 +312,10 @@ class BitThumbPrivate():
             continue
 
           if i[1]['chart_term'][-1] == 'm' and ((int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1])) > mMax:
-            mMax = (int(i[1]['trend_term']) + 2 + int(i[1]['MASP']) * int(i[1]['chart_term'][:-1]))
+            mMax = ((int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1]))
 
           if i[1]['chart_term'][-1] == 'h' and ((int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1])) > hMax:
-            hMax = (int(i[1]['trend_term']) + 2 + int(i[1]['MASP']) * int(i[1]['chart_term'][:-1]))
+            hMax = ((int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1]))
 
           options.append({'option':'Trend', 'chart_term':i[1]['chart_term'], 'trend_term':i[1]['trend_term'], 'trend_type':i[1]['trend_type'], 'trend_reverse':i[1]['trend_reverse'], "MASP":i[1]['MASP']})
           #options.append({'option':'Trend', 'chart_term':'1m', 'trend_term':i[1]['trend_term'], 'trend_type':i[1]['trend_type'], 'trend_reverse':i[1]['trend_reverse'], "MASP":i[1]['MASP']})
