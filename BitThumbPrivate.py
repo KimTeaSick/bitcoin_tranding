@@ -318,7 +318,6 @@ class BitThumbPrivate():
             hMax = ((int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1]))
 
           options.append({'option':'Trend', 'chart_term':i[1]['chart_term'], 'trend_term':i[1]['trend_term'], 'trend_type':i[1]['trend_type'], 'trend_reverse':i[1]['trend_reverse'], "MASP":i[1]['MASP']})
-          #options.append({'option':'Trend', 'chart_term':'1m', 'trend_term':i[1]['trend_term'], 'trend_type':i[1]['trend_type'], 'trend_reverse':i[1]['trend_reverse'], "MASP":i[1]['MASP']})
 
         if i[0] == 'MACD':
           if int(i[1]['short_disparity']) == 0 or int(i[1]['long_disparity']) == 0:

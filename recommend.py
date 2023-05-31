@@ -13,6 +13,8 @@ from recommends import priceFilter
 from recommends import transactionAmountFilter
 from recommends import MaspFilter
 from recommends import trendFilter
+from recommends import disparityFilter
+from recommends import MacdFilter
 
 async def recommendCoin(options, mMax, hMax):
         try:
@@ -25,6 +27,7 @@ async def recommendCoin(options, mMax, hMax):
         now1 = datetime.datetime.now()
         nowstamp = int(int(now1.timestamp()) /60) * 60 + (60*540)
         print(datetime.datetime.utcfromtimestamp(nowstamp))
+        print(mMax)
 
 
         # 분단위
@@ -165,56 +168,10 @@ async def recommendCoin(options, mMax, hMax):
             if option['option'] =='Disparity':
                 term = option['chart_term']
                 if term[-1] == 'm':
-                    disparityL = disparityFilter.disparityRecommend(coins, option['chart_term'], option['disparity_term'], option['low_disparity'], option['high_disparity'])
-                    times = int(option['chart_term'][:-1])
-
-                    time = nowstamp - (int(times) * int(option['disparity_term']) * 60)
-
-                    df = dfm.loc[dfm['S_time'] > time]
-
-                    for coin in coinList:
-                        #try:
-
-                            df2 = df.loc[df['coin_name'] == coin.coin_name]
-
-                            vol = df2['Volume'].sum()
-                            if vol == 0.0:
-                                continue
-
-                            avgP = df2['Close'].mean()
-                            Recent = df2['Close'].iloc[-1]
-                            disP = (Recent / avgP) * 100
-
-                            if int(option['low_disparity']) < disP:
-                                if int(option['high_disparity']) > disP :
-                                    DisparityL += f'{coin.coin_name} '
-                        #except Exception as e:
-                            #print(e, coin.coin_name, option['option'])
+                    DisparityL = disparityFilter.disparityRecommend(nowstamp, coinNames, dfmList, term, option['disparity_term'], option['low_disparity'], option['high_disparity'])
 
                 if term[-1] == 'h':
-                    times = int(option['chart_term'][:-1])
-
-                    time = nowstamp - (int(times) * int(option['disparity_term']) * 3600)
-
-                    df = dfh.loc[dfh['S_time'] > time]
-
-                    for coin in coinList:
-                        try:
-                            df2 = df.loc[df['coin_name'] == coin.coin_name]
-
-                            vol = df2['Volume'].sum()
-                            if vol == 0.0:
-                                continue
-
-                            avgP = df2['Close'].mean()
-                            Recent = df2['Close'].iloc[-1]
-                            disP = (Recent / avgP) * 100
-
-                            if int(option['low_disparity']) + 100 < disP < int(option['high_disparity']) + 100:
-                                DisparityL += f'{coin.coin_name} '
-
-                        except Exception as e:
-                            print(e, coin.coin_name, option['option'])
+                    DisparityL = disparityFilter.disparityRecommend(nowstamp, coinNames, dfhList, term, option['disparity_term'], option['low_disparity'], option['high_disparity'])
 
             if option['option'] =='Trend':
                 term = option['chart_term']
@@ -224,12 +181,13 @@ async def recommendCoin(options, mMax, hMax):
                 if term[-1] =='h':
                     TrendL = trendFilter.trendRecommend(nowstamp, coinNames, dfhList, term, option['MASP'], option['trend_term'], option['trend_type'], option['trend_reverse'])
 
-
             # MACD 옵션 
             if option['option'] =='MACD':
                 term = option['chart_term']
                 # 분 단위
                 if term[-1] =='m':
+                    MacdL = MacdFilter.MacdRecommend(nowstamp, coinNames, dfmList, term, option['short_disparity'], option['long_disparity'], option['up_down'])
+                    '''
                     # 시간 데이터 부족으로 분단위 데이터 사용 중
                     times = int(term[:-1])
 
@@ -265,7 +223,7 @@ async def recommendCoin(options, mMax, hMax):
                         if option['up_down'] == 'down':
                             if macd.iloc[-1] <= 0:
                                 MacdL += f'{coin.coin_name} '
-
+                '''
                 # 시간 단위
                 if term[-1] =='h':
                     # 시간 데이터 부족으로 분단위 데이터 사용 중
