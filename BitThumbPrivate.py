@@ -4,7 +4,7 @@ from datetime import datetime
 from pandas import DataFrame
 from dbConnection import *
 from parameter import *
-from multiprocessing import Process
+from multiprocessing import Pool
 import multiprocessing as mp
 from lib import * 
 from sql import *
@@ -12,15 +12,25 @@ from dbConnection import MySql
 import pandas as pd
 import numpy as np
 import websockets
+import schedule
 import requests
-import asyncio
 import time
 import json
-import os 
+import recommend
+from database import engine, SessionLocal
+from sqlalchemy.orm import Session
+import models
+import datetime
+
+try:
+    db = SessionLocal()
+    db: Session
+finally:
+    db.close()
 
 load_dotenv()
-secretKey = os.environ.get('SECLET_KEY')
-connenctKey = os.environ.get('CONNECT_KEY')
+secretKey = "07c1879d34d18036405f1c4ae20d3023"
+connenctKey = "9ae8ae53e7e0939722284added991d55"
 
 h ="24h"
 url = f"https://api.bithumb.com/public/candlestick/BTC_KRW/{h}"
@@ -30,13 +40,9 @@ class BitThumbPrivate():
   def __init__(self):
     self.bithumb = Bithumb(connenctKey, secretKey)
     self.coinList = list(self.getBitCoinList('ALL')['data'].keys())[0:-1]
-    self.coinNames = []
     self.recommandCoinList = []
-    self.possessionCoinList = []
     self.bitLib = bitLib()
     self.mysql = MySql()
-    self.myDeposit = 0
-    self.myTotalMoney = 0
 
   async def getMyPossessionCoinList(self):
     myCoinList = await self.mysql.Select(getMyCoinListSql)
@@ -167,7 +173,6 @@ class BitThumbPrivate():
     orderList = []
     for data in selectData:
       orderDesc = (data[2], data[1], data[3], 'KRW')
-      print(self.bithumb.get_order_completed(orderDesc))
       orderList.append(self.bithumb.get_order_completed(orderDesc)['data'])
     return orderList
   
@@ -215,76 +220,244 @@ class BitThumbPrivate():
       accountData = [totalMoney, account, buyingMoney, sellingMoney, fee]
       return accountData
 
-  async def getRecommendCoin(self):
-    DB_DATA = await self.mysql.Select(selectRecommendCoin)
-    recommendCoinList = []
-    for coin in DB_DATA:
-      data = self.getBitCoinList(coin[0])['data']
-      recommendCoinList.append({"coin":coin[0], "data":data})
-    print("recommendCoinList", recommendCoinList)
-    return recommendCoinList
-
-  async def getDisparity(self, coin, disparity, trends):
+  def getDisparity(self, coin, disparity, trends):
+    print(" 1 ::::::::::: ", coin)
     flag = True
     url = f"https://api.bithumb.com/public/candlestick/"+coin[0]+"_KRW/6h"
     headers = {"accept": "application/json"}
     data = json.loads(requests.get(url, headers=headers).text)['data']
+    print(" 2 ::::::::::: get Data")
     df = pd.DataFrame(data, columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
     AR = tuple(df['Close'].rolling(window = 5).mean().fillna('undefined'))
     AR_BASE = AR[-10: -1]
     BASE = df['Close'].values.tolist()
+    print(" 3 ::::::::::: make AVG Data")
     for term in range(0, int(trends)):
-      try:
-        if term == 0:
-          separation = (float(BASE[len(BASE) - (term + 1)]) / float(AR_BASE[len(AR_BASE) - (term + 1)])) * 100
-          if separation < int(disparity):
-            return ''
-        result = float(BASE[len(BASE) - (term + 1)]) - float(AR_BASE[len(AR_BASE) - (term + 1)])
-        if result < 0:
-          flag = False
+      print(" 4 ::::::::::: Data carculate")
+      if term == 0:
+        separation = (float(BASE[len(BASE) - (term + 1)]) / float(AR_BASE[len(AR_BASE) - (term + 1)])) * 100
+        if separation < int(disparity):
           return ''
-        if flag == True:
-          # return {"coin": {"coin":coin[0], "data":self.getBitCoinList(coin[0])["data"]}, "separation": separation}
-          self.mysql.Insert(insertRecommendCoin, [coin[0], self.getBitCoinList(coin[0])["data"]["closing_price"]])
-          self.recommandCoinList.append({"coin": {"coin":coin[0], "data":self.getBitCoinList(coin[0])["data"]}, "separation": separation})
-          print("data ::::::",coin[0], self.getBitCoinList(coin[0])["data"]["closing_price"])
-          return 'list append'
-      except:
+      result = float(BASE[len(BASE) - (term + 1)]) - float(AR_BASE[len(AR_BASE) - (term + 1)])
+      if result < 0:
+        flag = False
         return ''
+    if flag == True:
+      self.recommandCoinList.append({"coin": {"coin":coin[0], "data":self.getBitCoinList(coin[0])["data"]}, "separation": separation})
 
   async def test(self, coinList, first_disparity, trends):
     for coin in coinList:
       self.getDisparity(coin, first_disparity, trends)
 
-  async def getRecommendPrice(self):
-    try:
-      self.recommandCoinList = []
-      await self.mysql.Delete(deleteRecommendCoin, [])
-      getUseOption = await self.mysql.Select(selectUseSearchOptionSql)
-      print("getUseOption :::::::", getUseOption[0][0])
-      options = await self.mysql.Select(selectActiveSearchOptionSql(str(getUseOption[0][0])))
-      print("options ::::::::: ", options)
-      first_disparity = options[0][0] #이격도 1 < 검색 이격도
-      second_disparity = options[0][1] # 이격도 2 > 검색 이격도
-      trends = options[0][2] # 추세
-      trends_idx = options[0][3] # 평균선 idx
-      avg_volume = options[0][4] # 평균 거래량
-      transaction_amount = options[0][5] # 거래 대금
-      price = options[0][6] # 가격 
-      print(first_disparity, second_disparity, trends, trends_idx, avg_volume, transaction_amount, price)
-      coinList = await self.mysql.Select(getDBCoinList(price, transaction_amount))
-      print("coinList :::::::::::", coinList)
-      time.sleep(1)
-      if len(coinList) == 0:
-        return 201
-      else:
-        for coin in coinList:
-          value = await self.getDisparity(coin, first_disparity, trends)
-          if value != '':
-            print("append List ! :::::::: ")
-        return self.recommandCoinList
-    except:
-      return 333
+  async def getRecommendCoin(self, item):
+    print(datetime.datetime.now())
+    print("item ::::::::",item)
+    useOptionList = []
+    options = []
+    mMax = 0
+    hMax = 0
+    # 사용 옵션 확인 및 변환
+    for i in item:
+      print("i :::::::::::::::::::: ", i)
+      if i[1]['flag'] != 0:
+        useOptionList.append(i[0])
+        print("pass? :::::::::::::::::::: ")
+        if i[0] == 'Price':
+          if int(i[1]['high_price']) == 0:
+            print('high_price', i[1]['high_price'])
+            continue
+          options.append({'option':'Price', 'low_price':i[1]['low_price'], 'high_price':i[1]['high_price']})
+
+        if i[0] == 'TransactionAmount':
+          if int(i[1]['high_transaction_amount']) == 0:
+            print('high_transaction_amount', i[1]['high_transaction_amount'])
+            continue
+          options.append({'option':'TransactionAmount', 'low_transaction_amount':i[1]['low_transaction_amount'], 'high_transaction_amount':i[1]['high_transaction_amount']})
+
+        if i[0] == 'MASP':
+          if int(i[1]['first_disparity']) == 0 or int(i[1]['second_disparity']) == 0:
+            print('first_disparity: ', i[1]['first_disparity'], 'second_disparity: ', i[1]['second_disparity'])
+            continue
+
+          if i[1]['chart_term'][-1] == 'm' and int(i[1]['first_disparity']) * int(i[1]['chart_term'][:-1]) > mMax:
+            mMax = int(i[1]['first_disparity']) * int(i[1]['chart_term'][:-1])
+          if i[1]['chart_term'][-1] == 'm' and int(i[1]['second_disparity']) * int(i[1]['chart_term'][:-1]) > mMax:
+            mMax = int(i[1]['second_disparity']) * int(i[1]['chart_term'][:-1])
+
+          if i[1]['chart_term'][-1] == 'h' and (int(i[1]['first_disparity']) * int(i[1]['chart_term'][:-1])) > hMax:
+            hMax = (int(i[1]['first_disparity']) * int(i[1]['chart_term'][:-1]))
+          if i[1]['chart_term'][-1] == 'h' and (int(i[1]['second_disparity']) * int(i[1]['chart_term'][:-1])) > hMax:
+            hMax = (int(i[1]['second_disparity']) * int(i[1]['chart_term'][:-1]))
+
+          options.append({'option':'MASP', 'chart_term':i[1]['chart_term'], 'first_disparity':i[1]['first_disparity'], 'second_disparity':i[1]['second_disparity'], 'comparison':i[1]['comparison']})
+
+        if i[0] == 'Disparity':
+          if int(i[1]['disparity_term']) == 0:
+            print('disparity_term:', i[1]['disparity_term'])
+            continue
+
+          if i[1]['chart_term'][-1] == 'm':
+            if (int(i[1]['disparity_term']) * int(i[1]['chart_term'][:-1])) > mMax:
+              mMax = int(i[1]['disparity_term']) * int(i[1]['chart_term'][:-1])
+
+          if i[1]['chart_term'][-1] == 'h':
+            if (int(i[1]['disparity_term']) * int(i[1]['chart_term'][:-1])) > hMax:
+              hMax = (int(i[1]['disparity_term']) * int(i[1]['chart_term'][:-1]))
+
+          options.append({'option':'Disparity', 'chart_term':i[1]['chart_term'], 'disparity_term':i[1]['disparity_term'], 'low_disparity': int(i[1]['low_disparity']), 'high_disparity':int(i[1]['high_disparity'])})
+
+        if i[0] == 'Trend':
+          if int(i[1]['trend_term']) == 0 or int(i[1]['MASP']) == 0:
+            print('trend_term:', i[1]['trend_term'], 'MASP:', i[1]['MASP'])
+            continue
+
+          if i[1]['chart_term'][-1] == 'm' and ((int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1])) > mMax:
+            mMax = ((int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1]))
+
+          if i[1]['chart_term'][-1] == 'h' and ((int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1])) > hMax:
+            hMax = ((int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1]))
+
+          options.append({'option':'Trend', 'chart_term':i[1]['chart_term'], 'trend_term':i[1]['trend_term'], 'trend_type':i[1]['trend_type'], 'trend_reverse':i[1]['trend_reverse'], "MASP":i[1]['MASP']})
+
+        if i[0] == 'MACD':
+          if int(i[1]['short_disparity']) == 0 or int(i[1]['long_disparity']) == 0:
+            print('short_disparity:', i[1]['short_disparity'], 'long_disparity:', i[1]['long_disparity'])
+            continue
+
+          if i[1]['chart_term'][-1] == 'm' and ((int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])) > mMax:
+            mMax = (int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])
+
+          if i[1]['chart_term'][-1] == 'h' and ((int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])) > hMax:
+            hMax = (int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])
+
+          options.append({'option':'MACD', 'chart_term':i[1]['chart_term'], 'short_disparity':i[1]['short_disparity'], 'long_disparity':i[1]['long_disparity'], 'up_down':i[1]['up_down']})
+
+    # 검색 코인 receive
+    coins = await recommend.recommendCoin(options, mMax, hMax)
+    if coins == 444:
+      return coins
+    '''
+    url = "https://api.bithumb.com/public/ticker/ALL_KRW"
+    headers = {"accept": "application/json"}
+
+    response = requests.get(url, headers=headers)
+    data = response.json()["data"]
+
+    PriceRecommend = coins['Price'][:-1].split()
+    TrAmtRecommend = coins['TransactionAmount'][:-1].split()
+    DisparityRecommend = coins['Disparity'][:-1].split()
+    TrendRecommend = coins['Trend'][:-1].split()
+    MacdRecommend = coins['MACD'][:-1].split()
+    MaspRecommend = coins['MASP'][:-1].split()
+
+    now = datetime.datetime.now()
+    nowstamp = int(int(now.timestamp()) /60) * 60 + (60*540)
+    time = nowstamp - (10 * 60)
+    ToDf = db.query(models.coinPrice1M).filter(models.coinPrice1M.S_time >= time).all()
+
+    dfList = []
+    for i in ToDf:
+        dfList.append({'coin_name':i.coin_name, 'time':i.time, 'Close':i.Close, 'Volume':i.Volume, 'TransactioAmount': float(i.Close) * float(i.Volume)})
+
+    df = pd.DataFrame(dfList)
+
+    recommendCoins = []
+    coinList = db.query(models.coinList).all()
+    for coin in coinList:
+      recommendCoins.append(coin.coin_name)
+
+    # 추천 코인 교집합
+    for i in item:
+      # if i[1]['flag'] != '0':
+        if i[0] == 'Price':
+          recommendCoins = set(recommendCoins) & set(PriceRecommend)
+        if i[0] == 'TransactionAmount':
+          recommendCoins = set(recommendCoins) & set(TrAmtRecommend)
+        if i[0] == 'Disparity':
+          recommendCoins = set(recommendCoins) & set(DisparityRecommend)
+        if i[0] == 'Trend':
+          recommendCoins = set(recommendCoins) & set(TrendRecommend)
+        if i[0] == 'MACD':
+          recommendCoins = set(recommendCoins) & set(MacdRecommend)
+        if i[0] == 'MASP':
+          recommendCoins = set(recommendCoins) & set(MaspRecommend)
+
+    # 리턴할 정보 append
+    priceDict = []
+    TrAmtDict = []
+    DisparityDict = []
+    MaspDict = []
+    TrendDict = []
+    MacdDict = []
+
+    recommendDict = []
+
+    for coin in coinList:
+      if coin.coin_name in PriceRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
+
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+
+        priceDict.append({name:data[name]})
+
+      if coin.coin_name in TrAmtRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
+
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+
+        TrAmtDict.append({name:data[name]})
+
+      if coin.coin_name in MaspRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
+
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+
+        MaspDict.append({name:data[name]})
+
+      if coin.coin_name in DisparityRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
+
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+
+        DisparityDict.append({name:data[name]})
+
+      if coin.coin_name in TrendRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
+
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+
+        TrendDict.append({name:data[name]})
+
+      if coin.coin_name in MacdRecommend:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
+
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+        MacdDict.append({name:data[name]})
+
+      if coin.coin_name in recommendCoins:
+        df2 = df.loc[df['coin_name'] == coin.coin_name]
+        df2.reset_index(drop=True, inplace=True)
+
+        name = coin.coin_name[:-4]
+        data[name]['tenRow'] = [df2]
+
+        recommendDict.append({name:data[name]})
+    '''
+    #return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Disparity':DisparityDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}
+    print(type(coins))
+    return {"coins" : coins, "optionList" : useOptionList}
 
   async def possessoionCoinInfo(self):
     try:
@@ -324,7 +497,6 @@ class BitThumbPrivate():
     try:
       for data in item:
         await self.mysql.Update(updateDisparityOptionSql,[str(data[1]['range']), data[1]['color'], data[1]['name']])
-        self.mysql.Insert(insertLog, [2, "이동평균선 조건 변경"])
       return 200
     except:
       return 303
@@ -357,7 +529,6 @@ class BitThumbPrivate():
       item.transaction_amount, 
       item.price
     ])
-    self.mysql.Insert(insertLog,[1, "검색 조건 추가"])
 
   async def updateSearchOption(self, item):
     await self.mysql.Update(updateSearchOptionSql, [
@@ -371,40 +542,58 @@ class BitThumbPrivate():
       item.price,
       item.idx
     ])
-    self.mysql.Insert(insertLog,[1, "검색 조건 뱐ㅕㅇ"])
 
   async def updateUseSearchOption(self, num):
     print("numnum :::::::::", num)
     try:
       await self.mysql.Update(updateUseSearchOption, [ num ])
-      self.mysql.Insert(insertLog,[1, num + "으로 시용 검색 조건 변경"])
       return 200
     except:
       return 303
 
-  async def getSearchCondition(self):
-    conditionList = []
-    conditionValue = await self.mysql.Select(getConditionList)
-    for condition in conditionValue:
-      conditionList.append({"idx":condition[0], "group_idx":condition[1], "group_name":condition[2], "condition":condition[3]})
-    return conditionList
-  
-  async def getConditionGroupList(self):
-    groupList = []
-    groupValue = await self.mysql.Select(getConditionGroupList)
-    for group in groupValue:
-      groupList.append({"idx": group[0], "group_name":group[1]})
-    return groupList
-
-
 # Auto But and Selling
+  async def autoTrading(self):
+    uri = "wss://pubwss.bithumb.com/pub/ws"
+    # coinNames = self.coinNameList()
+    possessionCoin = self.mysql.Select(getMyCoinListSql)
+    coinNames = []
+    for i in possessionCoin:
+      # coinName = str(i[0]).replace('total_',"")
+      coinNames.append(i[0].upper()+"_KRW")
+    print("coinNames :::::::::::::::::::: ",coinNames)
 
+    async with websockets.connect(uri, ping_interval=None) as websocket:
+      subscribe_fmt = {
+          "type":"ticker", 
+          "symbols": coinNames,
+          "tickTypes": ["30M"]
+      }
+      subscribe_data = json.dumps(subscribe_fmt)
+      await websocket.send(subscribe_data)
+      while True:
+        schedule.run_pending()
+        data = await websocket.recv()
+        data = json.loads(data)
+        data = data.get('content')
+        if type(data) == dict:
+          print(data['symbol'], data['closePrice'])
+          for possessionCoinInfo in possessionCoin:
+            if data['symbol'] == possessionCoinInfo[0]+"_KRW":
+              if (float(data['closePrice']) - float(possessionCoinInfo[2])) / 100 > 7: # 부호 반대가 정상
+                print("plus", possessionCoinInfo)
+                self.sell(possessionCoinInfo[0], float(possessionCoinInfo[1]))
+                await self.autoTrading()
+              elif (float(data['closePrice']) - float(possessionCoinInfo[2])) / 100 < -3:
+                print("minus", possessionCoinInfo)
+                self.sell(possessionCoinInfo[0], float(possessionCoinInfo[1]))
+                await self.autoTrading()
+  
   async def buy(self, coin, unit): #매수
-    print("coin, unit :::::::::::: ", coin, unit)
     buyLog = self.bithumb.buy_market_order(coin, unit) #params 1: 종목, 2: 갯수
     time.sleep(0.1)
     print(buyLog)
     if(type(buyLog) == tuple):
+      print(1)
       detailLog = self.bithumb.get_order_completed(buyLog)['data']
       print("detailLog",detailLog)
       if len(detailLog['contract']) > 0:
@@ -419,46 +608,43 @@ class BitThumbPrivate():
           detailLog['contract'][0]['total'],
         ])
         myCoinList = await self.getMyPossessionCoinList()
-        print("myCoinList", myCoinList)
+        print(myCoinList)
         if len(myCoinList) == 0:
           self.mysql.Insert(insertPossessionCoin,[
-            buyLog[1]+'_KRW',
+            buyLog[1],
             detailLog['order_qty'],
             detailLog['contract'][0]['price'],
             detailLog['contract'][0]['total'],
             detailLog['contract'][0]['fee']
           ])
-        else:
-          start = 0
-          goal = len(myCoinList)
-          for myCoin in myCoinList:
-            start = start + 1
-            if myCoin[0] == buyLog[1]+'_KRW':
-              print('Yes!!!')
-              self.mysql.Insert(buyUpdatePossessionCoin,[
-              str(float(detailLog['order_qty']) + float(myCoin[1])),
-              str((float(detailLog['contract'][0]['price']) + float(myCoin[2]) ) / 2),
-              str(float(detailLog['contract'][0]['total']) + float(myCoin[3])),
-              str(float(detailLog['contract'][0]['fee']) + float(myCoin[4])),
-              buyLog[1]+'_KRW',
+        for coin in myCoinList:
+          print(coin)
+          print("detailLog",detailLog)
+          if coin[0] == buyLog[1]:
+            print('Yes!!!')
+            self.mysql.Insert(buyUpdatePossessionCoin,[
+            float(detailLog['order_qty']) + float(coin[1]),
+            (float(detailLog['contract'][0]['price']) + float(coin[2]) ) / 2,
+            float(detailLog['contract'][0]['total']) + float(coin[3]),
+            float(detailLog['contract'][0]['fee']) + float(coin[4]),
+            buyLog[1],
+          ])
+            break
+          else:
+            print('NO!!!')
+            self.mysql.Insert(insertPossessionCoin,[
+              buyLog[1],
+              detailLog['order_qty'],
+              detailLog['contract'][0]['price'],
+              detailLog['contract'][0]['total'],
+              detailLog['contract'][0]['fee']
             ])
-              break
-            elif goal == start:
-              print('NO!!!')
-              self.mysql.Insert(insertPossessionCoin,[
-                buyLog[1]+'_KRW',
-                detailLog['order_qty'],
-                detailLog['contract'][0]['price'],
-                detailLog['contract'][0]['total'],
-                detailLog['contract'][0]['fee']
-              ])
-              break
+            break
       return 200
     else:
       return 404
     
   async def sell(self, coin, unit): #매도
-    print(" coin, unit", coin, unit)
     sellLog = self.bithumb.sell_market_order(coin, unit) #params 1: 종목, 2: 갯수
     time.sleep(0.1)
     print(sellLog)
@@ -475,160 +661,299 @@ class BitThumbPrivate():
           detailLog['contract'][0]['fee'],
           detailLog['contract'][0]['total'],
         ])
-        sellCoin = await self.mysql.Select(getPossessionCoin(coin+'_KRW'))
-        if (float(sellCoin[0][1]) - float(detailLog['order_qty'])) <= 0.00:
-          await self.mysql.Delete( deletePossessionCoin, [sellCoin[0][0]] )
-          print('Delete complate')
-          return 200
-        else:
-          print('float(sellCoin[0][1]) - float(detailLog[)', float(sellCoin[0][1]) - float(detailLog['order_qty']))
-          await self.mysql.Update(sellUpdatePossessionCoin,[
-            float(sellCoin[0][1]) - float(detailLog['order_qty']),
-            float(sellCoin[0][3]) - float(detailLog['contract'][0]['total']),
-            sellLog[1],
-          ])
-          print('sell complate')
+        myCoinList = await self.getMyPossessionCoinList()
+        print('Start !!!')
+        for coin in myCoinList:
+          print("123123", float(coin[1]) - float(detailLog['order_qty']))
+          print("123123", float(coin[1]) - float(detailLog['order_qty']) < 0.00)
+          if (float(coin[1]) - float(detailLog['order_qty'])) <= 0.00:
+            print('Yes!!!')
+            self.mysql.Delete( deletePossessionCoin, [coin[0]] )
+            break
+          else:
+            print('NO!!!')
+            self.mysql.Update(sellUpdatePossessionCoin,[
+              float(coin[1]) - float(detailLog['order_qty']),
+              float(coin[3]) - float(detailLog['contract'][0]['total']),
+              sellLog[1],
+            ])
+            break
         return 200
       else:
         return 404
-
-  def getTotalMoney(self):
-    coinList = self.getMyCoinList()
-    time.sleep(1)
-    list = []
-    totalMoney = 0
-    for i in coinList:
-      coinInfo = self.getBitCoinList(str(i[0]).replace('total_',""))
-      coinValue = float(coinInfo['data']['closing_price']) * round(float(i[1]), 4)
-      list.append(coinValue)
-    for index in range(len(list)):
-      totalMoney += list[index]
-    account = self.checkAccount()
-    totalMoney += account
-    return totalMoney
-
-  async def updateDeposit(self):
-    while True:
-      deposit = self.checkAccount()
-      # total = self.getTotalMoney()
-      self.myDeposit = deposit
-      # self.myTotalMoney = total
-      await asyncio.sleep(1)
-
-  async def updatePossessionCoin(self):
-    while True:
-      DBPossession = await self.mysql.Select(getMyCoinListSql)
-      coinNames = []
-      for i in DBPossession:
-        coinNames.append(i)
-      self.possessionCoinList = coinNames
-      await asyncio.sleep(1)
-      
-  async def autoSell(self):
+  
+  async def insertOption(self, item):
     try:
-      uri = "wss://pubwss.bithumb.com/pub/ws"
-      asyncio.create_task(self.updateDeposit())
-      asyncio.create_task(self.updatePossessionCoin())
-      await asyncio.sleep(1)
-      coinNames = []
-      # print("self.possessionCoinList", self.possessionCoinList)
-      for i in self.possessionCoinList:
-        coinNames.append(i[0])
-      # print("coinNames", coinNames)
-      async with websockets.connect(uri, ping_interval=None) as websocket:
-        while True:
-          subscribe_fmt = {
-              "type":"ticker", 
-              "symbols": coinNames,
-              "tickTypes": ["30M"]
-          }
-          subscribe_data = json.dumps(subscribe_fmt)
-          await websocket.send(subscribe_data)
-          data = await websocket.recv()
-          data = json.loads(data)
-          data = data.get('content')
-          if type(data) == dict:
-            for myCoin in self.possessionCoinList:
-              if myCoin[0] == data['symbol']:
-                if ((float(data['closePrice']) - float(myCoin[2])) / float(myCoin[2])) * 100 > 0.03:
-                  await self.sell(str(myCoin[0]).replace("_KRW", ""), float(myCoin[1]))
-                  print("BEST SELL ::::::: ",str(myCoin[0]).replace("_KRW", ""), str(myCoin[1]))
-                elif (((float(data['closePrice']) - float(myCoin[2])) / float(myCoin[2])) * 100) - 100 < 99.7:
-                  await self.sell(str(myCoin[0]).replace("_KRW", ""), float(myCoin[1]))
-                  print("WEST SELL ::::::: ",str(myCoin[0]).replace("_KRW", ""), str(myCoin[1]))
-                else:
-                  print("SELL INFO BEST ::::::: ",str(myCoin[0]).replace("_KRW", ""), str(myCoin[1]))
-                  print("SELL INFO WEST ::::::: ",((float(data['closePrice']) - float(myCoin[2])) / float(myCoin[2]) * 100) - 100 )
-    except:
-      print("303")
+      print(item)
+      opName = ''
+      search_option = models.searchOption()
+      price_option = models.PriceOption()
+      transactionAmount_option = models.TransactionAmountOption()
+      MASP_option = models.MASPOption()
+      disparity_option = models.DisparityOption()
+      trend_option = models.TrendOption()
+      MACD_option = models.MACDOption()
 
-  async def updateRecommendCoinNames(self):
-    while True:
-      await self.getRecommendPrice()
-      DBRecommendCoin = await self.mysql.Select(selectRecommendCoin)
-      coinNames = []
-      for i in DBRecommendCoin:
-        print("getRecommendPrice DBRecommendCoin ::::::::::::", i)
-        coinNames.append(i)
-      self.coinNames = coinNames
-      await asyncio.sleep(60 * 8)
+      for i in item:
+        if i[0] == 'Name':
+          opName = i[1]
 
-  async def autoBuy(self):
+        if i[0] == 'Price':
+          price_option.flag = i[1]['flag']
+          price_option.low_price = i[1]['low_price']
+          price_option.high_price = i[1]['high_price']
+          price_option.name = opName
+          db.add(price_option)
+
+        if i[0] == 'TransactionAmount':
+          transactionAmount_option.flag = i[1]['flag']
+          transactionAmount_option.low_transaction_amount = i[1]['low_transaction_amount']
+          transactionAmount_option.high_transaction_amount = i[1]['high_transaction_amount']
+          transactionAmount_option.name = opName
+          db.add(transactionAmount_option)
+
+        if i[0] == 'MASP':
+          MASP_option.flag = i[1]['flag']
+          MASP_option.chart_term = i[1]['chart_term']
+          MASP_option.first_disparity = i[1]['first_disparity']
+          MASP_option.comparison = i[1]['comparison']
+          MASP_option.second_disparity = i[1]['second_disparity']
+          MASP_option.name = opName
+          db.add(MASP_option)
+
+        if i[0] == 'Disparity':
+          disparity_option.flag = i[1]['flag']
+          disparity_option.chart_term = i[1]['chart_term']
+          disparity_option.disparity_term = i[1]['disparity_term']
+          disparity_option.low_disparity = i[1]['low_disparity']
+          disparity_option.high_disparity = i[1]['high_disparity']
+          disparity_option.name = opName
+          db.add(disparity_option)
+
+        if i[0] == 'Trend':
+          trend_option.flag = i[1]['flag']
+          trend_option.chart_term = i[1]['chart_term']
+          trend_option.MASP = i[1]['MASP']
+          trend_option.trend_term = i[1]['trend_term']
+          trend_option.trend_type = i[1]['trend_type']
+          trend_option.trend_reverse = i[1]['trend_reverse']
+          trend_option.name = opName
+          db.add(trend_option)
+
+        if i[0] == 'MACD':
+          MACD_option.flag = i[1]['flag']
+          MACD_option.chart_term = i[1]['chart_term']
+          MACD_option.short_disparity = i[1]['short_disparity']
+          MACD_option.long_disparity = i[1]['long_disparity']
+          MACD_option.up_down = i[1]['up_down']
+          MACD_option.signal = i[1]['signal']
+          MACD_option.name = opName
+          db.add(MACD_option)
+
+      search_option.name = opName
+      search_option.Price = opName
+      search_option.Transaction_amount = opName
+      search_option.MASP = opName
+      search_option.Disparity = opName
+      search_option.Trend = opName
+      search_option.MACD = opName
+      search_option.Create_date = datetime.datetime.now() 
+      search_option.used = 0
+
+      db.add(search_option)
+
+      try:
+        db.commit()
+        return 'Insert sucess'
+
+      except Exception as e:
+        db.rollback()
+        print("db.rollback()",e)
+        return e
+
+    except Exception as e:
+      print(e)
+      return e
+
+  async def optionList(self):
+    optionL = db.query(models.searchOption).all()
+    options = []
+
+    for option in optionL:
+      if option.Update_date == None:
+        option.Update_date = "-"
+      else:
+        option.Update_date = option.Update_date[0:19]
+      options.append({'Name':option.name, 'Create_date':option.Create_date[0:19], 'Update_date': option.Update_date, 'used': option.used})
+      print(options)
+
+    return options
+
+  async def optionDetail(self, item):
+    print(item)
+    now1 = datetime.datetime.now()
+
+    optionL = db.query(models.searchOption).filter(models.searchOption.name == item.option).first()
+
+    pri = db.query(models.PriceOption).filter(models.PriceOption.name == optionL.Price).first()
+    tra = db.query(models.TransactionAmountOption).filter(models.TransactionAmountOption.name == optionL.Transaction_amount).first()
+    mas = db.query(models.MASPOption).filter(models.MASPOption.name == optionL.MASP).first()
+    dis = db.query(models.DisparityOption).filter(models.DisparityOption.name == optionL.Disparity).first()
+    trd = db.query(models.TrendOption).filter(models.TrendOption.name == optionL.Trend).first()
+    mac = db.query(models.MACDOption).filter(models.MACDOption.name == optionL.MACD).first()
+
+    now2 = datetime.datetime.now()
+    print(now2-now1)
+    print("flag", pri.flag)
+    print("flag", tra.flag)
+    print("flag", mas.flag)
+    print("flag", dis.flag)
+    print("flag", trd.flag)
+    print("flag", mac.flag)
+
+    return {optionL.name:{'Price':{"low_price": pri.low_price,"high_price": pri.high_price, "flag":pri.flag},
+                                  "TransactionAmount": {"low_transaction_amount": tra.low_transaction_amount,"high_transaction_amount":tra.high_transaction_amount, "flag":tra.flag},
+                                  "MASP": {"chart_term": mas.chart_term,"first_disparity": mas.first_disparity,"comparison": mas.comparison,"second_disparity": mas.second_disparity, "flag":mas.flag},
+                                  "Disparity": {"chart_term": dis.chart_term,"disparity_term": dis.disparity_term,"low_disparity": dis.low_disparity,"high_disparity": dis.high_disparity, "flag":dis.flag},
+                                  "Trend": {"chart_term": trd.chart_term,"MASP":trd.MASP,"trend_term": trd.trend_term,"trend_type": trd.trend_type,"trend_reverse": trd.trend_reverse, "flag":trd.flag},
+                                  "MACD": {"chart_term": mac.chart_term,"short_disparity": mac.short_disparity,"long_disparity": mac.long_disparity,"up_down": mac.up_down, "flag":mac.flag, "signal":mac.signal}}}
+
+  async def updateOption(self, item):
+      opName = ''
+      for i in item:
+        if i[0] == 'Name':
+          opName = i[1]
+
+        if i[0] == 'Price':
+          low_price = i[1]['low_price']
+          high_price = i[1]['high_price']
+          PriFlag = i[1]['flag']
+
+        if i[0] == 'TransactionAmount':
+          low_transaction_amount = i[1]['low_transaction_amount']
+          high_transaction_amount = i[1]['high_transaction_amount']
+          TraFlag = i[1]['flag']
+
+        if i[0] == 'MASP':
+          Schart_term = i[1]['chart_term']
+          first_disparity = i[1]['first_disparity']
+          comparison = i[1]['comparison']
+          second_disparity = i[1]['second_disparity']
+          MasFlag = i[1]['flag']
+
+        if i[0] == 'Disparity':
+          Dchart_term = i[1]['chart_term']
+          disparity_term = i[1]['disparity_term']
+          low_disparity = i[1]['low_disparity']
+          high_disparity = i[1]['high_disparity']
+          DisFlag = i[1]['flag']
+
+        if i[0] == 'Trend':
+          Tchart_term = i[1]['chart_term']
+          Tchart_term = '1m'
+          MASP = i[1]['MASP']
+          trend_term = i[1]['trend_term']
+          trend_type = i[1]['trend_type']
+          trend_reverse = i[1]['trend_reverse']
+          TrdFlag = i[1]['flag']
+
+        if i[0] == 'MACD':
+          Cchart_term = i[1]['chart_term']
+          short_disparity = i[1]['short_disparity']
+          long_disparity = i[1]['long_disparity']
+          signal = i[1]['signal']
+          up_down = i[1]['up_down']
+          MacFlag = i[1]['flag']
+
+      optionL = db.query(models.searchOption).filter(models.searchOption.name == opName).first()
+
+      pri = db.query(models.PriceOption).filter(models.PriceOption.name == optionL.Price).first()
+      tra = db.query(models.TransactionAmountOption).filter(models.TransactionAmountOption.name == optionL.Transaction_amount).first()
+      mas = db.query(models.MASPOption).filter(models.MASPOption.name == optionL.MASP).first()
+      dis = db.query(models.DisparityOption).filter(models.DisparityOption.name == optionL.Disparity).first()
+      trd = db.query(models.TrendOption).filter(models.TrendOption.name == optionL.Trend).first()
+      mac = db.query(models.MACDOption).filter(models.MACDOption.name == optionL.MACD).first()
+
+      pri.low_price = low_price
+      pri.high_price = high_price
+      pri.flag = PriFlag
+
+      tra.low_transaction_amount = low_transaction_amount
+      tra.high_transaction_amount = high_transaction_amount
+      tra.flag = TraFlag
+
+      mas.chart_term = Schart_term
+      mas.first_disparity = first_disparity
+      mas.comparison = comparison
+      mas.second_disparity = second_disparity
+      mas.flag = MasFlag
+
+      dis.chart_term = Dchart_term
+      dis.disparity_term = disparity_term
+      dis.low_disparity = low_disparity
+      dis.high_disparity = high_disparity
+      dis.flag = DisFlag
+
+      trd.chart_term = Tchart_term
+      trd.MASP = MASP
+      trd.trend_term = trend_term
+      trd.trend_type = trend_type
+      trd.trend_reverse = trend_reverse
+      trd.flag = TrdFlag
+
+      mac.chart_term = Cchart_term
+      mac.short_disparity = short_disparity
+      mac.long_disparity = long_disparity
+      mac.signal = signal
+      mac.up_down = up_down
+      mac.flag = MacFlag
+
+      optionL.Update_date = datetime.datetime.now()
+
+      try:
+        db.commit()
+        print('commit')
+      except:
+        db.rollback()
+        print('rollback')
+
+      return 'Insert sucess'
+
+  async def deleteOption(self, item):
     try:
-      uri = "wss://pubwss.bithumb.com/pub/ws"
-      # await self.getRecommendPrice()
-      coinNames = []
-      asyncio.create_task(self.updateDeposit())
-      asyncio.create_task(self.updateRecommendCoinNames())
-      await asyncio.sleep(1)
-      for i in self.coinNames:
-        coinNames.append(i[0])
-      print("coinNames ::::::::::::: ", coinNames)
-      async with websockets.connect(uri, ping_interval=None) as websocket:
-        while True:
-          subscribe_fmt = {
-              "type":"ticker", 
-              "symbols": coinNames,
-              "tickTypes": ["30M"]
-          }
-          subscribe_data = json.dumps(subscribe_fmt)
-          await websocket.send(subscribe_data)
-          data = await websocket.recv()
-          data = json.loads(data)
-          data = data.get('content')
-          if type(data) == dict:
-            for candidateCoin in self.coinNames:
-              if candidateCoin[0] == data['symbol']:
-                if ((float(data['closePrice']) - float(candidateCoin[1])) / float(candidateCoin[1])) * 100 > 0.02:
-                  if(self.myDeposit > 1000):
-                    usePrice = self.myDeposit * 0.7
-                    buyUnit = usePrice / float(data['closePrice'])
-                    print("buyUnit :::::::::::::::::::::: ", buyUnit)
-                    print("self.myTotalMoney", self.myTotalMoney)
-                    if buyUnit * float(data['closePrice']) > 1000:
-                      if buyUnit > 0.0001:
-                        await self.buy(str(data['symbol']).replace("_KRW", ""), buyUnit)
-                        print("BUY :::::::: ", str(data['symbol']).replace("_KRW", ""), data['closePrice'])
-                        print("buyUnit :::::::: ", buyUnit)
-                    else:
-                      print("최소주문 금액에 해당하지 않습니다. :::::::: ")
-                  else:
-                    print("예수금이 3000원 미만입니다. :::::::: ")
+      optionL = db.query(models.searchOption).filter(models.searchOption.name == item.option).first()
+
+      db.query(models.PriceOption).filter(models.PriceOption.name == item.option).delete()
+      db.query(models.TransactionAmountOption).filter(models.TransactionAmountOption.name == item.option).delete()
+      db.query(models.MASPOption).filter(models.MASPOption.name == item.option).delete()
+      db.query(models.DisparityOption).filter(models.DisparityOption.name == item.option).delete()
+      db.query(models.TrendOption).filter(models.TrendOption.name == item.option).delete()
+      db.query(models.MACDOption).filter(models.MACDOption.name == item.option).delete()
+
+      db.query(models.searchOption).filter(models.searchOption.name == item.option).delete()
+
+      try:
+        db.commit()
+      except Exception as e:
+        print(e)
+        db.rollback()
+
+      return 'delete sucess'
+
+    except Exception as e:
+      print(e)
+
+  async def useOption(self, item):
+    print(item)
+    useOption = db.query(models.searchOption).filter(models.searchOption.name == item.option).first()
+    optionL = db.query(models.searchOption).filter(models.searchOption.used == 1).all()
+
+    for option in optionL:
+      option.used = 0
+
+    useOption.used = 1
+    useOption.Update_date = datetime.datetime.now()
+    try:
+      db.commit()
     except:
-      print("asd")
-          
-  async def autoTrading(self):
-    self.mysql.Insert(insertLog,[5, '자동 매매 시작'])
-    await asyncio.gather(self.autoSell(), self.autoBuy())
-
-# Coin Detail 
-  async def getCoinWarning(self, coin_name):
-    warning = await self.mysql.Select(selectWarningFlag(coin_name))
-    warning = warning[0][0]
-    print("coin_name", coin_name)
-    print("warning", warning)
-    return warning
-
-
-  async def updateCoinWarning(self, value, coin_name):
-    await self.mysql.Update(updateWarningFlag, [value, coin_name])
+      db.rollback()

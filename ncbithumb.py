@@ -6,11 +6,18 @@ from mongoDB import MongoDB
 from dbConnection import *
 from parameter import *
 from sql import *
+import datetime
 
 app = FastAPI()
+
+origins = ["*"]
+
 app.add_middleware(
   CORSMiddleware,
-  allow_origins=["*"]
+  allow_origins=["*"],
+  allow_credentials=True,
+  allow_methods=["*"],
+  allow_headers=["*"],
 )
 
 bit = BitThumbPrivate()
@@ -27,9 +34,8 @@ def getBitcoinInfo():
   return data
 
 @app.get("/getDetailBTCInfo/{item_id}")
-async def getDetailBTCInfo(item_id):
+def getDetailBTCInfo(item_id):
   data = bit.getBitCoinList(item_id)
-  data["data"]["warning"] =  await bit.getCoinWarning(item_id+"_KRW")
   return data
 
 @app.post("/getCandleChart")
@@ -78,17 +84,15 @@ def getDateOrderList(item: getDateOrderListBody):
 
 @app.post("/getAvgData")
 def sendAvgData(item: getAvgDataBody):
-  print("item: getAvgDataBody", item)
   return mongo.getAvgData(item.range, item.coin, item.term)
 
-@app.get("/dash/recommendCoin")
-async def getRecommendCoin():
-  response = await bit.getRecommendCoin()
-  return response
+@app.post("/dash/getRecommendCoin")
+async def getRecommendPrice(item: getRecommendOption):
+  now1 = datetime.datetime.now()
+  response = await bit.getRecommendCoin(item)
+  now2 = datetime.datetime.now()
+  print(now2 - now1)
 
-@app.get("/dash/getRecommendPrice")
-async def getRecommendPrice():
-  response = await bit.getRecommendPrice()
   return response
 
 @app.get("/dash/getPossessoionCoinInfo")
@@ -126,7 +130,6 @@ async def getSearchOptionList():
 
 @app.post('/setting/registerSearchOption')
 def insertSearchOption(item: updateSearchOptionBody):
-  print(item)
   response = bit.insertSearchOption(item)
   return response
 
@@ -135,18 +138,32 @@ async def updateSearchOption(item: updateSearchOptionBody):
   response = await bit.updateSearchOption(item)
   return response
 
-@app.post("/coinDetail/updateWarning")
-async def updateWarning(item: updateCoinWarning):
-  try:
-    await bit.updateCoinWarning(item.value, item.coin_name)
-    return 200
-  except:
-    return 303
-  
-@app.get("/autotrading/getConditionList")
-async def getConditionList():
-  return await bit.getSearchCondition()
+@app.post('/option/insertOption')
+async def updateSearchOption(item: insertOption):
+  response = await bit.insertOption(item)
+  return response
 
-@app.get("/autotrading/getConditionGroupList")
-async def getConditionGroupList():
-  return await bit.getConditionGroupList()
+@app.get('/option/optionList')
+async def getOptionList():
+  response = await bit.optionList()
+  return response
+
+@app.post('/option/optionDetail')
+async def selectOptionDetail(item: getOptionDetail):
+  response = await bit.optionDetail(item)
+  return response
+
+@app.post('/option/updateOption')
+async def UpdateOption(item: updateOption):
+  response = await bit.updateOption(item)
+  return response
+
+@app.post('/option/deleteOption')
+async def OptionDelete(item: deleteOption):
+  response = await bit.deleteOption(item)
+  return response
+
+@app.post('/option/useOption')
+async def OptionUsed(item: useOption):
+  response = await bit.useOption(item)
+  return response
