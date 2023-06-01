@@ -83,88 +83,11 @@ async def recommendCoin(options, mMax, hMax):
                 term = option['chart_term']
                 if term[-1] == 'm':
                     MaspL = MaspFilter.MaspRecommend(nowstamp, coinNames, dfmList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
-                    '''
-                    bigger = int(option['first_disparity'])
-                    if bigger < int(option['second_disparity']):
-                        bigger = int(option['second_disparity'])
-
-                    times = int(option['chart_term'][:-1])
-                    time = nowstamp - (bigger * (times + 1) * 60)
-
-                    print(dfm)
-
-                    df = dfm.loc[dfm['S_time'] > time]
-
-                    for coin in coinList:
-                        try:
-                            df2 = df.loc[df['coin_name'] == coin.coin_name]
-                            df3 = df2[- int(option['first_disparity']):]
-                            df4 = df2[- int(option['second_disparity']):]
-
-                            vol = df3['Volume'].sum()
-                            if vol == 0.0:
-                                continue
-
-                            avgP1 = df3['Close'].mean()
-                            Recent1 = df3['Close'].iloc[-1]
-                            disP1 = (avgP1 / Recent1) * 100
-
-                            avgP2 = df4['Close'].mean()
-                            Recent2 = df4['Close'].iloc[-1]
-                            disP2 = (avgP2 / Recent2) * 100
-
-                            if option['comparison'] == '>=':
-                                if disP1 >= disP2:
-                                    MaspL += f'{coin.coin_name} '
-                            if option['comparison'] == '<=':
-                                if disP1 <= disP2:
-                                    MaspL += f'{coin.coin_name} '
-
-                        except Exception as e:
-                            print(e, coin.coin_name, option['option'])
-                        '''
 
                 if term[-1] == 'h':
                     MaspL = MaspFilter.MaspRecommend(nowstamp, coinNames, dfhList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
-                    '''
-                    bigger = int(option['first_disparity'])
-                    if bigger < int(option['second_disparity']):
-                        bigger = int(option['second_disparity'])
 
-                    times = int(option['chart_term'][:-1])
-                    time = nowstamp - (bigger * (times + 1) * 3600)
-
-                    df = dfh.loc[dfh['S_time'] > time]
-
-                    for coin in coinList:
-                        try:
-                            df2 = df.loc[df['coin_name'] == coin.coin_name]
-                            df3 = df2[- int(option['first_disparity']):]
-                            df4 = df2[- int(option['second_disparity']):]
-
-                            vol = df3['Volume'].sum()
-                            if vol == 0.0:
-                                continue
-
-                            avgP1 = df3['Close'].mean()
-                            Recent1 = df3['Close'].iloc[-1]
-                            disP1 = (avgP1 / Recent1) * 100
-
-                            avgP2 = df4['Close'].mean()
-                            Recent2 = df4['Close'].iloc[-1]
-                            disP2 = (avgP2 / Recent2) * 100
-
-                            if option['comparison'] == '>=':
-                                if disP1 >= disP2:
-                                    MaspL += f'{coin.coin_name} '
-                            if option['comparison'] == '<=':
-                                if disP1 <= disP2:
-                                    MaspL += f'{coin.coin_name} '
-
-                        except Exception as e:
-                            print(e, coin.coin_name, option['option'])
-                    '''
-
+            # 이격도 옵션
             if option['option'] =='Disparity':
                 term = option['chart_term']
                 if term[-1] == 'm':
@@ -173,6 +96,7 @@ async def recommendCoin(options, mMax, hMax):
                 if term[-1] == 'h':
                     DisparityL = disparityFilter.disparityRecommend(nowstamp, coinNames, dfhList, term, option['disparity_term'], option['low_disparity'], option['high_disparity'])
 
+            # 추세 옵션
             if option['option'] =='Trend':
                 term = option['chart_term']
                 if term[-1] =='m':
@@ -187,80 +111,11 @@ async def recommendCoin(options, mMax, hMax):
                 # 분 단위
                 if term[-1] =='m':
                     MacdL = MacdFilter.MacdRecommend(nowstamp, coinNames, dfmList, term, option['short_disparity'], option['long_disparity'], option['up_down'])
-                    '''
-                    # 시간 데이터 부족으로 분단위 데이터 사용 중
-                    times = int(term[:-1])
 
-                    time = nowstamp - (int(option['long_disparity']) * (times) * 60)
-
-                    df = dfm.loc[dfm['S_time'] > time]
-
-                    for coin in coinList:
-                        df2 = df.loc[df['coin_name'] == coin.coin_name]
-                        df2.reset_index(drop=True, inplace=True)
-
-                        df3 = df2[(len(df2) % times):]
-                        df3.reset_index(drop=True, inplace=True)
-
-                        vol = df2['Volume'].sum()
-                        if vol == 0.0:
-                            continue
-
-                        # 리스트를 times개씩 묶기
-                        new_df = df3.groupby(np.arange(len(df3)) // times).mean(numeric_only=True)
-
-                        # short EMA 계산
-                        emashort = new_df['Close'].ewm(span=int(option['short_disparity'])).mean()
-                        # long EMA 계산
-                        emalong = new_df['Close'].ewm(span=int(option['long_disparity'])).mean()
-                        # MACD 계산
-                        macd = emashort - emalong
-
-                        if option['up_down'] == 'up':
-                            if macd.iloc[-1] >= 0:
-                                MacdL += f'{coin.coin_name} '
-
-                        if option['up_down'] == 'down':
-                            if macd.iloc[-1] <= 0:
-                                MacdL += f'{coin.coin_name} '
-                '''
                 # 시간 단위
                 if term[-1] =='h':
-                    # 시간 데이터 부족으로 분단위 데이터 사용 중
-                    times = int(term[:-1])
+                    MacdL = MacdFilter.MacdRecommend(nowstamp, coinNames, dfmList, term, option['short_disparity'], option['long_disparity'], option['up_down'])
 
-                    time = nowstamp - (int(option['long_disparity']) * (times) * 3600)
-
-                    df = dfh.loc[dfh['S_time'] > time]
-
-                    for coin in coinList:
-                        df2 = df.loc[df['coin_name'] == coin.coin_name]
-                        df2.reset_index(drop=True, inplace=True)
-
-                        df3 = df2[(len(df2) % times):]
-                        df3.reset_index(drop=True, inplace=True)
-
-                        vol = df2['Volume'].sum()
-                        if vol == 0.0:
-                            continue
-
-
-                        # 리스트를 times개씩 묶기
-                        new_df = df3.groupby(np.arange(len(df3)) // times).mean(numeric_only=True)
-
-                        # short EMA 계산
-                        emashort = new_df['Close'].ewm(span=int(option['short_disparity'])).mean()
-                        # long EMA 계산
-                        emalong = new_df['Close'].ewm(span=int(option['long_disparity'])).mean()
-                        # MACD 계산
-                        macd = emashort - emalong
-
-                        if option['up_down'] == 'up':
-                            if macd.iloc[-1] >= 0:
-                                MacdL += f'{coin.coin_name} '
-                        if option['up_down'] == 'down':
-                            if macd.iloc[-1] <= 0:
-                                MacdL += f'{coin.coin_name} '
 
         url = "https://api.bithumb.com/public/ticker/ALL_KRW"
         headers = {"accept": "application/json"}
@@ -283,6 +138,7 @@ async def recommendCoin(options, mMax, hMax):
         for coin in coinList:
             recommendCoins.append(coin.coin_name)
 
+        # 조건 모두 만족하는 코인 (수정예정)
         recommendCoins = set(recommendCoins) & set(PriceRecommend)
         recommendCoins = set(recommendCoins) & set(TrAmtRecommend)
         recommendCoins = set(recommendCoins) & set(DisparityRecommend)
@@ -300,13 +156,14 @@ async def recommendCoin(options, mMax, hMax):
 
         recommendDict = []
 
+        # 코인별 조건에 맞는 지 찾고 api 현재가격 정보, 최근 10개 정보 return
         for coin in coinList:
             if coin.coin_name in PriceRecommend:
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
+                if len(df2) < 5:
+                    continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
@@ -317,8 +174,8 @@ async def recommendCoin(options, mMax, hMax):
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
+                if len(df2) < 5:
+                    continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
@@ -329,8 +186,8 @@ async def recommendCoin(options, mMax, hMax):
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
+                if len(df2) < 5:
+                    continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
@@ -341,8 +198,8 @@ async def recommendCoin(options, mMax, hMax):
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
+                if len(df2) < 5:
+                    continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
@@ -353,8 +210,8 @@ async def recommendCoin(options, mMax, hMax):
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
+                if len(df2) < 5:
+                    continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
@@ -365,8 +222,8 @@ async def recommendCoin(options, mMax, hMax):
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
+                if len(df2) < 5:
+                    continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
@@ -376,8 +233,8 @@ async def recommendCoin(options, mMax, hMax):
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
+                if len(df2) < 5:
+                    continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
