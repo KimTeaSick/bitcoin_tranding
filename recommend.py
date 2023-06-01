@@ -27,7 +27,7 @@ async def recommendCoin(options, mMax, hMax):
         now1 = datetime.datetime.now()
         nowstamp = int(int(now1.timestamp()) /60) * 60 + (60*540)
         print(datetime.datetime.utcfromtimestamp(nowstamp))
-        print(mMax)
+        print(hMax, 'hMax')
 
 
         # 분단위
@@ -37,7 +37,7 @@ async def recommendCoin(options, mMax, hMax):
         i = 0
         for dfs in dfmSource:
             i +=1
-            dfmList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':dfs.Close, 'Volume':dfs.Volume})
+            dfmList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':dfs.Close, 'Volume':dfs.Volume, 'Transaction_amount':dfs.Transaction_amount})
 
         #시간 단위
         hNowStamp = nowstamp - (hMax * 3600)
@@ -49,7 +49,7 @@ async def recommendCoin(options, mMax, hMax):
         print(nowstamp)
 
         for dfs in dfhSource:
-            dfhList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':dfs.Close, 'Volume':dfs.Volume})
+            dfhList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':dfs.Close, 'Volume':dfs.Volume, 'Transaction_amount':dfs.Transaction_amount})
 
         dfm = pd.DataFrame(dfmList)
         dfh = pd.DataFrame(dfhList)
@@ -70,116 +70,55 @@ async def recommendCoin(options, mMax, hMax):
         TrendL = ''
 
         for option in options:
+            print(option['option'])
             # 현재 가격 범위 옵션
             if option['option'] =='Price':
-                priceL = priceFilter.priceRecommend(coins, option['low_price'], option['high_price'])
+                priceL = priceFilter.priceRecommend(nowstamp, coinNames, dfmList, option['low_price'], option['high_price'])
+                coinNames = set(coinNames) & set(priceL)
 
             # 거래대금 가격 범위 옵션
             if option['option'] =='TransactionAmount':
-                TransactionL = transactionAmountFilter.transactioAmountRecommend(coins, option['low_transaction_amount'], option['high_transaction_amount'])
+                term = option['chart_term']
+                if term[-1] == 'm':
+                    TransactionL = transactionAmountFilter.transactioAmountRecommend(nowstamp, coinNames, dfmList,  option['chart_term'], option['low_transaction_amount'], option['high_transaction_amount'])
+                    coinNames = set(coinNames) & set(TransactionL)
+
+                if term[-1] == 'h':
+                    TransactionL = transactionAmountFilter.transactioAmountRecommend(nowstamp, coinNames, dfhList,  option['chart_term'], option['low_transaction_amount'], option['high_transaction_amount'])
+                    coinNames = set(coinNames) & set(TransactionL)
 
             # 이동평균 옵션 
             if option['option'] =='MASP':
                 term = option['chart_term']
                 if term[-1] == 'm':
                     MaspL = MaspFilter.MaspRecommend(nowstamp, coinNames, dfmList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
-                    '''
-                    bigger = int(option['first_disparity'])
-                    if bigger < int(option['second_disparity']):
-                        bigger = int(option['second_disparity'])
-
-                    times = int(option['chart_term'][:-1])
-                    time = nowstamp - (bigger * (times + 1) * 60)
-
-                    print(dfm)
-
-                    df = dfm.loc[dfm['S_time'] > time]
-
-                    for coin in coinList:
-                        try:
-                            df2 = df.loc[df['coin_name'] == coin.coin_name]
-                            df3 = df2[- int(option['first_disparity']):]
-                            df4 = df2[- int(option['second_disparity']):]
-
-                            vol = df3['Volume'].sum()
-                            if vol == 0.0:
-                                continue
-
-                            avgP1 = df3['Close'].mean()
-                            Recent1 = df3['Close'].iloc[-1]
-                            disP1 = (avgP1 / Recent1) * 100
-
-                            avgP2 = df4['Close'].mean()
-                            Recent2 = df4['Close'].iloc[-1]
-                            disP2 = (avgP2 / Recent2) * 100
-
-                            if option['comparison'] == '>=':
-                                if disP1 >= disP2:
-                                    MaspL += f'{coin.coin_name} '
-                            if option['comparison'] == '<=':
-                                if disP1 <= disP2:
-                                    MaspL += f'{coin.coin_name} '
-
-                        except Exception as e:
-                            print(e, coin.coin_name, option['option'])
-                        '''
+                    coinNames = set(coinNames) & set(MaspL)
 
                 if term[-1] == 'h':
                     MaspL = MaspFilter.MaspRecommend(nowstamp, coinNames, dfhList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
-                    '''
-                    bigger = int(option['first_disparity'])
-                    if bigger < int(option['second_disparity']):
-                        bigger = int(option['second_disparity'])
+                    coinNames = set(coinNames) & set(MaspL)
 
-                    times = int(option['chart_term'][:-1])
-                    time = nowstamp - (bigger * (times + 1) * 3600)
-
-                    df = dfh.loc[dfh['S_time'] > time]
-
-                    for coin in coinList:
-                        try:
-                            df2 = df.loc[df['coin_name'] == coin.coin_name]
-                            df3 = df2[- int(option['first_disparity']):]
-                            df4 = df2[- int(option['second_disparity']):]
-
-                            vol = df3['Volume'].sum()
-                            if vol == 0.0:
-                                continue
-
-                            avgP1 = df3['Close'].mean()
-                            Recent1 = df3['Close'].iloc[-1]
-                            disP1 = (avgP1 / Recent1) * 100
-
-                            avgP2 = df4['Close'].mean()
-                            Recent2 = df4['Close'].iloc[-1]
-                            disP2 = (avgP2 / Recent2) * 100
-
-                            if option['comparison'] == '>=':
-                                if disP1 >= disP2:
-                                    MaspL += f'{coin.coin_name} '
-                            if option['comparison'] == '<=':
-                                if disP1 <= disP2:
-                                    MaspL += f'{coin.coin_name} '
-
-                        except Exception as e:
-                            print(e, coin.coin_name, option['option'])
-                    '''
-
+            # 이격도 옵션
             if option['option'] =='Disparity':
                 term = option['chart_term']
                 if term[-1] == 'm':
                     DisparityL = disparityFilter.disparityRecommend(nowstamp, coinNames, dfmList, term, option['disparity_term'], option['low_disparity'], option['high_disparity'])
+                    coinNames = set(coinNames) & set(DisparityL)
 
                 if term[-1] == 'h':
                     DisparityL = disparityFilter.disparityRecommend(nowstamp, coinNames, dfhList, term, option['disparity_term'], option['low_disparity'], option['high_disparity'])
+                    coinNames = set(coinNames) & set(DisparityL)
 
+            # 추세 옵션
             if option['option'] =='Trend':
                 term = option['chart_term']
                 if term[-1] =='m':
                     TrendL = trendFilter.trendRecommend(nowstamp, coinNames, dfmList, term, option['MASP'], option['trend_term'], option['trend_type'], option['trend_reverse'])
+                    coinNames = set(coinNames) & set(TrendL)
 
                 if term[-1] =='h':
                     TrendL = trendFilter.trendRecommend(nowstamp, coinNames, dfhList, term, option['MASP'], option['trend_term'], option['trend_type'], option['trend_reverse'])
+                    coinNames = set(coinNames) & set(TrendL)
 
             # MACD 옵션 
             if option['option'] =='MACD':
@@ -187,80 +126,12 @@ async def recommendCoin(options, mMax, hMax):
                 # 분 단위
                 if term[-1] =='m':
                     MacdL = MacdFilter.MacdRecommend(nowstamp, coinNames, dfmList, term, option['short_disparity'], option['long_disparity'], option['up_down'])
-                    '''
-                    # 시간 데이터 부족으로 분단위 데이터 사용 중
-                    times = int(term[:-1])
+                    coinNames = set(coinNames) & set (MacdL)
 
-                    time = nowstamp - (int(option['long_disparity']) * (times) * 60)
-
-                    df = dfm.loc[dfm['S_time'] > time]
-
-                    for coin in coinList:
-                        df2 = df.loc[df['coin_name'] == coin.coin_name]
-                        df2.reset_index(drop=True, inplace=True)
-
-                        df3 = df2[(len(df2) % times):]
-                        df3.reset_index(drop=True, inplace=True)
-
-                        vol = df2['Volume'].sum()
-                        if vol == 0.0:
-                            continue
-
-                        # 리스트를 times개씩 묶기
-                        new_df = df3.groupby(np.arange(len(df3)) // times).mean(numeric_only=True)
-
-                        # short EMA 계산
-                        emashort = new_df['Close'].ewm(span=int(option['short_disparity'])).mean()
-                        # long EMA 계산
-                        emalong = new_df['Close'].ewm(span=int(option['long_disparity'])).mean()
-                        # MACD 계산
-                        macd = emashort - emalong
-
-                        if option['up_down'] == 'up':
-                            if macd.iloc[-1] >= 0:
-                                MacdL += f'{coin.coin_name} '
-
-                        if option['up_down'] == 'down':
-                            if macd.iloc[-1] <= 0:
-                                MacdL += f'{coin.coin_name} '
-                '''
                 # 시간 단위
                 if term[-1] =='h':
-                    # 시간 데이터 부족으로 분단위 데이터 사용 중
-                    times = int(term[:-1])
-
-                    time = nowstamp - (int(option['long_disparity']) * (times) * 3600)
-
-                    df = dfh.loc[dfh['S_time'] > time]
-
-                    for coin in coinList:
-                        df2 = df.loc[df['coin_name'] == coin.coin_name]
-                        df2.reset_index(drop=True, inplace=True)
-
-                        df3 = df2[(len(df2) % times):]
-                        df3.reset_index(drop=True, inplace=True)
-
-                        vol = df2['Volume'].sum()
-                        if vol == 0.0:
-                            continue
-
-
-                        # 리스트를 times개씩 묶기
-                        new_df = df3.groupby(np.arange(len(df3)) // times).mean(numeric_only=True)
-
-                        # short EMA 계산
-                        emashort = new_df['Close'].ewm(span=int(option['short_disparity'])).mean()
-                        # long EMA 계산
-                        emalong = new_df['Close'].ewm(span=int(option['long_disparity'])).mean()
-                        # MACD 계산
-                        macd = emashort - emalong
-
-                        if option['up_down'] == 'up':
-                            if macd.iloc[-1] >= 0:
-                                MacdL += f'{coin.coin_name} '
-                        if option['up_down'] == 'down':
-                            if macd.iloc[-1] <= 0:
-                                MacdL += f'{coin.coin_name} '
+                    MacdL = MacdFilter.MacdRecommend(nowstamp, coinNames, dfhList, term, option['short_disparity'], option['long_disparity'], option['up_down'])
+                    coinNames = set(coinNames) & set (MacdL)
 
         url = "https://api.bithumb.com/public/ticker/ALL_KRW"
         headers = {"accept": "application/json"}
@@ -268,27 +139,27 @@ async def recommendCoin(options, mMax, hMax):
         response = requests.get(url, headers=headers)
         data = response.json()["data"]
 
+        '''
         PriceRecommend = priceL
         TrAmtRecommend = TransactionL
         DisparityRecommend = DisparityL
         TrendRecommend = TrendL
         MacdRecommend = MacdL
-        MaspRecommend = MaspL
-
-        time = nowstamp - (10 * 60)
-        df = dfm.loc[dfm['S_time'] > time]
+        MaspRecommend = MaspL'''
 
         recommendCoins = []
         coinList = db.query(models.coinCurrentPrice).all()
         for coin in coinList:
             recommendCoins.append(coin.coin_name)
 
-        recommendCoins = set(recommendCoins) & set(PriceRecommend)
-        recommendCoins = set(recommendCoins) & set(TrAmtRecommend)
-        recommendCoins = set(recommendCoins) & set(DisparityRecommend)
-        recommendCoins = set(recommendCoins) & set(TrendRecommend)
-        recommendCoins = set(recommendCoins) & set(MacdRecommend)
-        recommendCoins = set(recommendCoins) & set(MaspRecommend)
+        '''
+        # 조건 모두 만족하는 코인 (수정예정)
+        recommendCoins = set(recommendCoins) & set(priceL)
+        recommendCoins = set(recommendCoins) & set(TransactionL)
+        recommendCoins = set(recommendCoins) & set(DisparityL)
+        recommendCoins = set(recommendCoins) & set(TrendL)
+        recommendCoins = set(recommendCoins) & set(MacdL)
+        recommendCoins = set(recommendCoins) & set(MaspL)'''
 
         # 리턴할 정보 append
         priceDict = []
@@ -300,92 +171,84 @@ async def recommendCoin(options, mMax, hMax):
 
         recommendDict = []
 
+        # 코인별 조건에 맞는 지 찾고 api 현재가격 정보, 최근 10개 정보 return
         for coin in coinList:
-            if coin.coin_name in PriceRecommend:
+            if coin.coin_name in priceL:
+                name = coin.coin_name[:-4]
+                '''
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
-
-                name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
+                '''
+                try:
+                    priceDict.append({name:data[name]})
+                except Exception as e:
+                    print(e)
 
-                priceDict.append({name:data[name]})
-
-            if coin.coin_name in TrAmtRecommend:
+            if coin.coin_name in TransactionL:
+                name = coin.coin_name[:-4]
+                '''
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
-
-                name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
-
+                '''
                 TrAmtDict.append({name:data[name]})
 
-            if coin.coin_name in MaspRecommend:
+            if coin.coin_name in MaspL:
+                name = coin.coin_name[:-4]
+                '''
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
-
-                name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
-
+                '''
                 MaspDict.append({name:data[name]})
 
-            if coin.coin_name in DisparityRecommend:
+            if coin.coin_name in DisparityL:
+                name = coin.coin_name[:-4]
+                '''
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
-
-                name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
-
+                '''
                 DisparityDict.append({name:data[name]})
 
-            if coin.coin_name in TrendRecommend:
+            if coin.coin_name in TrendL:
+                name = coin.coin_name[:-4]
+                '''
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
-
-                name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
-
+                '''
                 TrendDict.append({name:data[name]})
 
-            if coin.coin_name in MacdRecommend:
+            if coin.coin_name in MacdL:
+                name = coin.coin_name[:-4]
+                '''
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
-
-                #if len(df2) < 5:
-                    #continue
-
-                name = coin.coin_name[:-4]
-                data[name]['tenRow'] = [df2.to_dict()]
+                
+                data[name]['tenRow'] = [df2.to_dict()]'''
                 MacdDict.append({name:data[name]})
 
-            if coin.coin_name in recommendCoins:
+            if coin.coin_name in coinNames:
+                name = coin.coin_name[:-4]
+                '''
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                #if len(df2) < 5:
-                    #continue
-
-                name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
-                print(coin.coin_name)
+                '''
 
                 recommendDict.append({name:data[name]})
 
         now2 = datetime.datetime.now()
         print(now2 - now1)
-        print(PriceRecommend)
-        return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Disparity':DisparityDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}
+
+        db.close()
+        print(len(coinNames))
+        return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Masp':MaspDict, 'Trend': TrendDict, 'Disparity':DisparityDict, 'MACD': MacdDict}

@@ -29,8 +29,8 @@ class getRecommendOption(BaseModel):
     Price: dict
     TransactionAmount: dict
     MASP: dict
-    Disparity: dict
     Trend: dict
+    Disparity: dict
     MACD: dict
 
 class getSearchOptionBody(BaseModel):  
@@ -59,8 +59,8 @@ class insertOption(BaseModel):
     Price: dict
     TransactionAmount: dict
     MASP: dict
-    Disparity: dict
     Trend: dict
+    Disparity: dict
     MACD: dict
 
 class getOptionDetail(BaseModel):  
@@ -71,8 +71,8 @@ class updateOption(BaseModel):
     Price: dict
     TransactionAmount: dict
     MASP: dict
-    Disparity: dict
     Trend: dict
+    Disparity: dict
     MACD: dict
 
 class deleteOption(BaseModel):  

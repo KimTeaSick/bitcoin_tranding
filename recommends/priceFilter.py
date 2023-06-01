@@ -1,8 +1,18 @@
-def priceRecommend(coinList, lowPrice, highPrice):
+import pandas as pd
+
+# 가격 정보, 가격 조건 받아 조건에 맞는 코인 리턴
+def priceRecommend(nowstamp, coinList, dfList, lowPrice, highPrice):
     priceL = []
 
+    time = nowstamp - (5 * 60)
+    df = pd.DataFrame(dfList)
+    df2 = df.loc[df['S_time'] > time]
+
     for coin in coinList:
-        if coin['Close'] > float(lowPrice) and coin['Close'] < float(highPrice):
-            priceL.append(coin['name'])
+        df3 = df2.loc[df['coin_name'] == coin]
+        if df3.iloc[-1]['Close'] > float(lowPrice) and df3.iloc[-1]['Close'] < float(highPrice):
+            priceL.append(coin)
+
+    print(len(priceL), 'price List =================================================================')
 
     return priceL

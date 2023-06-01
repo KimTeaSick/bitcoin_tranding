@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 import datetime
 import pandas as pd
 import models
-from sqlalchemy import between
 
 now1 = datetime.datetime.now()
 try:
@@ -13,11 +12,11 @@ finally:
     db.close()
 
 # 1시간 전 데이터 ~ 최신 데이터 찾아서 dataframe 변환
-now = str(datetime.datetime.now() - datetime.timedelta(hours=1))
-findidx = now[:-10]
-coinList = db.query(model.coinList).all()
-find30m = db.query(model.coinPrice1M).filter(model.coinPrice1M.time.like(f'{findidx}%')).first()
-performanceList = db.query(model.coinPrice1M).filter(model.coinPrice1M.idx > find30m.idx).all()
+nowstamp = int(int(now1.timestamp()) /60) * 60 + (60*540)
+
+coinList = db.query(models.coinList).all()
+dfmSource = db.query(models.coinPrice1M).filter(models.coinPrice1M.S_time >= mNowStamp).all()
+performanceList = db.query(models.coinPrice1M).filter(models.coinPrice1M.idx > find30m.idx).all()
 
 dfList = []
 
@@ -51,8 +50,13 @@ for coin in coinList:
 #df = pd.DataFrame(oneMinList)
 
 print(bulkList)
-db.bulk_insert_mappings(model.coinPrice1H, bulkList)
-db.commit()
 
+try:
+    db.bulk_insert_mappings(models.coinPrice1H, bulkList)
+    db.commit()
+except Exception as e:
+    print(e)
+    db.rollback()
+    
 now2 = datetime.datetime.now()
 print(now2 - now1)
