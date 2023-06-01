@@ -256,23 +256,33 @@ class BitThumbPrivate():
     options = []
     mMax = 0
     hMax = 0
+
     # 사용 옵션 확인 및 변환
     for i in item:
-      print("i :::::::::::::::::::: ", i)
+      print(i[0])
+      #print("i :::::::::::::::::::: ", i)
       if i[1]['flag'] != 0:
         useOptionList.append(i[0])
-        print("pass? :::::::::::::::::::: ")
         if i[0] == 'Price':
           if int(i[1]['high_price']) == 0:
             print('high_price', i[1]['high_price'])
             continue
+
+          if 5 > mMax:
+            mMax = 5
+
           options.append({'option':'Price', 'low_price':i[1]['low_price'], 'high_price':i[1]['high_price']})
 
         if i[0] == 'TransactionAmount':
           if int(i[1]['high_transaction_amount']) == 0:
             print('high_transaction_amount', i[1]['high_transaction_amount'])
             continue
-          options.append({'option':'TransactionAmount', 'low_transaction_amount':i[1]['low_transaction_amount'], 'high_transaction_amount':i[1]['high_transaction_amount']})
+          if i[1]['chart_term'][-1] == 'm' and int(i[1]['chart_term'][:-1]) > mMax:
+            mMax = int(i[1]['chart_term'][:-1])
+          if i[1]['chart_term'][-1] == 'h' and int(i[1]['chart_term'][:-1]) > hMax:
+            hMax = int(i[1]['chart_term'][:-1])
+
+          options.append({'option':'TransactionAmount', 'chart_term':i[1]['chart_term'], 'low_transaction_amount':i[1]['low_transaction_amount'], 'high_transaction_amount':i[1]['high_transaction_amount']})
 
         if i[0] == 'MASP':
           if int(i[1]['first_disparity']) == 0 or int(i[1]['second_disparity']) == 0:
@@ -334,6 +344,7 @@ class BitThumbPrivate():
 
     # 검색 코인 receive
     coins = await recommend.recommendCoin(options, mMax, hMax)
+
     if coins == 444:
       return coins
     '''
@@ -456,7 +467,7 @@ class BitThumbPrivate():
         recommendDict.append({name:data[name]})
     '''
     #return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Disparity':DisparityDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}
-    print(type(coins))
+
     return {"coins" : coins, "optionList" : useOptionList}
 
   async def possessoionCoinInfo(self):
@@ -814,8 +825,8 @@ class BitThumbPrivate():
     return {optionL.name:{'Price':{"low_price": pri.low_price,"high_price": pri.high_price, "flag":pri.flag},
                                   "TransactionAmount": {"low_transaction_amount": tra.low_transaction_amount,"high_transaction_amount":tra.high_transaction_amount, "flag":tra.flag},
                                   "MASP": {"chart_term": mas.chart_term,"first_disparity": mas.first_disparity,"comparison": mas.comparison,"second_disparity": mas.second_disparity, "flag":mas.flag},
-                                  "Disparity": {"chart_term": dis.chart_term,"disparity_term": dis.disparity_term,"low_disparity": dis.low_disparity,"high_disparity": dis.high_disparity, "flag":dis.flag},
                                   "Trend": {"chart_term": trd.chart_term,"MASP":trd.MASP,"trend_term": trd.trend_term,"trend_type": trd.trend_type,"trend_reverse": trd.trend_reverse, "flag":trd.flag},
+                                  "Disparity": {"chart_term": dis.chart_term,"disparity_term": dis.disparity_term,"low_disparity": dis.low_disparity,"high_disparity": dis.high_disparity, "flag":dis.flag},
                                   "MACD": {"chart_term": mac.chart_term,"short_disparity": mac.short_disparity,"long_disparity": mac.long_disparity,"up_down": mac.up_down, "flag":mac.flag, "signal":mac.signal}}}
 
   async def updateOption(self, item):
