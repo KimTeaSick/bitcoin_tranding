@@ -161,7 +161,7 @@ async def recommendCoin(options, mMax, hMax):
             if coin.coin_name in PriceRecommend:
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
-
+                print("coin :::::::: ",coin)
                 if len(df2) < 5:
                     continue
 
@@ -244,5 +244,8 @@ async def recommendCoin(options, mMax, hMax):
 
         now2 = datetime.datetime.now()
         print(now2 - now1)
-        print(PriceRecommend)
+        print("PriceRecommend", PriceRecommend)
+        print("TrAmtRecommend", TrAmtRecommend)
+        print("Disparity", DisparityRecommend)
+        print("MacdRecommend", MacdRecommend)
         return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Disparity':DisparityDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}
