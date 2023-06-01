@@ -28,7 +28,7 @@ class getAccountInfoBody(BaseModel):
 class getSearchOptionBody(BaseModel):  
   name:str
   price: str
-  trends_term: str
+  trends_idx: str
   trends: str
   avg_volume: str
   first_disparity: str
@@ -45,3 +45,7 @@ class  updateDisparityOptionBody(BaseModel):
   
 class updateUseSearchOptionBody(BaseModel):
   num: str
+
+class updateCoinWarning(BaseModel):
+  value: str
+  coin_name:str

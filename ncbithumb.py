@@ -27,8 +27,9 @@ def getBitcoinInfo():
   return data
 
 @app.get("/getDetailBTCInfo/{item_id}")
-def getDetailBTCInfo(item_id):
+async def getDetailBTCInfo(item_id):
   data = bit.getBitCoinList(item_id)
+  data["data"]["warning"] =  await bit.getCoinWarning(item_id+"_KRW")
   return data
 
 @app.post("/getCandleChart")
@@ -77,7 +78,13 @@ def getDateOrderList(item: getDateOrderListBody):
 
 @app.post("/getAvgData")
 def sendAvgData(item: getAvgDataBody):
+  print("item: getAvgDataBody", item)
   return mongo.getAvgData(item.range, item.coin, item.term)
+
+@app.get("/dash/recommendCoin")
+async def getRecommendCoin():
+  response = await bit.getRecommendCoin()
+  return response
 
 @app.get("/dash/getRecommendPrice")
 async def getRecommendPrice():
@@ -119,6 +126,7 @@ async def getSearchOptionList():
 
 @app.post('/setting/registerSearchOption')
 def insertSearchOption(item: updateSearchOptionBody):
+  print(item)
   response = bit.insertSearchOption(item)
   return response
 
@@ -126,3 +134,19 @@ def insertSearchOption(item: updateSearchOptionBody):
 async def updateSearchOption(item: updateSearchOptionBody):
   response = await bit.updateSearchOption(item)
   return response
+
+@app.post("/coinDetail/updateWarning")
+async def updateWarning(item: updateCoinWarning):
+  try:
+    await bit.updateCoinWarning(item.value, item.coin_name)
+    return 200
+  except:
+    return 303
+  
+@app.get("/autotrading/getConditionList")
+async def getConditionList():
+  return await bit.getSearchCondition()
+
+@app.get("/autotrading/getConditionGroupList")
+async def getConditionGroupList():
+  return await bit.getConditionGroupList()

@@ -1,3 +1,4 @@
+from decimal import Decimal
 from dotenv import load_dotenv
 from pybithumb import Bithumb
 from dbConnection import *
@@ -39,3 +40,21 @@ class bitLib():
       account = self.checkAccount()
       money += account
       return money
+    
+    def get_ticker_unit(self, price):
+      try:
+        if Decimal(str(price)) < 10: ticker_unit = 0.01
+        elif Decimal(str(price)) < 100: ticker_unit = 0.1
+        elif Decimal(str(price)) < 1000: ticker_unit = 1
+        elif Decimal(str(price)) < 10000: ticker_unit = 5
+        elif Decimal(str(price)) < 100000: ticker_unit = 10
+        elif Decimal(str(price)) < 500000: ticker_unit = 50
+        elif Decimal(str(price)) < 1000000: ticker_unit = 100
+        elif Decimal(str(price)) < 2000000: ticker_unit = 500
+        else: ticker_unit = 1000
+        return ticker_unit
+    # ----------------------------------------
+    # Exception Raise
+    # ----------------------------------------
+      except Exception:
+        raise
