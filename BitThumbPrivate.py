@@ -456,7 +456,6 @@ class BitThumbPrivate():
         recommendDict.append({name:data[name]})
     '''
     #return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Disparity':DisparityDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}
-    print("coins", coins)
     print(type(coins))
     return {"coins" : coins, "optionList" : useOptionList}
 

@@ -161,9 +161,9 @@ async def recommendCoin(options, mMax, hMax):
             if coin.coin_name in PriceRecommend:
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
-                print("coin :::::::: ",coin)
-                if len(df2) < 5:
-                    continue
+
+                # if len(df2) < 5:
+                #     continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
@@ -174,8 +174,8 @@ async def recommendCoin(options, mMax, hMax):
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                if len(df2) < 5:
-                    continue
+                # if len(df2) < 5:
+                #     continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
@@ -186,8 +186,8 @@ async def recommendCoin(options, mMax, hMax):
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                if len(df2) < 5:
-                    continue
+                # if len(df2) < 5:
+                #     continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
@@ -198,8 +198,8 @@ async def recommendCoin(options, mMax, hMax):
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                if len(df2) < 5:
-                    continue
+                # if len(df2) < 5:
+                #     continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
@@ -210,8 +210,8 @@ async def recommendCoin(options, mMax, hMax):
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                if len(df2) < 5:
-                    continue
+                # if len(df2) < 5:
+                #     continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
@@ -222,30 +222,27 @@ async def recommendCoin(options, mMax, hMax):
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                if len(df2) < 5:
-                    continue
+                # if len(df2) < 5:
+                #     continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
+
                 MacdDict.append({name:data[name]})
 
             if coin.coin_name in recommendCoins:
                 df2 = df.loc[df['coin_name'] == coin.coin_name]
                 df2.reset_index(drop=True, inplace=True)
 
-                if len(df2) < 5:
-                    continue
+                # if len(df2) < 5:
+                #     continue
 
                 name = coin.coin_name[:-4]
                 data[name]['tenRow'] = [df2.to_dict()]
-                print(coin.coin_name)
 
                 recommendDict.append({name:data[name]})
 
         now2 = datetime.datetime.now()
         print(now2 - now1)
-        print("PriceRecommend", PriceRecommend)
-        print("TrAmtRecommend", TrAmtRecommend)
-        print("Disparity", DisparityRecommend)
         print("MacdRecommend", MacdRecommend)
         return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Disparity':DisparityDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}
