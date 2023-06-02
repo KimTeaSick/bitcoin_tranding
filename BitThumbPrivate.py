@@ -718,6 +718,7 @@ class BitThumbPrivate():
 
         if i[0] == 'TransactionAmount':
           transactionAmount_option.flag = i[1]['flag']
+          transactionAmount_option.chart_term = i[1]['chart_term']
           transactionAmount_option.low_transaction_amount = i[1]['low_transaction_amount']
           transactionAmount_option.high_transaction_amount = i[1]['high_transaction_amount']
           transactionAmount_option.name = opName
@@ -823,7 +824,7 @@ class BitThumbPrivate():
     print("flag", mac.flag)
 
     return {optionL.name:{'Price':{"low_price": pri.low_price,"high_price": pri.high_price, "flag":pri.flag},
-                                  "TransactionAmount": {"low_transaction_amount": tra.low_transaction_amount,"high_transaction_amount":tra.high_transaction_amount, "flag":tra.flag},
+                                  "TransactionAmount": {"chart_term": tra.chart_term, "low_transaction_amount": tra.low_transaction_amount,"high_transaction_amount":tra.high_transaction_amount, "flag":tra.flag},
                                   "MASP": {"chart_term": mas.chart_term,"first_disparity": mas.first_disparity,"comparison": mas.comparison,"second_disparity": mas.second_disparity, "flag":mas.flag},
                                   "Trend": {"chart_term": trd.chart_term,"MASP":trd.MASP,"trend_term": trd.trend_term,"trend_type": trd.trend_type,"trend_reverse": trd.trend_reverse, "flag":trd.flag},
                                   "Disparity": {"chart_term": dis.chart_term,"disparity_term": dis.disparity_term,"low_disparity": dis.low_disparity,"high_disparity": dis.high_disparity, "flag":dis.flag},

@@ -49,6 +49,7 @@ class PriceOption(Base):
 class TransactionAmountOption(Base):
     __tablename__ = "nc_c_pr_transaction_amount_t"
     idx = Column(Integer, primary_key=True, index=True)
+    chart_term = Column(String(100))
     low_transaction_amount = Column(Integer)
     high_transaction_amount = Column(Integer)
     name = Column(String(100))

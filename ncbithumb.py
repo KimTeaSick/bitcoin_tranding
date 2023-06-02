@@ -102,8 +102,11 @@ async def getPossessoionCoinInfo():
 
 @app.get('/dash/accountInfo/')
 async def getAccountInfo(date1, date2):
-  response = await bit.dashProperty([str(date1), str(date2)])
-  return response
+  try:
+    response = await bit.dashProperty([str(date1), str(date2)])
+    return response
+  except:
+    return 404
 
 @app.post('/autotrading')
 async def autoTrading():
