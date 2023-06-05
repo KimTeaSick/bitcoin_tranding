@@ -43,6 +43,7 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
 
     # 코인별로 순회하며 조건에 맞는지 찾기
     for coin in coinList:
+        df = df3.reset_index()
         df3 = df2.loc[df2['coin_name'] == coin]
         df3.reset_index(drop=True, inplace=True)
 

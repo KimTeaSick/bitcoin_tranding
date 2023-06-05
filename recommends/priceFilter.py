@@ -13,6 +13,7 @@ def priceRecommend(nowstamp, coinList, dfList, lowPrice, highPrice):
     for coin in coinList:
         print(coin)
         df3 = df2.loc[df['coin_name'] == coin]
+
         if len(df3) == 0:
             continue
         if df3.iloc[-1]['Close'] > float(lowPrice) and df3.iloc[-1]['Close'] < float(highPrice):
