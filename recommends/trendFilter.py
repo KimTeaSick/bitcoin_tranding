@@ -41,6 +41,10 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
         df3 = df2.loc[df['coin_name'] == coin]
         df3.reset_index(drop=True, inplace=True)
 
+        df3 = df3.set_index('time').resample('1H').asfreq()
+        df3 = df3.fillna(method='ffill')
+        # print(df3)
+
         # 시간 범위 내 거래량 0인 코인 빼기
         vol = df3['Volume'].sum()
         if vol == 0.0:
