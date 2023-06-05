@@ -29,32 +29,25 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
     if chart_term[-1] == 'h' and trend_type == 'down_trend' and int(trend_reverse) == 1:
         trdTime = nowstamp - ((int(trend_term) + int(MASP) + 1) * times * 3600)
 
-    print((int(trend_term) + int(MASP) + 1) * times)
-    print(datetime.datetime.now())
-    print(datetime.datetime.utcfromtimestamp(trdTime))
-    print(datetime.datetime.utcfromtimestamp(1685923200))
 
     # dataframe 생성 및 기준 시간 이후 데이터로 자르기
     df = pd.DataFrame(dfList)
     df['time'] = pd.to_datetime(df['time'])
 
     df2 = df.loc[df['S_time'] > trdTime]
-    print(df2)
 
     # 코인별로 순회하며 조건에 맞는지 찾기
     for coin in coinList:
-        df3 = df2.loc[df2['coin_name'] == coin]
+        df3 = df2.loc[df['coin_name'] == coin]
         df3.reset_index(drop=True, inplace=True)
-
-        df3 = df3.set_index('time').resample('1H').asfreq()
-        df3 = df3.fillna(method='ffill')
-        # print(df3)
 
         # 시간 범위 내 거래량 0인 코인 빼기
         vol = df3['Volume'].sum()
         if vol == 0.0:
             continue
 
+        df3 = df3.set_index('time').resample('1H').asfreq()
+        df3 = df3.fillna(method='ffill')
 
         # 생성한 dataframe을 chart term 단위 씩 묶어 dataframe 다시 생성 
         df4 = df3[(len(df3) % times):]
@@ -83,7 +76,6 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
                     z = 0
 
                 if z == int(trend_term):
-                    print(masp, coin)
                     TrendL.append(coin)
 
         if len(df3) != 0 and trend_type == 'down_trend' and int(trend_reverse) == 0:

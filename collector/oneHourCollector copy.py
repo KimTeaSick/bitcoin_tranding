@@ -25,28 +25,34 @@ class MyThread(threading.Thread):
         self.coinList = coinList
 
     def run(self):
-        global currentPrice
-        global macdCollector
-        global insertdata
+        try:
+            global currentPrice
+            global macdCollector
+            global insertdata
 
-        headers = {"accept": "application/json"}
-        for coin in self.coinList:
-            if coin.delflag == 1:
-                continue
-            url = f"https://api.bithumb.com/public/candlestick/{coin.coin_name}/1h"
-            response = requests.get(url)
-            data = response.json()["data"]
+            headers = {"accept": "application/json"}
+            for coin in self.coinList:
+                if coin.delflag == 1:
+                    continue
+                url = f"https://api.bithumb.com/public/candlestick/{coin.coin_name}/1h"
+                response = requests.get(url)
+                data = response.json()["data"]
 
-            time = datetime.datetime.now()
-            newtime = int(time.timestamp() / 3600) * 3600
-            print(newtime, '========', int(data[-1][0]/1000))
-            if newtime != int(data[-1][0]/1000):
-                continue
+                time = datetime.datetime.now()
+                newtime = int(time.timestamp() / 3600) * 3600
+                '''
+                if int(newtime) != int(data[-1][0]/1000):
+                    print(datetime.datetime.utcfromtimestamp(newtime), '========', datetime.datetime.utcfromtimestamp(int(data[-1][0]/1000)))
+                    print('skip', coin.coin_name)
+                    continue
 
-            #insertdata.append({'STime':data[-1][0]/1000, 'Open':data[-1][1], 'Close': data[-1][2], 'High':data[-1][3], 'Low':data[-1][4], 'Volume':data[-1][5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(data[-1][0]/1000)})
-            for dat in data:
-                insertdata.append({'STime':dat[0]/1000, 'Open':dat[1], 'Close': dat[2], 'High':dat[3], 'Low':dat[4], 'Volume':dat[5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(dat[0]/1000)})
+                insertdata.append({'STime':data[-1][0]/1000, 'Open':data[-1][1], 'Close': data[-1][2], 'High':data[-1][3], 'Low':data[-1][4], 'Volume':data[-1][5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(data[-1][0]/1000)})
+                '''
+                for dat in data:
+                    insertdata.append({'STime':dat[0]/1000, 'Open':dat[1], 'Close': dat[2], 'High':dat[3], 'Low':dat[4], 'Volume':dat[5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(dat[0]/1000)})
 
+        except Exception as e:
+            print(e)
         print('thread done')
 
 if __name__ == '__main__':
@@ -73,7 +79,7 @@ if __name__ == '__main__':
     for t in threads:
         t.join()
 
-    print(len(insertdata))
+    print(insertdata)
 
     db.bulk_insert_mappings(models.coin1HPrice, insertdata)
     db.commit()

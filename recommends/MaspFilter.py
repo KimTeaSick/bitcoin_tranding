@@ -18,13 +18,10 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
         if chart_term[-1] == 'h':
             masTime = nowstamp - (bigger * (times) * 3600)
 
-        print(bigger * (times))
-
         df = pd.DataFrame(dfList)
         df['time'] = pd.to_datetime(df['time'])
         
         df2 = df.loc[df['S_time'] > masTime]
-
 
         # 코인별로 순회하며 조건에 맞는지 찾기
         for coin in coinList:
@@ -65,7 +62,7 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
 
                 if comparison == '<=':
                     if len(df3) != 0 and avgP1 <= avgP2:
-                        print(avgP1, avgP2, coin)
+                        #print(avgP1, avgP2, coin)
                         MaspL.append(coin)
 
             except Exception as e:

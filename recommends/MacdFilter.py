@@ -15,23 +15,29 @@ def MacdRecommend(nowstamp, coinList, dfList, chart_term, short_disparity, long_
 
     # dataframe 생성 및 기준 시간 이후 데이터로 자르기
     df = pd.DataFrame(dfList)
+    df['time'] = pd.to_datetime(df['time'])
+    
     df2 = df.loc[df['S_time'] > time]
+
 
     # 코인별로 순회하며 조건에 맞는지 찾기
     for coin in coinList:
         df3 = df2.loc[df['coin_name'] == coin]
         df3.reset_index(drop=True, inplace=True)
 
-        #print(df3)
-
         # 시간 범위 내 거래량 0인 코인 빼기
         vol = df3['Volume'].sum()
         if vol == 0.0:
             continue
 
+        df3 = df3.set_index('time').resample('1H').asfreq()
+        df3 = df3.fillna(method='ffill')
+
         # 생성한 dataframe을 chart term 단위 씩 묶어 dataframe 다시 생성 
         df4 = df3[(len(df3) % times):]
         df4.reset_index(drop=True, inplace=True)
+
+        #print(df3)
 
         # 리스트를 times개씩 묶기
         new_df = df4.groupby(np.arange(len(df4)) // times).mean(numeric_only=True)
@@ -46,6 +52,7 @@ def MacdRecommend(nowstamp, coinList, dfList, chart_term, short_disparity, long_
         # 상승, 하락 비교
         if len(df3) != 0 and up_down == 'up':
             if macd.iloc[-1] >= 0:
+                #print('short:',emashort.iloc[-1], 'long:', emalong.iloc[-1], 'macd:',macd.iloc[-1], coin)
                 MacdL.append(coin)
 
         if len(df3) != 0 and up_down == 'down':
