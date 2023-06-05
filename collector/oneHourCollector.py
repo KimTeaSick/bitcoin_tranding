@@ -59,6 +59,7 @@ class MyThread(threading.Thread):
                 data2.append(coin.coin_name)
                 data2.append(dt2)
 
+
                 # insert 할 내용 append
                 if int(dt) == int(unix_timestamp):
                     currentPrice.append({'STime' : int(data2[0]/1000), 'Open': data2[1], 'Close': data2[2], 'High': data2[3], 'Low':data2[4], 'Volume': data2[5], 'coin_name': data2[6], 'time': data2[7]})
@@ -68,7 +69,7 @@ class MyThread(threading.Thread):
                     currentPrice.append({'STime' : unix_timestamp, 'Open': data2[1], 'Close': data2[2], 'High': data2[3], 'Low': data2[4], 'Volume': data2[5], 'coin_name': data2[6], 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'empty_count':emptyCnt})
 
                 #df3.to_csv(f'./minCollector/csv/{coin.coin_name}{time.strftime("%d%H%M")}.csv', index=True)
-                print(currentPrice[-1])
+                #print(currentPrice[-1])
 
             except Exception as e:
                 print(e)
@@ -77,9 +78,10 @@ class MyThread(threading.Thread):
 
 if __name__ == '__main__':
     now1 = datetime.datetime.now()
+    print(now1)
 
     threads = []
-    coinList = db.query(model.coinList).all()
+    coinList = db.query(models.coinList).all()
 
     headers = {"accept": "application/json"}
 
@@ -98,10 +100,10 @@ if __name__ == '__main__':
     for t in threads:
         t.join()
 
-    #print(currentPrice)
+    print(len(currentPrice))
 
-    db.bulk_insert_mappings(model.coin1HPrice, currentPrice)
-    db.commit()
+    #db.bulk_insert_mappings(models.coin1HPrice, currentPrice)
+    #db.commit()
 
     now2 = datetime.datetime.now()
     print(f'Running Time: {now2 - now1}')

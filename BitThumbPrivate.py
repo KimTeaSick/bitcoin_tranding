@@ -844,6 +844,7 @@ class BitThumbPrivate():
         if i[0] == 'TransactionAmount':
           low_transaction_amount = i[1]['low_transaction_amount']
           high_transaction_amount = i[1]['high_transaction_amount']
+          Trachart_term = i[1]['chart_term']
           TraFlag = i[1]['flag']
 
         if i[0] == 'MASP':
@@ -862,7 +863,6 @@ class BitThumbPrivate():
 
         if i[0] == 'Trend':
           Tchart_term = i[1]['chart_term']
-          Tchart_term = '1m'
           MASP = i[1]['MASP']
           trend_term = i[1]['trend_term']
           trend_type = i[1]['trend_type']
@@ -890,6 +890,7 @@ class BitThumbPrivate():
       pri.high_price = high_price
       pri.flag = PriFlag
 
+      tra.chart_term = Trachart_term
       tra.low_transaction_amount = low_transaction_amount
       tra.high_transaction_amount = high_transaction_amount
       tra.flag = TraFlag

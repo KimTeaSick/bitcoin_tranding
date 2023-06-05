@@ -7,6 +7,7 @@ class coinList(Base):
     idx = Column(Integer, primary_key=True, index=True)
 
     coin_name = Column(String(100))
+    kr_name = Column(String(100))
     warning = Column(String(100))
     delflag = Column(Integer)
 
@@ -127,7 +128,7 @@ class coin1HPrice(Base):
     Volume = Column(String(100))
     coin_name = Column(String(100))
     time = Column(String(100))
-    empty_count = Column(Integer, default=0)
+    #empty_count = Column(Integer, default=0)
 
 class coin6HPrice(Base):
     __tablename__ = "nc_p_6H_bithumb_t"
