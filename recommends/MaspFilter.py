@@ -18,8 +18,13 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
         if chart_term[-1] == 'h':
             masTime = nowstamp - (bigger * (times) * 3600)
 
+        print(bigger * (times))
+
         df = pd.DataFrame(dfList)
+        df['time'] = pd.to_datetime(df['time'])
+        
         df2 = df.loc[df['S_time'] > masTime]
+
 
         # 코인별로 순회하며 조건에 맞는지 찾기
         for coin in coinList:
@@ -32,6 +37,10 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
                 if vol == 0.0:
                     continue
 
+                # 빈 시간 0 채움
+                df3 = df3.set_index('time').resample('1H').asfreq()
+                df3 = df3.fillna(method='ffill')
+
                 # 생성한 dataframe을 chart term 단위 씩 묶어 dataframe 다시 생성 
                 df4 = df3[(len(df3) % times):]
                 df4.reset_index(drop=True, inplace=True)
@@ -39,26 +48,24 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
                 # 리스트를 times개씩 묶기
                 new_df = df4.groupby(np.arange(len(df4)) // times).mean(numeric_only=True)
 
+                dfFirst = new_df[-int(first_disparity):]
+                dfSecond = new_df[-int(second_disparity):]
 
-                dfFirst = new_df[- int(first_disparity):]
-                dfSecond = new_df[- int(second_disparity):]
+                #print(new_df)
 
                 # 첫번째, 두번째 이격도 옵션 이격도 찾기
                 avgP1 = dfFirst['Close'].mean()
-                Recent1 = dfFirst['Close'].iloc[-1]
-                disP1 = (avgP1 / Recent1) * 100
-
                 avgP2 = dfSecond['Close'].mean()
-                Recent2 = dfSecond['Close'].iloc[-1]
-                disP2 = (avgP2 / Recent2) * 100
 
                 # 비교
                 if comparison == '>=':
-                    if disP1 >= disP2:
+                    if len(df3) != 0 and avgP1 >= avgP2:
+                        #print(avgP1, avgP2, coin)
                         MaspL.append(coin)
 
                 if comparison == '<=':
-                    if disP1 <= disP2:
+                    if len(df3) != 0 and avgP1 <= avgP2:
+                        print(avgP1, avgP2, coin)
                         MaspL.append(coin)
 
             except Exception as e:

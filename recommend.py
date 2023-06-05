@@ -24,11 +24,12 @@ async def recommendCoin(options, mMax, hMax):
             db.close()
 
         print(options, '=====================================')
-        now1 = datetime.datetime.now()
-        nowstamp = int(int(now1.timestamp()) /60) * 60 + (60*540)
-        print(datetime.datetime.utcfromtimestamp(nowstamp))
-        print(hMax, 'hMax')
+        # pc 시간, db에 쌓인 유닉스 시간, 비교 필수
 
+        now1 = datetime.datetime.now()
+        nowstamp = int(int(now1.timestamp()) /60) * 60 #+ (60*540)
+        print(datetime.datetime.utcfromtimestamp(nowstamp), 'now-------------------------------------------------------------------------')
+        print(hMax, 'hMax')
 
         # 분단위
         mNowStamp = nowstamp - (mMax * 60)
@@ -37,11 +38,12 @@ async def recommendCoin(options, mMax, hMax):
         i = 0
         for dfs in dfmSource:
             i +=1
-            dfmList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':dfs.Close, 'Volume':dfs.Volume, 'Transaction_amount':dfs.Transaction_amount})
+            dfmList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':(dfs.Close), 'Volume':dfs.Volume, 'Transaction_amount':dfs.Transaction_amount})
 
         #시간 단위
         hNowStamp = nowstamp - (hMax * 3600)
-        dfhSource = db.query(models.coinPrice1H).filter(models.coinPrice1H.S_time >= hNowStamp).all()
+        #dfhSource = db.query(models.coinPrice1H).filter(models.coinPrice1H.S_time >= hNowStamp).all()
+        dfhSource = db.query(models.coin1HPrice).filter(models.coin1HPrice.STime >= hNowStamp).all()
         dfhList = []
 
         #for dfhl in dfhSource:
@@ -49,17 +51,15 @@ async def recommendCoin(options, mMax, hMax):
         print(nowstamp)
 
         for dfs in dfhSource:
-            dfhList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':dfs.Close, 'Volume':dfs.Volume, 'Transaction_amount':dfs.Transaction_amount})
+            #dfhList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':dfs.Close, 'Volume':dfs.Volume, 'Transaction_amount':dfs.Transaction_amount})
+            dfhList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':int(dfs.STime), 'time':dfs.time, 'Close':float(dfs.Close), 'Volume':float(dfs.Volume), 'Transaction_amount':float(dfs.Close) * float(dfs.Volume)})
 
-        dfm = pd.DataFrame(dfmList)
-        dfh = pd.DataFrame(dfhList)
-
-        coinList = db.query(models.coinCurrentPrice).all()
-        coins = []
+        coinList = db.query(models.coinList).all()
+        #coins = []
         coinNames = []
 
         for coin in coinList:
-            coins.append({'name':coin.coin_name, 'Close':coin.Close, 'Transaction_amount':coin.Transaction_amount})
+            #coins.append({'name':coin.coin_name, 'Close':coin.Close, 'Transaction_amount':coin.Transaction_amount})
             coinNames.append(coin.coin_name)
 
         priceL = ''
@@ -68,6 +68,7 @@ async def recommendCoin(options, mMax, hMax):
         MacdL = ''
         MaspL = ''
         TrendL = ''
+        print(len(dfhList), 'dfhList')
 
         for option in options:
             print(option['option'])
@@ -139,27 +140,6 @@ async def recommendCoin(options, mMax, hMax):
         response = requests.get(url, headers=headers)
         data = response.json()["data"]
 
-        '''
-        PriceRecommend = priceL
-        TrAmtRecommend = TransactionL
-        DisparityRecommend = DisparityL
-        TrendRecommend = TrendL
-        MacdRecommend = MacdL
-        MaspRecommend = MaspL'''
-
-        recommendCoins = []
-        coinList = db.query(models.coinCurrentPrice).all()
-        for coin in coinList:
-            recommendCoins.append(coin.coin_name)
-
-        '''
-        # 조건 모두 만족하는 코인 (수정예정)
-        recommendCoins = set(recommendCoins) & set(priceL)
-        recommendCoins = set(recommendCoins) & set(TransactionL)
-        recommendCoins = set(recommendCoins) & set(DisparityL)
-        recommendCoins = set(recommendCoins) & set(TrendL)
-        recommendCoins = set(recommendCoins) & set(MacdL)
-        recommendCoins = set(recommendCoins) & set(MaspL)'''
 
         # 리턴할 정보 append
         priceDict = []
@@ -175,12 +155,7 @@ async def recommendCoin(options, mMax, hMax):
         for coin in coinList:
             if coin.coin_name in priceL:
                 name = coin.coin_name[:-4]
-                '''
-                df2 = df.loc[df['coin_name'] == coin.coin_name]
-                df2.reset_index(drop=True, inplace=True)
 
-                data[name]['tenRow'] = [df2.to_dict()]
-                '''
                 try:
                     priceDict.append({name:data[name]})
                 except Exception as e:
@@ -188,61 +163,31 @@ async def recommendCoin(options, mMax, hMax):
 
             if coin.coin_name in TransactionL:
                 name = coin.coin_name[:-4]
-                '''
-                df2 = df.loc[df['coin_name'] == coin.coin_name]
-                df2.reset_index(drop=True, inplace=True)
 
-                data[name]['tenRow'] = [df2.to_dict()]
-                '''
                 TrAmtDict.append({name:data[name]})
 
             if coin.coin_name in MaspL:
                 name = coin.coin_name[:-4]
-                '''
-                df2 = df.loc[df['coin_name'] == coin.coin_name]
-                df2.reset_index(drop=True, inplace=True)
 
-                data[name]['tenRow'] = [df2.to_dict()]
-                '''
                 MaspDict.append({name:data[name]})
 
             if coin.coin_name in DisparityL:
                 name = coin.coin_name[:-4]
-                '''
-                df2 = df.loc[df['coin_name'] == coin.coin_name]
-                df2.reset_index(drop=True, inplace=True)
 
-                data[name]['tenRow'] = [df2.to_dict()]
-                '''
                 DisparityDict.append({name:data[name]})
 
             if coin.coin_name in TrendL:
                 name = coin.coin_name[:-4]
-                '''
-                df2 = df.loc[df['coin_name'] == coin.coin_name]
-                df2.reset_index(drop=True, inplace=True)
 
-                data[name]['tenRow'] = [df2.to_dict()]
-                '''
                 TrendDict.append({name:data[name]})
 
             if coin.coin_name in MacdL:
                 name = coin.coin_name[:-4]
-                '''
-                df2 = df.loc[df['coin_name'] == coin.coin_name]
-                df2.reset_index(drop=True, inplace=True)
-                
-                data[name]['tenRow'] = [df2.to_dict()]'''
+
                 MacdDict.append({name:data[name]})
 
             if coin.coin_name in coinNames:
                 name = coin.coin_name[:-4]
-                '''
-                df2 = df.loc[df['coin_name'] == coin.coin_name]
-                df2.reset_index(drop=True, inplace=True)
-
-                data[name]['tenRow'] = [df2.to_dict()]
-                '''
 
                 recommendDict.append({name:data[name]})
 

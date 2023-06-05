@@ -49,6 +49,7 @@ class PriceOption(Base):
 class TransactionAmountOption(Base):
     __tablename__ = "nc_c_pr_transaction_amount_t"
     idx = Column(Integer, primary_key=True, index=True)
+    chart_term = Column(String(100))
     low_transaction_amount = Column(Integer)
     high_transaction_amount = Column(Integer)
     name = Column(String(100))
@@ -173,6 +174,21 @@ class coin30MPrice(Base):
     time = Column(String(100))
     empty_count = Column(Integer, default=0)
 
+'''class coin1HPrice(Base):
+    __tablename__ = "nc_p_1H_bithumb_t"
+
+    idx = Column(Integer, primary_key=True)
+
+    STime = Column(Integer)
+    Open = Column(String(100))
+    Close = Column(String(100))
+    High = Column(String(100))
+    Low = Column(String(100))
+    Volume = Column(String(100))
+    coin_name = Column(String(100))
+    time = Column(String(100))
+    empty_count = Column(Integer, default=0)'''
+
 class coin1HPrice(Base):
     __tablename__ = "nc_p_1H_bithumb_t"
 
@@ -186,7 +202,7 @@ class coin1HPrice(Base):
     Volume = Column(String(100))
     coin_name = Column(String(100))
     time = Column(String(100))
-    empty_count = Column(Integer, default=0)
+    #empty_count = Column(Integer, default=0)
 
 class coin6HPrice(Base):
     __tablename__ = "nc_p_6H_bithumb_t"

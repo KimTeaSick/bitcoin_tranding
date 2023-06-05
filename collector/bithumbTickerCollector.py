@@ -75,7 +75,6 @@ def on_message(ws, message):
     except Exception as e:
         print(e)
 
-
 def on_close(ws):
     print('WebSocket connection closed')
 
@@ -87,7 +86,6 @@ def collectNinsert(collector, coins):
     df = pd.DataFrame(collector)
 
     current = db.query(models.coinCurrentPrice).all()
-
     bulkinsert = []
 
     for coin in current:

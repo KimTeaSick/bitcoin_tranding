@@ -44,11 +44,11 @@ def MacdRecommend(nowstamp, coinList, dfList, chart_term, short_disparity, long_
         macd = emashort - emalong
 
         # 상승, 하락 비교
-        if up_down == 'up':
+        if len(df3) != 0 and up_down == 'up':
             if macd.iloc[-1] >= 0:
                 MacdL.append(coin)
 
-        if up_down == 'down':
+        if len(df3) != 0 and up_down == 'down':
             if macd.iloc[-1] <= 0:
                 MacdL.append(coin)
 

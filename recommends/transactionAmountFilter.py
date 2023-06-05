@@ -16,7 +16,7 @@ def transactioAmountRecommend(nowstamp, coinList, dfList, chart_term, lowTransac
     for coin in coinList:
         if coin in coinList:
             df3 = df2.loc[df['coin_name'] == coin]
-            if df3['Transaction_amount'].sum() > float(lowTransactionAmount) and df3['Transaction_amount'].sum() < float(highTransactionAmount):
+            if len(df3) != 0 and df3['Transaction_amount'].sum() > float(lowTransactionAmount) and df3['Transaction_amount'].sum() < float(highTransactionAmount):
                 transactionAmountL.append(coin)
 
         else:
