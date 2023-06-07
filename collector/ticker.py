@@ -18,12 +18,12 @@ response = requests.get(url, headers=headers)
 data = response.json()["data"]
 
 now = datetime.datetime.now()
-unix_timestamp = int(now.timestamp() /60) * 60
+unix_timestamp = int(now.timestamp() / 60) * 60
 
 if str(now.strftime("%H%M")) == '0000':
-    db.query(model.coinCurrentPrice).delete()
+    db.query(models.coinCurrentPrice).delete()
 
-coinList = db.query(model.coinList).all()
+coinList = db.query(models.coinList).filter(models.coinList.delflag == 0).all()
 coins = []
 
 for coin in coinList:
@@ -34,12 +34,12 @@ currentList = []
 for ticker in data:
     if f'{ticker}_KRW' in coins:
         try:
-            currentList.append({'S_time' : unix_timestamp, 'Open': data[ticker]['opening_price'], 'Close': data[ticker]['closing_price'], 'High': data[ticker]['max_price'], 'Low':data[ticker]['min_price'], 
-                            'Volume': data[ticker]['units_traded'], 'coin_name': ticker+'_KRW', 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'Transaction_amount':data[ticker]['acc_trade_value_24H']})
+            currentList.append({'S_time': unix_timestamp, 'Open': data[ticker]['opening_price'], 'Close': data[ticker]['closing_price'], 'High': data[ticker]['max_price'], 'Low': data[ticker]['min_price'],
+                                'Volume': data[ticker]['units_traded'], 'coin_name': ticker+'_KRW', 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'Transaction_amount': data[ticker]['acc_trade_value_24H']})
         except Exception as e:
             print(e)
     else:
-        tick = model.coinCurrentPrice()
+        tick = models.coinCurrentPrice()
         tick.coin_name = ticker+'_KRW'
         tick.S_time = unix_timestamp
         tick.Open = data[ticker]['opening_price']
@@ -52,8 +52,13 @@ for ticker in data:
 
         db.add(tick)
 
-db.bulk_update_mappings(model.coinCurrentPrice, currentList)
+# db.bulk_update_mappings(models.coinCurrentPrice, currentList)
 
 now2 = datetime.datetime.now()
-db.commit()
+
+for tick in currentList:
+    print(tick['coin_name'], tick['time'], tick['Close'],
+          tick['Volume'], tick['Transaction_amount'])
+
+# db.commit()
 print(now2 - now1)

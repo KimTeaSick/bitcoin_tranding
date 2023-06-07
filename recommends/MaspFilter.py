@@ -57,12 +57,12 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
                 # 비교
                 if comparison == '>=':
                     if len(df3) != 0 and avgP1 >= avgP2:
-                        #print(avgP1, avgP2, coin)
+                        print(int(avgP1), int(avgP2), coin)
                         MaspL.append(coin)
 
                 if comparison == '<=':
                     if len(df3) != 0 and avgP1 <= avgP2:
-                        #print(avgP1, avgP2, coin)
+                        print(int(avgP1), int(avgP2), coin)
                         MaspL.append(coin)
 
             except Exception as e:

@@ -102,8 +102,8 @@ if __name__ == '__main__':
 
     print(len(currentPrice))
 
-    #db.bulk_insert_mappings(models.coin1HPrice, currentPrice)
-    #db.commit()
+    db.bulk_insert_mappings(models.coin1HPrice, currentPrice)
+    db.commit()
 
     now2 = datetime.datetime.now()
     print(f'Running Time: {now2 - now1}')

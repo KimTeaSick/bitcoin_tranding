@@ -336,3 +336,29 @@ class coinPrice1H(Base):
     Volume = Column(Float)
     Transaction_amount = Column(Float)
     Disparity = Column(Float)
+
+class buyOption(Base):
+    __tablename__ = "nc_c_buy_option_t"
+
+    idx = Column(Integer, primary_key=True)
+
+    percent_to_buy_condition = Column(String(100))
+    percent_to_buy_method = Column(Integer)
+    price_to_buy_method = Column(Integer)
+    callmoney_to_buy_method = Column(Integer)
+    checkbox = Column(Integer)
+
+class sellOption(Base):
+    __tablename__ = "nc_c_sell_option_t"
+
+    idx = Column(Integer, primary_key=True)
+
+    upper_percent_to_price_condition = Column(Integer)
+    down_percent_to_price_condition = Column(Integer)
+    disparity_for_upper_case = Column(Integer)
+    upper_percent_to_disparity_condition = Column(Integer)
+    disparity_for_down_case = Column(Integer)
+    down_percent_to_disparity_condition = Column(Integer)
+    call_money_to_sell_method = Column(String(100))
+    percent_to_split_sell = Column(Integer)
+    checkbox = Column(Integer)

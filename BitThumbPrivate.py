@@ -970,3 +970,36 @@ class BitThumbPrivate():
       db.commit()
     except:
       db.rollback()
+
+  async def tradingOPtion(self, item):
+    buyOp = db.query(models.buyOption).first()
+    sellOp = db.query(models.sellOption).first()
+
+    for i in item:
+      if i[0] == 'buy':
+        buyOp.percent_to_buy_condition = i[1]['percent_to_buy_condition']
+        buyOp.percent_to_buy_method = i[1]['percent_to_buy_method']
+        buyOp.price_to_buy_method = i[1]['price_to_buy_method']
+        buyOp.callmoney_to_buy_method = i[1]['callmoney_to_buy_method']
+        buyOp.checkbox = i[1]['checkbox']
+
+      if i[0] == 'sell':
+        sellOp.upper_percent_to_price_condition = i[1]['upper_percent_to_price_condition']
+        sellOp.down_percent_to_price_condition = i[1]['down_percent_to_price_condition']
+        sellOp.disparity_for_upper_case = i[1]['disparity_for_upper_case']
+        sellOp.upper_percent_to_disparity_condition = i[1]['upper_percent_to_disparity_condition']
+        sellOp.disparity_for_down_case = i[1]['disparity_for_down_case']
+        sellOp.down_percent_to_disparity_condition = i[1]['down_percent_to_disparity_condition']
+        sellOp.call_money_to_sell_method = i[1]['call_money_to_sell_method']
+        sellOp.percent_to_split_sell = i[1]['percent_to_split_sell']
+        sellOp.checkbox = i[1]['checkbox'] 
+
+    print('buy: ', buyOp.percent_to_buy_condition, buyOp.percent_to_buy_method, buyOp.price_to_buy_method, buyOp.callmoney_to_buy_method, buyOp.checkbox)
+    print('sell: ', sellOp.upper_percent_to_price_condition, sellOp.down_percent_to_price_condition, sellOp.disparity_for_upper_case, sellOp.upper_percent_to_disparity_condition, sellOp.disparity_for_down_case, sellOp.down_percent_to_disparity_condition, sellOp.call_money_to_sell_method, sellOp.percent_to_split_sell, sellOp.checkbox)
+
+    try:
+      db.commit()
+      return 'update success'
+    except:
+      db.rollback()
+      return 'update fail'
