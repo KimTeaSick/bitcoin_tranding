@@ -22,11 +22,7 @@ from sqlalchemy.orm import Session
 import models
 import datetime
 
-try:
-    db = SessionLocal()
-    db: Session
-finally:
-    db.close()
+
 
 load_dotenv()
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
@@ -36,6 +32,20 @@ h ="24h"
 url = f"https://api.bithumb.com/public/candlestick/BTC_KRW/{h}"
 headers = {"accept": "application/json"}
 
+try:
+  db = SessionLocal()
+  db: Session
+finally:
+  db.close()
+
+def reconnect():
+  db.close()
+  try:
+    db = SessionLocal()
+    db: Session
+  finally:
+    db.close()
+  
 class BitThumbPrivate():
   def __init__(self):
     self.bithumb = Bithumb(connenctKey, secretKey)
@@ -47,6 +57,7 @@ class BitThumbPrivate():
   async def getMyPossessionCoinList(self):
     myCoinList = await self.mysql.Select(getMyCoinListSql)
     return myCoinList
+
 
   def callGetTradingFee(self): # 수수료 구하기
     print(self.bithumb.get_trading_fee("BTC"))
@@ -347,126 +358,6 @@ class BitThumbPrivate():
 
     if coins == 444:
       return coins
-    '''
-    url = "https://api.bithumb.com/public/ticker/ALL_KRW"
-    headers = {"accept": "application/json"}
-
-    response = requests.get(url, headers=headers)
-    data = response.json()["data"]
-
-    PriceRecommend = coins['Price'][:-1].split()
-    TrAmtRecommend = coins['TransactionAmount'][:-1].split()
-    DisparityRecommend = coins['Disparity'][:-1].split()
-    TrendRecommend = coins['Trend'][:-1].split()
-    MacdRecommend = coins['MACD'][:-1].split()
-    MaspRecommend = coins['MASP'][:-1].split()
-
-    now = datetime.datetime.now()
-    nowstamp = int(int(now.timestamp()) /60) * 60 + (60*540)
-    time = nowstamp - (10 * 60)
-    ToDf = db.query(models.coinPrice1M).filter(models.coinPrice1M.S_time >= time).all()
-
-    dfList = []
-    for i in ToDf:
-        dfList.append({'coin_name':i.coin_name, 'time':i.time, 'Close':i.Close, 'Volume':i.Volume, 'TransactioAmount': float(i.Close) * float(i.Volume)})
-
-    df = pd.DataFrame(dfList)
-
-    recommendCoins = []
-    coinList = db.query(models.coinList).all()
-    for coin in coinList:
-      recommendCoins.append(coin.coin_name)
-
-    # 추천 코인 교집합
-    for i in item:
-      # if i[1]['flag'] != '0':
-        if i[0] == 'Price':
-          recommendCoins = set(recommendCoins) & set(PriceRecommend)
-        if i[0] == 'TransactionAmount':
-          recommendCoins = set(recommendCoins) & set(TrAmtRecommend)
-        if i[0] == 'Disparity':
-          recommendCoins = set(recommendCoins) & set(DisparityRecommend)
-        if i[0] == 'Trend':
-          recommendCoins = set(recommendCoins) & set(TrendRecommend)
-        if i[0] == 'MACD':
-          recommendCoins = set(recommendCoins) & set(MacdRecommend)
-        if i[0] == 'MASP':
-          recommendCoins = set(recommendCoins) & set(MaspRecommend)
-
-    # 리턴할 정보 append
-    priceDict = []
-    TrAmtDict = []
-    DisparityDict = []
-    MaspDict = []
-    TrendDict = []
-    MacdDict = []
-
-    recommendDict = []
-
-    for coin in coinList:
-      if coin.coin_name in PriceRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        priceDict.append({name:data[name]})
-
-      if coin.coin_name in TrAmtRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        TrAmtDict.append({name:data[name]})
-
-      if coin.coin_name in MaspRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        MaspDict.append({name:data[name]})
-
-      if coin.coin_name in DisparityRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        DisparityDict.append({name:data[name]})
-
-      if coin.coin_name in TrendRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        TrendDict.append({name:data[name]})
-
-      if coin.coin_name in MacdRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-        MacdDict.append({name:data[name]})
-
-      if coin.coin_name in recommendCoins:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        recommendDict.append({name:data[name]})
-    '''
-    #return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Disparity':DisparityDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}
 
     return {"coins" : coins, "optionList" : useOptionList}
 
@@ -788,8 +679,15 @@ class BitThumbPrivate():
       return e
 
   async def optionList(self):
-    optionL = db.query(models.searchOption).all()
-    options = []
+    try:
+      optionL = db.query(models.searchOption).all()
+      options = []
+
+    except Exception as e:
+      print(e)
+      reconnect()
+      optionL = db.query(models.searchOption).all()
+      options = []
 
     for option in optionL:
       if option.Update_date == None:

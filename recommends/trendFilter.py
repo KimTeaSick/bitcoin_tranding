@@ -49,10 +49,10 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
         vol = df3['Volume'].sum()
         if vol == 0.0:
             continue
-
+        '''
         df3 = df3.set_index('time').resample('1H').asfreq()
         df3 = df3.fillna(method='ffill')
-
+        '''
         # 생성한 dataframe을 chart term 단위 씩 묶어 dataframe 다시 생성 
         df4 = df3[(len(df3) % times):]
         df4.reset_index(drop=True, inplace=True)
