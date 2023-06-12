@@ -683,13 +683,7 @@ class BitThumbPrivate():
     #try:
     optionL = db.query(models.searchOption).all()
     options = []
-    '''
-    except Exception as e:
-      print(e)
-      #reconnect()
-      optionL = db.query(models.searchOption).all()
-      options = []
-    '''
+
     for option in optionL:
       if option.Update_date == None:
         option.Update_date = "-"
@@ -869,36 +863,223 @@ class BitThumbPrivate():
       db.commit()
     except:
       db.rollback()
+# ===============================================================================================================trading option
 
-  async def tradingOPtion(self, item):
-    buyOp = db.query(models.buyOption).first()
-    sellOp = db.query(models.sellOption).first()
+  async def insertTradingOPtion(self, item):
+    try:
+      print(item.name)
+      trading_option = models.tradingOption()
+      trading_account_option = models.tradingAccountOtion()
+      trading_buy_option = models.tradingBuyOption()
+      trading_sell_option = models.tradingSellOption()
 
-    for i in item:
-      if i[0] == 'buy':
-        buyOp.percent_to_buy_condition = i[1]['percent_to_buy_condition']
-        buyOp.percent_to_buy_method = i[1]['percent_to_buy_method']
-        buyOp.price_to_buy_method = i[1]['price_to_buy_method']
-        buyOp.callmoney_to_buy_method = i[1]['callmoney_to_buy_method']
-        buyOp.checkbox = i[1]['checkbox']
+      for i in item:
+        print(item.name, i[0])
+        if i[0] == 'account':
+          trading_account_option.name = item.name
+          trading_account_option.price_count = i[1]['price_count']
+          trading_account_option.loss_cut_under_percent = i[1]['loss_cut_under_percent']
+          trading_account_option.loss_cut_under_call_price_sell_all = i[1]['loss_cut_under_call_price_sell_all']
+          trading_account_option.loss_cut_under_coin_specific_percent = opName = i[1]['loss_cut_under_coin_specific_percent']
+          trading_account_option.loss_cut_under_call_price_specific_coin = i[1]['loss_cut_under_call_price_specific_coin']
+          trading_account_option.loss_cut_over_percent = i[1]['loss_cut_over_percent']
+          trading_account_option.loss_cut_over_call_price_sell_all = i[1]['loss_cut_over_call_price_sell_all']
+          trading_account_option.loss_cut_over_coin_specific_percent = i[1]['loss_cut_over_coin_specific_percent']
+          trading_account_option.loss_cut_over_call_price_specific_coin = i[1]['loss_cut_over_call_price_specific_coin']
+          trading_account_option.buy_cancle_time = i[1]['buy_cancle_time']
+          trading_account_option.sell_cancle_time = i[1]['sell_cancle_time']
 
-      if i[0] == 'sell':
-        sellOp.upper_percent_to_price_condition = i[1]['upper_percent_to_price_condition']
-        sellOp.down_percent_to_price_condition = i[1]['down_percent_to_price_condition']
-        sellOp.disparity_for_upper_case = i[1]['disparity_for_upper_case']
-        sellOp.upper_percent_to_disparity_condition = i[1]['upper_percent_to_disparity_condition']
-        sellOp.disparity_for_down_case = i[1]['disparity_for_down_case']
-        sellOp.down_percent_to_disparity_condition = i[1]['down_percent_to_disparity_condition']
-        sellOp.call_money_to_sell_method = i[1]['call_money_to_sell_method']
-        sellOp.percent_to_split_sell = i[1]['percent_to_split_sell']
-        sellOp.checkbox = i[1]['checkbox'] 
+          db.add(trading_account_option)
 
-    print('buy: ', buyOp.percent_to_buy_condition, buyOp.percent_to_buy_method, buyOp.price_to_buy_method, buyOp.callmoney_to_buy_method, buyOp.checkbox)
-    print('sell: ', sellOp.upper_percent_to_price_condition, sellOp.down_percent_to_price_condition, sellOp.disparity_for_upper_case, sellOp.upper_percent_to_disparity_condition, sellOp.disparity_for_down_case, sellOp.down_percent_to_disparity_condition, sellOp.call_money_to_sell_method, sellOp.percent_to_split_sell, sellOp.checkbox)
+        if i[0] == 'buy':
+          trading_buy_option.name = item.name
+          trading_buy_option.percent_to_buy_method = i[1]['percent_to_buy_method']
+          trading_buy_option.price_to_buy_method = i[1]['price_to_buy_method']
+          trading_buy_option.callmoney_to_buy_method = i[1]['callmoney_to_buy_method']
+          trading_buy_option.checkbox = i[1]['checkbox']
+          db.add(trading_buy_option)
 
+        if i[0] == 'sell':
+          trading_sell_option.name = item.name
+          trading_sell_option.upper_percent_to_price_condition = i[1]['upper_percent_to_price_condition']
+          trading_sell_option.down_percent_to_price_condition = i[1]['down_percent_to_price_condition']
+          trading_sell_option.disparity_for_upper_case = i[1]['disparity_for_upper_case']
+          trading_sell_option.upper_percent_to_disparity_condition = i[1]['upper_percent_to_disparity_condition']
+          trading_sell_option.disparity_for_down_case = i[1]['disparity_for_down_case']
+          trading_sell_option.down_percent_to_disparity_condition = i[1]['down_percent_to_disparity_condition']
+          trading_sell_option.call_money_to_sell_method = i[1]['call_money_to_sell_method']
+          trading_sell_option.percent_to_split_sell = i[1]['percent_to_split_sell']
+          trading_sell_option.shot_MACD_value = i[1]['shot_MACD_value']
+          trading_sell_option.long_MACD_value = i[1]['long_MACD_value']
+          trading_sell_option.MACD_signal_value = i[1]['MACD_signal_value']
+
+          db.add(trading_sell_option)
+
+
+      trading_option.name = item.name
+      trading_option.insert_time = datetime.datetime.now()
+      trading_option.update_time = "-"
+      trading_option.used = 0
+      print(item.name)
+
+      db.add(trading_option)
+
+      try:
+        db.commit()
+        return 'Insert sucess'
+
+      except Exception as e:
+        db.rollback()
+        print("db.rollback()",e)
+        return e
+
+    except Exception as e:
+      print(e)
+      return e
+
+  async def tradingOptionList(self):
+    #try:
+    optionL = db.query(models.tradingOption).all()
+    options = []
+
+    for option in optionL:
+      options.append({'Name':option.name, 'Create_date':option.insert_time[:19], 'Update_date': option.update_time[:19], 'used': option.used})
+      print(options)
+
+    return options
+
+  async def optionDetail(self, item):
+    print(item)
+    now1 = datetime.datetime.now()
+
+    optionL = db.query(models.tradingOption).filter(models.tradingOption.name == item.name).first()
+
+    accountL = db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == item.name).first()
+    buyL = db.query(models.tradingBuyOption).filter(models.tradingBuyOption.name == item.name).first()
+    sellL = db.query(models.tradingSellOption).filter(models.tradingSellOption.name == item.name).first()
+
+    now2 = datetime.datetime.now()
+    print(now2-now1)
+
+    return {optionL.name:{'Account':{"price_count": accountL.price_count,"loss_cut_under_percent": accountL.loss_cut_under_percent, "loss_cut_under_call_price_sell_all":accountL.loss_cut_under_call_price_sell_all, "loss_cut_under_coin_specific_percent": accountL.loss_cut_under_coin_specific_percent,"loss_cut_under_call_price_specific_coin": accountL.loss_cut_under_call_price_specific_coin, "loss_cut_over_percent":accountL.loss_cut_over_percent, "loss_cut_over_call_price_sell_all": accountL.loss_cut_over_call_price_sell_all,"loss_cut_over_coin_specific_percent": accountL.loss_cut_over_coin_specific_percent, "loss_cut_over_call_price_specific_coin":accountL.loss_cut_over_call_price_specific_coin, "buy_cancle_time":accountL.buy_cancle_time, "sell_cancle_time":accountL.sell_cancle_time},
+                            "Buy": {"percent_to_buy_method": buyL.percent_to_buy_method, "price_to_buy_method": buyL.price_to_buy_method,"callmoney_to_buy_method":buyL.callmoney_to_buy_method, "checkbox":buyL.checkbox},
+                            "Sell": {"upper_percent_to_price_condition": sellL.upper_percent_to_price_condition,"down_percent_to_price_condition": sellL.down_percent_to_price_condition,"disparity_for_upper_case": sellL.disparity_for_upper_case,"upper_percent_to_disparity_condition": sellL.upper_percent_to_disparity_condition,"disparity_for_down_case": sellL.disparity_for_down_case, "down_percent_to_disparity_condition":sellL.down_percent_to_disparity_condition, "call_money_to_sell_method": sellL.call_money_to_sell_method,"percent_to_split_sell": sellL.percent_to_split_sell,"shot_MACD_value": sellL.shot_MACD_value,"long_MACD_value": sellL.long_MACD_value, "MACD_signal_value":sellL.MACD_signal_value},
+                            }}
+
+  async def updateTradingOption(self, item):
+      print(item.name)
+
+      for i in item:
+        if i[0] == 'account':
+          price_count = i[1]['price_count']
+          loss_cut_under_percent = i[1]['loss_cut_under_percent']
+          loss_cut_under_call_price_sell_all = i[1]['loss_cut_under_call_price_sell_all']
+          loss_cut_under_coin_specific_percent = opName = i[1]['loss_cut_under_coin_specific_percent']
+          loss_cut_under_call_price_specific_coin = i[1]['loss_cut_under_call_price_specific_coin']
+          loss_cut_over_percent = i[1]['loss_cut_over_percent']
+          loss_cut_over_call_price_sell_all = i[1]['loss_cut_over_call_price_sell_all']
+          loss_cut_over_coin_specific_percent = i[1]['loss_cut_over_coin_specific_percent']
+          loss_cut_over_call_price_specific_coin = i[1]['loss_cut_over_call_price_specific_coin']
+          buy_cancle_time = i[1]['buy_cancle_time']
+          sell_cancle_time = i[1]['sell_cancle_time']
+
+        if i[0] == 'buy':
+          percent_to_buy_method = i[1]['percent_to_buy_method']
+          price_to_buy_method = i[1]['price_to_buy_method']
+          callmoney_to_buy_method = i[1]['callmoney_to_buy_method']
+          checkbox = i[1]['checkbox']
+
+        if i[0] == 'sell':
+          upper_percent_to_price_condition = i[1]['upper_percent_to_price_condition']
+          down_percent_to_price_condition = i[1]['down_percent_to_price_condition']
+          disparity_for_upper_case = i[1]['disparity_for_upper_case']
+          upper_percent_to_disparity_condition = i[1]['upper_percent_to_disparity_condition']
+          disparity_for_down_case = i[1]['disparity_for_down_case']
+          down_percent_to_disparity_condition = i[1]['down_percent_to_disparity_condition']
+          call_money_to_sell_method = i[1]['call_money_to_sell_method']
+          percent_to_split_sell = i[1]['percent_to_split_sell']
+          shot_MACD_value = i[1]['shot_MACD_value']
+          long_MACD_value = i[1]['long_MACD_value']
+          MACD_signal_value = i[1]['MACD_signal_value']
+
+      optionL = db.query(models.tradingOption).filter(models.tradingOption.name == item.name).first()
+
+      accountL = db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == item.name).first()
+      buyL = db.query(models.tradingBuyOption).filter(models.tradingBuyOption.name == item.name).first()
+      sellL = db.query(models.tradingSellOption).filter(models.tradingSellOption.name == item.name).first()
+
+      accountL.price_count = price_count
+      accountL.loss_cut_under_percent = loss_cut_under_percent
+      accountL.loss_cut_under_call_price_sell_all = loss_cut_under_call_price_sell_all
+      accountL.loss_cut_under_coin_specific_percent = loss_cut_under_coin_specific_percent
+      accountL.loss_cut_under_call_price_specific_coin = loss_cut_under_call_price_specific_coin
+      accountL.loss_cut_over_percent = loss_cut_over_percent
+      accountL.loss_cut_over_call_price_sell_all = loss_cut_over_call_price_sell_all
+      accountL.loss_cut_over_coin_specific_percent = loss_cut_over_coin_specific_percent
+      accountL.loss_cut_over_call_price_specific_coin = loss_cut_over_call_price_specific_coin
+      accountL.buy_cancle_time = buy_cancle_time
+      accountL.sell_cancle_time = sell_cancle_time
+
+
+      buyL.percent_to_buy_method = percent_to_buy_method
+      buyL.price_to_buy_method = price_to_buy_method
+      buyL.callmoney_to_buy_method = callmoney_to_buy_method
+      buyL.checkbox = checkbox
+
+
+      sellL.upper_percent_to_price_condition = upper_percent_to_price_condition
+      sellL.down_percent_to_price_condition = down_percent_to_price_condition
+      sellL.disparity_for_upper_case = disparity_for_upper_case
+      sellL.upper_percent_to_disparity_condition = upper_percent_to_disparity_condition
+      sellL.disparity_for_down_case = disparity_for_down_case
+      sellL.down_percent_to_disparity_condition = down_percent_to_disparity_condition
+      sellL.call_money_to_sell_method = call_money_to_sell_method
+      sellL.percent_to_split_sell = percent_to_split_sell
+      sellL.shot_MACD_value = shot_MACD_value
+      sellL.long_MACD_value = long_MACD_value
+      sellL.MACD_signal_value = MACD_signal_value
+
+      optionL.update_time = datetime.datetime.now()
+
+      try:
+        db.commit()
+        print('commit')
+      except:
+        db.rollback()
+        print('rollback')
+
+      return 'Insert sucess'
+
+  async def deleteOption(self, item):
+    try:
+      db.query(models.tradingOption).filter(models.tradingOption.name == item.name).delete()
+
+      db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == item.name).delete()
+      db.query(models.tradingBuyOption).filter(models.tradingBuyOption.name == item.name).delete()
+      db.query(models.tradingSellOption).filter(models.tradingSellOption.name == item.name).delete()
+
+      try:
+        db.commit()
+      except Exception as e:
+        print(e)
+        db.rollback()
+
+      return 'delete sucess'
+
+    except Exception as e:
+      print(e)
+
+  async def usetradingOption(self, item):
+    print(item)
+    useOption = db.query(models.tradingOption).filter(models.tradingOption.name == item.name).first()
+    optionL = db.query(models.tradingOption).filter(models.tradingOption.used == 1).all()
+
+    for option in optionL:
+      option.used = 0
+
+    useOption.used = 1
+    useOption.Update_date = datetime.datetime.now()
     try:
       db.commit()
-      return 'update success'
     except:
       db.rollback()
-      return 'update fail'
