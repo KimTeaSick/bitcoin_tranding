@@ -41,16 +41,12 @@ class MyThread(threading.Thread):
 
                     time = datetime.datetime.now()
                     newtime = int(time.timestamp() / 3600) * 3600
-                    '''
-                    if int(newtime) != int(data[-1][0]/1000):
-                        print(datetime.datetime.utcfromtimestamp(newtime), '========', datetime.datetime.utcfromtimestamp(int(data[-1][0]/1000)))
-                        print('skip', coin.coin_name)
-                        continue
 
-                    insertdata.append({'STime':data[-1][0]/1000, 'Open':data[-1][1], 'Close': data[-1][2], 'High':data[-1][3], 'Low':data[-1][4], 'Volume':data[-1][5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(data[-1][0]/1000)})
-                    '''
-                    for dat in data:
-                        insertdata.append({'STime':dat[0]/1000, 'Open':dat[1], 'Close': dat[2], 'High':dat[3], 'Low':dat[4], 'Volume':dat[5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(dat[0]/1000)})
+                    print(data[-1][0]/1000, newtime, coin.coin_name)
+                    #insertdata.append({'STime':dat[0]/1000, 'Open':dat[1], 'Close': dat[2], 'High':dat[3], 'Low':dat[4], 'Volume':dat[5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(dat[0]/1000)})
+
+                    #for dat in data:
+                        #insertdata.append({'STime':dat[0]/1000, 'Open':dat[1], 'Close': dat[2], 'High':dat[3], 'Low':dat[4], 'Volume':dat[5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(dat[0]/1000)})
                 except Exception as e:
                     print(e)
 
@@ -84,8 +80,8 @@ if __name__ == '__main__':
 
     print(insertdata)
 
-    db.bulk_insert_mappings(models.coin1HPrice, insertdata)
-    db.commit()
+    #db.bulk_insert_mappings(models.coin1HPrice, insertdata)
+    #db.commit()
 
     now2 = datetime.datetime.now()
     print(f'Running Time: {now2 - now1}')

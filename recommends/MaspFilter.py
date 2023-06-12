@@ -4,6 +4,7 @@ import numpy as np
 # 이평선 옵션, 현재시간, dataframe 전달 받아 조건에 맞는 코인 return
 def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, second_disparity, comparison):
         MaspL = []
+        MaspValue = []
         print('masp:', len(coinList), '33333333333333333333333333333333333333333333333333333333333333333333333333')
 
         # 이격도 조건중 더 큰값 
@@ -48,8 +49,6 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
                 dfFirst = new_df[-int(first_disparity):]
                 dfSecond = new_df[-int(second_disparity):]
 
-                #print(new_df)
-
                 # 첫번째, 두번째 이격도 옵션 이격도 찾기
                 avgP1 = dfFirst['Close'].mean()
                 avgP2 = dfSecond['Close'].mean()
@@ -57,17 +56,17 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
                 # 비교
                 if comparison == '>=':
                     if len(df3) != 0 and avgP1 >= avgP2:
-                        print(int(avgP1), int(avgP2), coin)
                         MaspL.append(coin)
+                        MaspValue.append({'coin_name': coin, 'first_disparity': avgP1, 'second_disparity': avgP2})
 
                 if comparison == '<=':
                     if len(df3) != 0 and avgP1 <= avgP2:
-                        print(int(avgP1), int(avgP2), coin)
                         MaspL.append(coin)
+                        MaspValue.append({'coin_name': coin, 'first_disparity': avgP1, 'second_disparity': avgP2})
 
             except Exception as e:
                 print(e, coin, 'Masp error')
 
-        print('masp', len(MaspL), '333333333333333333333333333333333333333333333333333333')
+        print('masp', len(MaspL), '33333333333333333333333333333333333333333333333')
 
-        return MaspL
+        return MaspL, MaspValue

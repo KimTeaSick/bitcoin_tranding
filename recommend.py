@@ -62,77 +62,85 @@ async def recommendCoin(options, mMax, hMax):
             #coins.append({'name':coin.coin_name, 'Close':coin.Close, 'Transaction_amount':coin.Transaction_amount})
             coinNames.append(coin.coin_name)
 
-        priceL = ''
-        TransactionL = ''
-        DisparityL = ''
-        MacdL = ''
-        MaspL = ''
-        TrendL = ''
-        print(len(dfhList), 'dfhList')
+        priceL = []
+        TransactionL = []
+        DisparityL = []
+        MacdL = []
+        MaspL = []
+        TrendL = []
+
+        priceValue = []
+        transactionAmountValue = []
+        MaspValue = []
+        DisparityValue = []
+        TrendValue = []
+        MacdValue = []
 
         for option in options:
             print(option['option'])
             # 현재 가격 범위 옵션
             if option['option'] =='Price':
-                priceL = priceFilter.priceRecommend(nowstamp, coinNames, dfmList, option['low_price'], option['high_price'])
+                priceL, priceValue = priceFilter.priceRecommend(nowstamp, coinNames, dfmList, option['low_price'], option['high_price'])
                 coinNames = set(coinNames) & set(priceL)
 
             # 거래대금 가격 범위 옵션
             if option['option'] =='TransactionAmount':
                 term = option['chart_term']
                 if term[-1] == 'm':
-                    TransactionL = transactionAmountFilter.transactioAmountRecommend(nowstamp, coinNames, dfmList,  option['chart_term'], option['low_transaction_amount'], option['high_transaction_amount'])
+                    TransactionL, transactionAmountValue = transactionAmountFilter.transactioAmountRecommend(nowstamp, coinNames, dfmList,  option['chart_term'], option['low_transaction_amount'], option['high_transaction_amount'])
                     coinNames = set(coinNames) & set(TransactionL)
 
                 if term[-1] == 'h':
-                    TransactionL = transactionAmountFilter.transactioAmountRecommend(nowstamp, coinNames, dfhList,  option['chart_term'], option['low_transaction_amount'], option['high_transaction_amount'])
+                    TransactionL, transactionAmountValue = transactionAmountFilter.transactioAmountRecommend(nowstamp, coinNames, dfhList,  option['chart_term'], option['low_transaction_amount'], option['high_transaction_amount'])
                     coinNames = set(coinNames) & set(TransactionL)
 
             # 이동평균 옵션 
             if option['option'] =='MASP':
                 term = option['chart_term']
                 if term[-1] == 'm':
-                    MaspL = MaspFilter.MaspRecommend(nowstamp, coinNames, dfmList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
+                    MaspL, MaspValue = MaspFilter.MaspRecommend(nowstamp, coinNames, dfmList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
                     coinNames = set(coinNames) & set(MaspL)
 
                 if term[-1] == 'h':
-                    MaspL = MaspFilter.MaspRecommend(nowstamp, coinNames, dfhList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
+                    MaspL, MaspValue = MaspFilter.MaspRecommend(nowstamp, coinNames, dfhList, option['chart_term'], option['first_disparity'], option['second_disparity'], option['comparison'])
                     coinNames = set(coinNames) & set(MaspL)
 
             # 이격도 옵션
             if option['option'] =='Disparity':
                 term = option['chart_term']
                 if term[-1] == 'm':
-                    DisparityL = disparityFilter.disparityRecommend(nowstamp, coinNames, dfmList, term, option['disparity_term'], option['low_disparity'], option['high_disparity'])
+                    DisparityL, DisparityValue = disparityFilter.disparityRecommend(nowstamp, coinNames, dfmList, term, option['disparity_term'], option['low_disparity'], option['high_disparity'])
                     coinNames = set(coinNames) & set(DisparityL)
 
                 if term[-1] == 'h':
-                    DisparityL = disparityFilter.disparityRecommend(nowstamp, coinNames, dfhList, term, option['disparity_term'], option['low_disparity'], option['high_disparity'])
+                    DisparityL, DisparityValue = disparityFilter.disparityRecommend(nowstamp, coinNames, dfhList, term, option['disparity_term'], option['low_disparity'], option['high_disparity'])
                     coinNames = set(coinNames) & set(DisparityL)
 
             # 추세 옵션
             if option['option'] =='Trend':
                 term = option['chart_term']
                 if term[-1] =='m':
-                    TrendL = trendFilter.trendRecommend(nowstamp, coinNames, dfmList, term, option['MASP'], option['trend_term'], option['trend_type'], option['trend_reverse'])
+                    TrendL, TrendValue = trendFilter.trendRecommend(nowstamp, coinNames, dfmList, term, option['MASP'], option['trend_term'], option['trend_type'], option['trend_reverse'])
                     coinNames = set(coinNames) & set(TrendL)
 
                 if term[-1] =='h':
-                    TrendL = trendFilter.trendRecommend(nowstamp, coinNames, dfhList, term, option['MASP'], option['trend_term'], option['trend_type'], option['trend_reverse'])
+                    TrendL, TrendValue = trendFilter.trendRecommend(nowstamp, coinNames, dfhList, term, option['MASP'], option['trend_term'], option['trend_type'], option['trend_reverse'])
                     coinNames = set(coinNames) & set(TrendL)
+                    print(TrendValue)
 
             # MACD 옵션 
             if option['option'] =='MACD':
                 term = option['chart_term']
                 # 분 단위
                 if term[-1] =='m':
-                    MacdL = MacdFilter.MacdRecommend(nowstamp, coinNames, dfmList, term, option['short_disparity'], option['long_disparity'], option['up_down'])
+                    MacdL, MacdValue = MacdFilter.MacdRecommend(nowstamp, coinNames, dfmList, term, option['short_disparity'], option['long_disparity'], option['signal'], option['up_down'])
                     coinNames = set(coinNames) & set (MacdL)
 
                 # 시간 단위
                 if term[-1] =='h':
-                    MacdL = MacdFilter.MacdRecommend(nowstamp, coinNames, dfhList, term, option['short_disparity'], option['long_disparity'], option['up_down'])
+                    MacdL, MacdValue = MacdFilter.MacdRecommend(nowstamp, coinNames, dfhList, term, option['short_disparity'], option['long_disparity'], option['signal'], option['up_down'])
                     coinNames = set(coinNames) & set (MacdL)
+                    print(MacdValue)
 
         url = "https://api.bithumb.com/public/ticker/ALL_KRW"
         headers = {"accept": "application/json"}
@@ -155,36 +163,58 @@ async def recommendCoin(options, mMax, hMax):
         for coin in coinList:
             if coin.coin_name in priceL:
                 name = coin.coin_name[:-4]
+                coinPriceValue = list(filter(lambda item : item['coin_name'] == coin.coin_name, priceValue))
 
-                try:
-                    priceDict.append({name:data[name]})
-                except Exception as e:
-                    print(e)
+                newDict = data[name]
+                newDict['price'] = coinPriceValue[0]['price']
+                priceDict.append({name:newDict})
 
             if coin.coin_name in TransactionL:
                 name = coin.coin_name[:-4]
+                coinTransactionAmountValue = list(filter(lambda item : item['coin_name'] == coin.coin_name, transactionAmountValue))
 
-                TrAmtDict.append({name:data[name]})
+                newDict = data[name]
+                newDict['Transaction_amount'] = coinTransactionAmountValue[0]['Transaction_amount']
+                TrAmtDict.append({name:newDict})
 
             if coin.coin_name in MaspL:
                 name = coin.coin_name[:-4]
+                coinMaspValue = list(filter(lambda item : item['coin_name'] == coin.coin_name, MaspValue))
 
-                MaspDict.append({name:data[name]})
+                newDict = data[name]
+                newDict['first_disparity'] = coinMaspValue[0]['first_disparity']
+                newDict['second_disparity'] = coinMaspValue[0]['second_disparity']
+
+                MaspDict.append({name:newDict})
 
             if coin.coin_name in DisparityL:
                 name = coin.coin_name[:-4]
+                coinDisparityValue = list(filter(lambda item : item['coin_name'] == coin.coin_name, DisparityValue))
 
-                DisparityDict.append({name:data[name]})
+                newDict = data[name]
+                newDict['disparity'] = coinDisparityValue[0]['disparity']
+
+                DisparityDict.append({name:newDict})
 
             if coin.coin_name in TrendL:
                 name = coin.coin_name[:-4]
+                coinTrendValue = list(filter(lambda item : item['coin_name'] == coin.coin_name, TrendValue))
 
-                TrendDict.append({name:data[name]})
+                newDict = data[name]
+                newDict['first_value'] = coinTrendValue[0]['first_value']
+                newDict['last_value'] = coinTrendValue[0]['last_value']
+                TrendDict.append({name:newDict})
 
             if coin.coin_name in MacdL:
                 name = coin.coin_name[:-4]
+                coinMacdValue = list(filter(lambda item : item['coin_name'] == coin.coin_name, MacdValue))
 
-                MacdDict.append({name:data[name]})
+                newDict = data[name]
+                newDict['macd_short'] = coinMacdValue[0]['macd_short']
+                newDict['macd_long'] = coinMacdValue[0]['macd_long']
+                newDict['macd'] = coinMacdValue[0]['macd']
+                newDict['macd_signal'] = coinMacdValue[0]['macd_signal']
+                MacdDict.append({name:newDict})
 
             if coin.coin_name in coinNames:
                 name = coin.coin_name[:-4]

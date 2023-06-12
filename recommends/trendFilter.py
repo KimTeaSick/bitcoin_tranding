@@ -5,6 +5,7 @@ import datetime
 # 추세 조건, 현재 시간, 데이터 가져와 조건에 맞는지 탐색
 def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, trend_type, trend_reverse):
     TrendL = []
+    TrendValue = []
     print('trend', len(coinList))
     print(datetime.datetime.utcfromtimestamp(nowstamp), len(dfList),chart_term, MASP, trend_term, trend_type, trend_reverse)
 
@@ -29,7 +30,6 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
     if chart_term[-1] == 'h' and trend_type == 'down_trend' and int(trend_reverse) == 1:
         trdTime = nowstamp - ((int(trend_term) + int(MASP) + 1) * times * 3600)
 
-
     # dataframe 생성 및 기준 시간 이후 데이터로 자르기
     df = pd.DataFrame(dfList)
     df['time'] = pd.to_datetime(df['time'])
@@ -49,10 +49,7 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
         vol = df3['Volume'].sum()
         if vol == 0.0:
             continue
-        '''
-        df3 = df3.set_index('time').resample('1H').asfreq()
-        df3 = df3.fillna(method='ffill')
-        '''
+
         # 생성한 dataframe을 chart term 단위 씩 묶어 dataframe 다시 생성 
         df4 = df3[(len(df3) % times):]
         df4.reset_index(drop=True, inplace=True)
@@ -63,8 +60,6 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
 
         masp = new_df["Close"].rolling(window=int(MASP)).mean()
         masp.fillna(0)
-
-        #print(masp, coin)
 
         # 코인이 조건에 부합하는지 판단 
         z = 0
@@ -81,6 +76,7 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
 
                 if z == int(trend_term):
                     TrendL.append(coin)
+                    TrendValue.append({'coin_name': coin, 'first_value': masp.iloc[i-(int(trend_term))], 'last_value': masp[i]})
 
         if len(df3) != 0 and trend_type == 'down_trend' and int(trend_reverse) == 0:
             for i in range(int(MASP), len(new_df)):
@@ -94,6 +90,7 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
 
                 if z == int(trend_term):
                     TrendL.append(coin)
+                    TrendValue.append({'coin_name': coin, 'first_value': masp.iloc[i-(int(trend_term))], 'last_value': masp[i]})
 
         if len(df3) != 0 and trend_type == 'up_trend' and int(trend_reverse) == 1:
             for i in range(int(MASP), len(new_df)):
@@ -103,6 +100,7 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
                 if z == int(trend_term):
                     if float(masp[i]) < float(masp[i-1]):
                         TrendL.append(coin)
+                        TrendValue.append({'coin_name': coin, 'first_value': masp.iloc[i-(int(trend_term) + 1)], 'last_value': masp[i]})
 
                 if float(masp[i]) > float(masp[i-1]):
                     z += 1
@@ -114,11 +112,12 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
                 if z == int(trend_term):
                     if float(masp[i]) > float(masp[i-1]):
                         TrendL.append(coin)
+                        TrendValue.append({'coin_name': coin, 'first_value': masp.iloc[i-(int(trend_term) + 1)], 'last_value': masp[i]})
 
                 if float(masp[i]) < float(masp[i-1]):
                     z += 1
                 else:
                     z = 0
 
-    print(len(TrendL), 'trend1111111111111111111111111111111111111111111111111111111111111111111')
-    return TrendL
+    print(len(TrendL), 'trend555555555555555555555555555555555555555555555555555555555555555555555555555')
+    return TrendL, TrendValue

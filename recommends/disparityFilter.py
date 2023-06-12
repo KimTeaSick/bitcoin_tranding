@@ -4,6 +4,7 @@ import numpy as np
 # 이격도 조건, 현재시간, 데이터 가져와 조건에 맞는지 탐색
 def disparityRecommend(nowstamp, coinList, dfList, chart_term, disparity_term, low_disparity, high_disparity):
     DisparityL = []
+    DisparityValue = []
     print('disparity:', len(coinList), '------------------------------------------------------')
 
     # 기준시간 찾기
@@ -47,6 +48,7 @@ def disparityRecommend(nowstamp, coinList, dfList, chart_term, disparity_term, l
         # 이격도 범위 비교
         if int(low_disparity) < disP and int(high_disparity) > disP :
                 DisparityL.append(coin)
+                DisparityValue.append({'coin_name': coin, 'disparity': disP})
 
     print(len(DisparityL), '------------------------------------------------------------------------')
-    return DisparityL
+    return DisparityL, DisparityValue

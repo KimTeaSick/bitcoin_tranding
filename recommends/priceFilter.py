@@ -3,6 +3,7 @@ import pandas as pd
 # 가격 정보, 가격 조건 받아 조건에 맞는 코인 리턴
 def priceRecommend(nowstamp, coinList, dfList, lowPrice, highPrice):
     priceL = []
+    priceValue = []
     print(len(coinList), len(dfList), lowPrice, highPrice)
 
     lowPrice = int(lowPrice)
@@ -16,13 +17,7 @@ def priceRecommend(nowstamp, coinList, dfList, lowPrice, highPrice):
 
         if len(df3) != 0 and df3.iloc[-1]['Close'] > float(lowPrice) and df3.iloc[-1]['Close'] < float(highPrice):
             priceL.append(coin)
-            '''
-            if len(df3) == 0:
-                continue
+            priceValue.append({'coin_name':coin, 'price': df3.iloc[-1]['Close']})
 
-        if len(df3) == 0:
-            continue
-        if df3.iloc[-1]['Close'] > float(lowPrice) and df3.iloc[-1]['Close'] < float(highPrice):
-        '''
     print(len(priceL), 'price List =================================================================')
-    return priceL
+    return priceL, priceValue

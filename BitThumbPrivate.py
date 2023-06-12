@@ -37,14 +37,15 @@ try:
   db: Session
 finally:
   db.close()
-
+'''
 def reconnect():
+  global db
   db.close()
   try:
     db = SessionLocal()
     db: Session
   finally:
-    db.close()
+    db.close()'''
   
 class BitThumbPrivate():
   def __init__(self):
@@ -345,13 +346,13 @@ class BitThumbPrivate():
             print('short_disparity:', i[1]['short_disparity'], 'long_disparity:', i[1]['long_disparity'])
             continue
 
-          if i[1]['chart_term'][-1] == 'm' and ((int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])) > mMax:
-            mMax = (int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])
+          if i[1]['chart_term'][-1] == 'm' and ((int(i[1]['long_disparity']) * 2 + int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])) > mMax:
+            mMax = (int(i[1]['long_disparity']) * 2 + int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])
 
-          if i[1]['chart_term'][-1] == 'h' and ((int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])) > hMax:
-            hMax = (int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])
+          if i[1]['chart_term'][-1] == 'h' and ((int(i[1]['long_disparity']) * 2 + int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])) > hMax:
+            hMax = (int(i[1]['long_disparity']) * 2 + int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])
 
-          options.append({'option':'MACD', 'chart_term':i[1]['chart_term'], 'short_disparity':i[1]['short_disparity'], 'long_disparity':i[1]['long_disparity'], 'up_down':i[1]['up_down']})
+          options.append({'option':'MACD', 'chart_term':i[1]['chart_term'], 'short_disparity':i[1]['short_disparity'], 'long_disparity':i[1]['long_disparity'],'signal':i[1]['signal'], 'up_down':i[1]['up_down']})
 
     # 검색 코인 receive
     coins = await recommend.recommendCoin(options, mMax, hMax)
@@ -679,16 +680,16 @@ class BitThumbPrivate():
       return e
 
   async def optionList(self):
-    try:
-      optionL = db.query(models.searchOption).all()
-      options = []
-
+    #try:
+    optionL = db.query(models.searchOption).all()
+    options = []
+    '''
     except Exception as e:
       print(e)
-      reconnect()
+      #reconnect()
       optionL = db.query(models.searchOption).all()
       options = []
-
+    '''
     for option in optionL:
       if option.Update_date == None:
         option.Update_date = "-"
