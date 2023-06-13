@@ -948,7 +948,7 @@ class BitThumbPrivate():
 
     return options
 
-  async def optionDetail(self, item):
+  async def tradingOptionDetail(self, item):
     print(item)
     now1 = datetime.datetime.now()
 
@@ -1050,7 +1050,7 @@ class BitThumbPrivate():
 
       return 'Insert sucess'
 
-  async def deleteOption(self, item):
+  async def deleteTradingOption(self, item):
     try:
       db.query(models.tradingOption).filter(models.tradingOption.name == item.name).delete()
 

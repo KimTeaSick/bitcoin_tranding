@@ -214,7 +214,7 @@ async def getOptionList():
 
 @app.post('/trade/tradingOptionDetail')
 async def selectOptionDetail(item: getTradingOptionDetail):
-    response = await bit.optionDetail(item)
+    response = await bit.tradingOptionDetail(item)
     return response
 
 
@@ -226,11 +226,11 @@ async def UpdateOption(item: tradingOption):
 
 @app.post('/trade/deleteTradingOption')
 async def OptionDelete(item: deleteTradingOption):
-    response = await bit.deleteOption(item)
+    response = await bit.deleteTradingOption(item)
     return response
 
 
 @app.post('/option/useTradingOption')
 async def OptionUsed(item: useTradingOption):
-    response = await bit.usetradingOption(item)
+    response = await bit.useTradingOption(item)
     return response
