@@ -1,5 +1,6 @@
 # 호가 계산 함수 
 def askingPrice(price):
+    result:float = 0.0
     if price < 1:
         result = 0.0001
     elif price >= 1 and price < 10:
@@ -24,6 +25,3 @@ def askingPrice(price):
         result = 1000
 
     return result
-
-price = 418100.0
-print(askingPrice(price))

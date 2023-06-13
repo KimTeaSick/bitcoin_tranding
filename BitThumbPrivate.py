@@ -37,15 +37,6 @@ try:
   db: Session
 finally:
   db.close()
-'''
-def reconnect():
-  global db
-  db.close()
-  try:
-    db = SessionLocal()
-    db: Session
-  finally:
-    db.close()'''
   
 class BitThumbPrivate():
   def __init__(self):
@@ -68,7 +59,7 @@ class BitThumbPrivate():
     headers = {"accept": "application/json"}
     response = json.loads(requests.get(url, headers=headers).text)
     return response
-  
+
   def getCandleStick(self, item): #차트 데이터
     dataList = []
     url = f"https://api.bithumb.com/public/candlestick/{item.id}_KRW/{item.term}"
@@ -166,13 +157,16 @@ class BitThumbPrivate():
     money = 0
     for i in coinList:
       coinInfo = self.getBitCoinList(str(i[0]).replace('total_',""))
+      print(coinInfo)
+      if int(coinInfo['status']) == 5500:
+        continue
       coinValue = float(coinInfo['data']['closing_price']) * round(float(i[1]), 4)
       list.append(coinValue)
     for index in range(len(list)):
       money += list[index]
     account = self.checkAccount()
     money += account
-    return money
+    return money, account
   
 ## 거래 내역 조회 및 검색 기능
   async def getOrderList(self, page):
@@ -490,7 +484,17 @@ class BitThumbPrivate():
                 print("minus", possessionCoinInfo)
                 self.sell(possessionCoinInfo[0], float(possessionCoinInfo[1]))
                 await self.autoTrading()
-  
+
+  async def buy(self, coin, price, unit): #매수
+    buyLog = self.bithumb.buy_limit_order(coin, price, unit) #params 1: 종목, 2: 가격, 3: 갯수
+    time.sleep(0.1)
+    print(buyLog)
+    returnLog = list(buyLog)
+
+    return returnLog
+
+
+  '''  
   async def buy(self, coin, unit): #매수
     buyLog = self.bithumb.buy_market_order(coin, unit) #params 1: 종목, 2: 갯수
     time.sleep(0.1)
@@ -545,8 +549,8 @@ class BitThumbPrivate():
             break
       return 200
     else:
-      return 404
-    
+      return 404'''
+
   async def sell(self, coin, unit): #매도
     sellLog = self.bithumb.sell_market_order(coin, unit) #params 1: 종목, 2: 갯수
     time.sleep(0.1)

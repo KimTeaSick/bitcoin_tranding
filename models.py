@@ -373,3 +373,13 @@ class tradingSellOption(Base):
     shot_MACD_value = Column(Integer)
     long_MACD_value = Column(Integer)
     MACD_signal_value = Column(Integer)
+
+class possessionCoin(Base):
+    __tablename__ = 'nc_r_possession_coin_t'
+
+    coin = Column(String(100), primary_key=True)
+
+    unit = Column(String(100))
+    price = Column(String(100))
+    total = Column(String(100))
+    fee = Column(String(100))

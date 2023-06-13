@@ -9,6 +9,7 @@ class GetCandleStickBody(BaseModel):
 
 class BuyAndSell(BaseModel):
     coin: str
+    price: str
     unit: str
 
 

@@ -72,11 +72,11 @@ async def sell(item: BuyAndSell):
 
 @app.post("/buy")
 async def buy(item: BuyAndSell):
-    res = await bit.buy(item.coin, float(item.unit))
+    res = await bit.buy(item.coin, float(item.price), float(item.unit))
     return res
 
 
-@app.get("/myProperty")
+@app.get("/myProperty")# 예수금 / 자산현황
 def myProperty():
     return bit.myProperty()
 
