@@ -1,1 +1,13 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+./__pycache__/
+./recommends/__pycache__/
+*.py[cod]
+*.pyc
+
 .env
+nohup.out
+
+__pycache__/*.pyc
+__pycache__/*.py[cod]
+recommends/__pycache__/

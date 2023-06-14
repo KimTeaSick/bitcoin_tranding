@@ -1087,3 +1087,14 @@ class BitThumbPrivate():
       db.commit()
     except:
       db.rollback()
+
+  async def getSearchPriceList(self):
+    try:
+      returnValue = []
+      searchList = await self.mysql.Select(selectSearchPriceList)
+      for coin in searchList:
+        returnValue.append({'name': coin[0], 'catch_price': coin[1]})
+
+      return returnValue
+    except:
+      return 444

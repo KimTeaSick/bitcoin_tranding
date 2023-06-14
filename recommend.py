@@ -7,6 +7,8 @@ import pandas as pd
 from sqlalchemy import create_engine, desc
 import numpy as np
 import asyncio
+from sql import *
+from dbConnection import MySql
 
 # 조건 모듈
 from recommends import priceFilter
@@ -15,7 +17,7 @@ from recommends import MaspFilter
 from recommends import trendFilter
 from recommends import disparityFilter
 from recommends import MacdFilter
-
+mysql = MySql()
 async def recommendCoin(options, mMax, hMax):
         try:
             db = SessionLocal()
@@ -23,9 +25,9 @@ async def recommendCoin(options, mMax, hMax):
         finally:
             db.close()
 
-        print(options, '=====================================')
+        print('options ::::::: ',options, '=====================================')
         # pc 시간, db에 쌓인 유닉스 시간, 비교 필수
-
+        await mysql.AllDelete(deleteSearchCoinListSql)
         now1 = datetime.datetime.now()
         nowstamp = int(int(now1.timestamp()) /60) * 60 #+ (60*540)
         print(datetime.datetime.utcfromtimestamp(nowstamp), 'now-------------------------------------------------------------------------')
@@ -226,4 +228,17 @@ async def recommendCoin(options, mMax, hMax):
 
         db.close()
         print(len(coinNames))
+        insertList = []
+        print("recommendDict.keys() ::::::::::::::: ", recommendDict)
+        print("recommendDict.__len__ ::::::::::::::: ", len(recommendDict))
+        if len(recommendDict) != 0:
+            for coin in recommendDict:
+                coinKey = list(coin.keys())
+                coinValue = list(coin.values())
+                insertList.append({'name':coinKey[0], 'price':coinValue[0]['closing_price']})
+                coinValue[0]['closing_price']
+                coinKey[0]
+                mysql.Insert(insertSearchCoinListSql,[coinKey[0], coinValue[0]['closing_price']])
+            print('insertList ::::::::: ', insertList)
+
         return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Masp':MaspDict, 'Trend': TrendDict, 'Disparity':DisparityDict, 'MACD': MacdDict}

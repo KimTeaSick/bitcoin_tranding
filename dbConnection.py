@@ -45,6 +45,15 @@ class MySql():
             mycursor.close()
         except mysql.connector.Error as err:
             self.mydb.reconnect()    
+            
+    async def AllDelete( self, sql ):
+        try:
+            mycursor = self.mydb.cursor(prepared=True)
+            mycursor.execute(sql)
+            self.mydb.commit()
+            mycursor.close()
+        except mysql.connector.Error as err:
+            self.mydb.reconnect()    
 
     async def Select(self, sql ):
         try:

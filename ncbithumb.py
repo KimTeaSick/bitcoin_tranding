@@ -234,3 +234,8 @@ async def OptionDelete(item: deleteTradingOption):
 async def OptionUsed(item: useTradingOption):
     response = await bit.useTradingOption(item)
     return response
+
+@app.get('/trade/getSearchPriceList')
+async def getSearchList():
+    response = await bit.getSearchPriceList()
+    return response
