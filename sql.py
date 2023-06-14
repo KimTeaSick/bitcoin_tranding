@@ -1,3 +1,4 @@
+
 insertTrandingSql = 'INSERT INTO nc_r_trading_val_t ( daydate, coin_name, coin_end, coin_now, coin_low, coin_high, coin_volumn, coin_fluctate_rate ) VALUES (%s,%s,%s,%s,%s,%s,%s,%s)'
 
 insertTradingLog = 'INSERT INTO nc_r_trading_t (type, coin_name, trading_code, use_coin, order_qty, price, fee, total_price) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)' 
@@ -45,3 +46,9 @@ insertSearchOptionSql = 'INSERT INTO nc_b_search_option_t (name, first_disparity
 updateSearchOptionSql = 'UPDATE nc_b_search_option_t SET name = %s , first_disparity = %s , second_disparity = %s ,trends_idx = %s, trends = %s , avg_volume = %s , transaction_amount = %s , price = %s WHERE idx = %s'
 
 updateUseSearchOption = 'UPDATE nc_b_use_search_option_t SET search_idx = %s '
+
+selectSearchPriceList = 'SELECT * from nc_f_recommend_coin_t'
+
+insertSearchCoinListSql = 'INSERT INTO nc_f_recommend_coin_t (coin_name, catch_price ) VALUES ( %s, %s )'
+
+deleteSearchCoinListSql = 'DELETE from nc_f_recommend_coin_t'

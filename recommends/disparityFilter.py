@@ -4,6 +4,8 @@ import numpy as np
 # 이격도 조건, 현재시간, 데이터 가져와 조건에 맞는지 탐색
 def disparityRecommend(nowstamp, coinList, dfList, chart_term, disparity_term, low_disparity, high_disparity):
     DisparityL = []
+    DisparityValue = []
+    print('disparity:', len(coinList), '------------------------------------------------------')
 
     # 기준시간 찾기
     times = int(chart_term[:-1])
@@ -14,11 +16,13 @@ def disparityRecommend(nowstamp, coinList, dfList, chart_term, disparity_term, l
 
     # dataframe 생성 및 기준 시간 이후 데이터로 자르기
     df = pd.DataFrame(dfList)
+    df['time'] = pd.to_datetime(df['time'])
+
     df2 = df.loc[df['S_time'] >= time]
 
     # 코인별로 순회하며 조건에 맞는지 찾기
     for coin in coinList:
-        df3 = df2.loc[df['coin_name'] == coin]
+        df3 = df2.loc[df2['coin_name'] == coin]
         df3.reset_index(drop=True, inplace=True)
 
         # 시간 범위 내 거래량 0인 코인 빼기
@@ -26,8 +30,11 @@ def disparityRecommend(nowstamp, coinList, dfList, chart_term, disparity_term, l
         if vol == 0.0:
             continue
 
+        df3 = df3.set_index('time').resample('1H').asfreq()
+        df3 = df3.fillna(method='ffill')
+
         # 생성한 dataframe을 chart term 단위 씩 묶어 dataframe 다시 생성 
-        df4 = df3[(len(df2) % times):]
+        df4 = df3[(len(df3) % times):]
         df4.reset_index(drop=True, inplace=True)
 
         # 리스트를 times개씩 묶기
@@ -41,6 +48,7 @@ def disparityRecommend(nowstamp, coinList, dfList, chart_term, disparity_term, l
         # 이격도 범위 비교
         if int(low_disparity) < disP and int(high_disparity) > disP :
                 DisparityL.append(coin)
+                DisparityValue.append({'coin_name': coin, 'disparity': disP})
 
-    print(DisparityL)
-    return DisparityL
+    print(len(DisparityL), '------------------------------------------------------------------------')
+    return DisparityL, DisparityValue

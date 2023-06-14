@@ -15,9 +15,9 @@ finally:
 # 30분 전 데이터 ~ 최신 데이터 찾아서 dataframe 변환
 now = str(datetime.datetime.now() - datetime.timedelta(minutes=30))
 findidx = now[:-10]
-coinList = db.query(model.coinList).all()
-find30m = db.query(model.coinPrice1M).filter(model.coinPrice1M.time.like(f'{findidx}%')).first()
-performanceList = db.query(model.coinPrice1M).filter(model.coinPrice1M.idx > find30m.idx).all()
+coinList = db.query(models.coinList).all()
+find30m = db.query(models.coinPrice1M).filter(models.coinPrice1M.time.like(f'{findidx}%')).first()
+performanceList = db.query(models.coinPrice1M).filter(models.coinPrice1M.idx > find30m.idx).all()
 
 dfList = []
 for performance in performanceList:
@@ -49,7 +49,7 @@ for coin in coinList:
 #df = pd.DataFrame(oneMinList)
 
 print(bulkList)
-db.bulk_insert_mappings(model.coinPrice30M, bulkList)
+db.bulk_insert_mappings(models.coinPrice30M, bulkList)
 db.commit()
 
 now2 = datetime.datetime.now()

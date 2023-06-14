@@ -12,7 +12,7 @@ try:
 finally:
     db.close()
 
-coinList = db.query(model.coinList).all()
+coinList = db.query(models.coinList).all()
 coinNames = []
 for coin in coinList:
     coinNames.append(coin.coin_name)
@@ -37,40 +37,43 @@ def on_open(ws):
     ws.send(json.dumps(subscribe_data))
 
 def on_message(ws, message):
-    global minOddEven
-    global oddColector
-    global evenCollector
-    global coinNames
+    try:
+        global minOddEven
+        global oddColector
+        global evenCollector
+        global coinNames
 
-    now = datetime.datetime.now().strftime("%H%M")
+        now = datetime.datetime.now().strftime("%H%M")
 
-    data = eval(message)
-    #print(f"코인명: {data['content']['symbol']}, 시가: {data['content']['openPrice']}, 종가:{data['content']['closePrice']}, 고가:{data['content']['highPrice']}, 저가:{data['content']['lowPrice']}, 시간{data['content']['time']}")
-    oddEven = int(now) % 2
+        data = eval(message)
+        #print(f"코인명: {data['content']['symbol']}, 시가: {data['content']['openPrice']}, 종가:{data['content']['closePrice']}, 고가:{data['content']['highPrice']}, 저가:{data['content']['lowPrice']}, 시간{data['content']['time']}")
+        oddEven = int(now) % 2
 
-    # 홀수 짝수 분 데이터 append
-    if oddEven == 1:
-        for content in data['content']['list']:
-            oddColector.append(content)
-    if oddEven == 0:
-        for content in data['content']['list']:
-            evenCollector.append(content)
+        # 홀수 짝수 분 데이터 append
+        if oddEven == 1:
+            for content in data['content']['list']:
+                oddColector.append(content)
+        if oddEven == 0:
+            for content in data['content']['list']:
+                evenCollector.append(content)
 
-    if minOddEven == 'even' and (int(now) % 2) == 1:
-        #print(evenCollector, 'even min ----------------------------------------------------------------------------------------------------')
-        minOddEven = 'odd'
-        # db 저장 함수 실행
-        collectNinsert(evenCollector, coinNames)
+        if minOddEven == 'even' and (int(now) % 2) == 1:
+            #print(evenCollector, 'even min ----------------------------------------------------------------------------------------------------')
+            minOddEven = 'odd'
+            # db 저장 함수 실행
+            collectNinsert(evenCollector, coinNames)
 
-        evenCollector = []
+            evenCollector = []
 
-    if minOddEven == 'odd' and (int(now) % 2) == 0:
-        #print(oddColector, 'even min ----------------------------------------------------------------------------------------------------')
-        minOddEven = 'even'
-        # db 저장 함수 시행
-        collectNinsert(oddColector, coinNames)
+        if minOddEven == 'odd' and (int(now) % 2) == 0:
+            #print(oddColector, 'even min ----------------------------------------------------------------------------------------------------')
+            minOddEven = 'even'
+            # db 저장 함수 시행
+            collectNinsert(oddColector, coinNames)
 
-        oddColector = []
+            oddColector = []
+    except Exception as e:
+        print(e)
 
 def on_close(ws):
     print('WebSocket connection closed')
@@ -82,8 +85,7 @@ def collectNinsert(collector, coins):
     now1 = datetime.datetime.now()
     df = pd.DataFrame(collector)
 
-    current = db.query(model.coinCurrentPrice).all()
-
+    current = db.query(models.coinCurrentPrice).all()
     bulkinsert = []
 
     for coin in current:
@@ -93,7 +95,7 @@ def collectNinsert(collector, coins):
         unix_timestamp = int(now.timestamp() /60) * 60
 
         if transactionCnt == 0:
-            bulkinsert.append({'coin_name': coin.coin_name, 'S_time': unix_timestamp, 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'Open': coin.Open, 'Close': coin.Close, 'High': coin.High, 'Low': coin.Low, 'Avg_price': 0, 'Transaction_amount': 0, 'Volume': 0, 'Disparity': 0, 'Ask_price': 0})
+            #bulkinsert.append({'coin_name': coin.coin_name, 'S_time': unix_timestamp, 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'Open': coin.Open, 'Close': coin.Close, 'High': coin.High, 'Low': coin.Low, 'Avg_price': 0, 'Transaction_amount': 0, 'Volume': 0, 'Disparity': 0, 'Ask_price': 0})
             pass
 
         else:
@@ -112,10 +114,19 @@ def collectNinsert(collector, coins):
             bulkinsert.append({'coin_name': coin.coin_name, 'S_time': unix_timestamp, 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'Open': openPrice, 'Close': closePrice, 'High': maxPrice, 'Low': minPrice, 
                                'Avg_price': avgPrice, 'Transaction_amount': transaction_amount, 'Volume': volume, 'Disparity': disparity, 'Ask_price': 0})
 
-    db.bulk_insert_mappings(model.coinPrice1M, bulkinsert)
-    #db.bulk_update_mappings(models.coinCurrentPrice, bulkinsert)
+    '''
+    try:
+        #db.bulk_insert_mappings(models.coinPrice1M, bulkinsert)
+        db.commit()
 
-    db.commit()
+    except Exception as e:
+        print(e)
+        db.rollback()'''
+
+    #for row in bulkinsert:
+        #print(row)
+    print(len(bulkinsert))
+
     now2 = datetime.datetime.now()
     print(now2 - now1, '-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 
