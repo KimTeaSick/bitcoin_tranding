@@ -376,8 +376,8 @@ class tradingSellOption(Base):
 
 class possessionCoin(Base):
     __tablename__ = 'nc_r_possession_coin_t'
-
-    coin = Column(String(100), primary_key=True)
+    idx = Column(Integer, primary_key=True)
+    coin = Column(String(100))
 
     unit = Column(String(100))
     price = Column(String(100))

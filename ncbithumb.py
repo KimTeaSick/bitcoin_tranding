@@ -119,6 +119,7 @@ async def getPossessoionCoinInfo():
 async def getAccountInfo(date1, date2):
     try:
         response = await bit.dashProperty([str(date1), str(date2)])
+        print("response :::: ",response)
         return response
     except:
         return 404
@@ -238,4 +239,14 @@ async def OptionUsed(item: useTradingOption):
 @app.get('/trade/getSearchPriceList')
 async def getSearchList():
     response = await bit.getSearchPriceList()
+    return response
+
+@app.get('/trade/getNowUsedCondition')
+async def getNowUsedCondition():
+    response = await bit.getNowUseCondition()
+    return response
+
+@app.get('/trade/getTradingHis')
+async def getTradingHis():
+    response = await bit.getTradingHis()
     return response

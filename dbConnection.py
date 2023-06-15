@@ -60,6 +60,7 @@ class MySql():
             mycursor = self.mydb.cursor(prepared=False)
             mycursor.execute(sql)
             result = mycursor.fetchall()
+            self.mydb.commit()
             selectData = []
             for data in result:
                 selectData.append(data)

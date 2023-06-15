@@ -157,7 +157,7 @@ class BitThumbPrivate():
     money = 0
     for i in coinList:
       coinInfo = self.getBitCoinList(str(i[0]).replace('total_',""))
-      print(coinInfo)
+      print("coinInfo ::::: ",coinInfo)
       if int(coinInfo['status']) == 5500:
         continue
       coinValue = float(coinInfo['data']['closing_price']) * round(float(i[1]), 4)
@@ -215,6 +215,7 @@ class BitThumbPrivate():
     for index in range(len(list)):
       totalMoney += list[index]
     account = self.checkAccount()
+    print("account :::: ",account)
     totalMoney += account
     if selectData != 333:
       for todayData in selectData:
@@ -1077,10 +1078,8 @@ class BitThumbPrivate():
     print(item)
     useOption = db.query(models.tradingOption).filter(models.tradingOption.name == item.name).first()
     optionL = db.query(models.tradingOption).filter(models.tradingOption.used == 1).all()
-
     for option in optionL:
       option.used = 0
-
     useOption.used = 1
     useOption.Update_date = datetime.datetime.now()
     try:
@@ -1094,7 +1093,88 @@ class BitThumbPrivate():
       searchList = await self.mysql.Select(selectSearchPriceList)
       for coin in searchList:
         returnValue.append({'name': coin[0], 'catch_price': coin[1]})
-
       return returnValue
     except:
       return 444
+    
+  async def getNowUseCondition(self):
+    try:
+      searchCondition = await self.mysql.Select(findUseSearchCondition)
+      tradingCondition = await self.mysql.Select(findUseTradingCondition)
+      searchOption = await self.mysql.Select(useSearchOptionStatus(searchCondition[0][1]))
+      tradingOption = await self.mysql.Select(useTradingOptionStatus(tradingCondition[0][0]))
+      searchOptionReturnValue = {
+        "name": searchOption[0][0],
+        "low_price": searchOption[0][1],
+        "high_price": searchOption[0][2],
+        "chart_term": searchOption[0][3],
+        "low_transaction_amount": searchOption[0][4],
+        "high_transaction_amount": searchOption[0][5],
+        "chart_term": searchOption[0][6],
+        "first_disparity": searchOption[0][7],
+        "comparison": searchOption[0][8],
+        "second_disparity": searchOption[0][9],
+        "chart_term": searchOption[0][10],
+        "MASP": searchOption[0][11],
+        "trend_term": searchOption[0][12],
+        "trend_type": searchOption[0][13],
+        "trend_reverse": searchOption[0][14],
+        "chart_term": searchOption[0][15],
+        "disparity_term": searchOption[0][16],
+        "low_disparity": searchOption[0][17],
+        "high_disparity": searchOption[0][18],
+        "chart_term": searchOption[0][19],
+        "short_disparity": searchOption[0][20],
+        "long_disparity": searchOption[0][21],
+        "up_down": searchOption[0][22]
+      }
+      tradingOptionReturnValue = {
+        "name": tradingOption[0][0],
+        "price_count": tradingOption[0][1],
+        "loss_cut_under_percent": tradingOption[0][2],
+        "loss_cut_under_call_price_sell_all": tradingOption[0][3],
+        "loss_cut_under_coin_specific_percent": tradingOption[0][4],
+        "loss_cut_under_call_price_specific_coin": tradingOption[0][5],
+        "loss_cut_over_percent": tradingOption[0][6],
+        "loss_cut_over_call_price_sell_all": tradingOption[0][7],
+        "loss_cut_over_coin_specific_percent": tradingOption[0][8],
+        "loss_cut_over_call_price_specific_coin": tradingOption[0][9],
+        "buy_cancle_time": tradingOption[0][10],
+        "sell_cancle_time": tradingOption[0][11],
+        "percent_to_buy_method": tradingOption[0][12],
+        "price_to_buy_method": tradingOption[0][13],
+        "callmoney_to_buy_method": tradingOption[0][14],
+        "upper_percent_to_price_condition": tradingOption[0][15],
+        "down_percent_to_price_condition": tradingOption[0][16],
+        "disparity_for_upper_case": tradingOption[0][17],
+        "upper_percent_to_disparity_condition": tradingOption[0][18],
+        "disparity_for_down_case": tradingOption[0][19],
+        "down_percent_to_disparity_condition ": tradingOption[0][20],
+        "call_money_to_sell_method ": tradingOption[0][21],
+        "percent_to_split_sell ": tradingOption[0][22],
+        "shot_MACD_value ": tradingOption[0][23],
+        "long_MACD_value ": tradingOption[0][24],
+        "MACD_signal_value": tradingOption[0][25],
+      }
+      return {"searchOption" : searchOptionReturnValue, "tradingOption":tradingOptionReturnValue}
+    except:
+      return 444 
+    
+  async def getTradingHis(self):
+    try:
+      returnValue = []
+      tradingHis = await self.mysql.Select(getTradingHisSql())
+      for his in tradingHis:
+        returnValue.append({
+          "coin_name": his[1], 
+          "unit":his[2], 
+          "price": his[3], 
+          "total": his[4], 
+          "fee": his[5],
+          "status": his[6]
+          })
+
+      print("tradingHis :::::: ",returnValue)
+      return returnValue
+    except:
+      return 444 
