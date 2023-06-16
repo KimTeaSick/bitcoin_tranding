@@ -7,9 +7,16 @@ import datetime
 import asyncio
 import requests
 import askingPrice
+import json
+from pybithumb import Bithumb
+import time
 
 # api url
 url = 'http://192.168.10.43:8888'
+
+secretKey = "07c1879d34d18036405f1c4ae20d3023"
+connenctKey = "9ae8ae53e7e0939722284added991d55"
+bithumb = Bithumb(connenctKey, secretKey)
 
 now1 = datetime.datetime.now()
 try:
@@ -28,16 +35,21 @@ useRecommendOPtion = db.query(models.searchOption).filter(models.searchOption.us
 useTradingOption = db.query(models.tradingOption).filter(models.tradingOption.used == 1).first()
 
 coinCount = len(possessionCoins)
+hadCoin = []
+for coin in possessionCoins:
+    hadCoin.append(coin.coin)
 
 # 매수 조건
 accountOtion = db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == useTradingOption.name).first()
 buyOtion = db.query(models.tradingBuyOption).filter(models.tradingBuyOption.name == useTradingOption.name).first()
 
+
+accountOtion.price_count = 10
 # 보유 코인 지정 갯수 초과시 종료
 if coinCount > accountOtion.price_count:
     print('exit')
     print(accountOtion.price_count, 'maximum')
-    print(coinCount, 'had')
+    print(coinCount, 'have')
     exit()
 
 
@@ -90,10 +102,10 @@ if maspOtion.flag == 1:
 if disparityOtion.flag == 1:
     if disparityOtion.chart_term != 0:
         if disparityOtion.chart_term[-1] == 'm' and (disparityOtion.disparity_term * int(disparityOtion.chart_term[:-1])) > mMax:
-            mMax = (disparityOtion.disparity_term * disparityOtion.chart_term[:-1])
+            mMax = (disparityOtion.disparity_term * int(disparityOtion.chart_term[:-1]))
 
         if disparityOtion.chart_term[-1] == 'h' and (disparityOtion.disparity_term * int(disparityOtion.chart_term[:-1])) > hMax:
-            hMax = (disparityOtion.disparity_term * disparityOtion.chart_term[:-1])
+            hMax = (disparityOtion.disparity_term * int(disparityOtion.chart_term[:-1]))
 
         options.append({'option':'Disparity', 'chart_term': disparityOtion.chart_term, 'disparity_term':disparityOtion.disparity_term, 'low_disparity': disparityOtion.low_disparity, 'high_disparity': disparityOtion.high_disparity})
 
@@ -103,7 +115,7 @@ if trendOption.flag == 1:
         if trendOption.chart_term[-1] == 'm' and ((trendOption.trend_term + 2 + trendOption.MASP) * int(trendOption.chart_term[:-1])) > mMax:
             mMax = ((trendOption.trend_term + 2 + trendOption.MASP) * int(trendOption.chart_term[:-1]))
 
-        if trendOption.chart_term[-1] == 'h' and ((trendOption.trend_term + 2 + trendOption.MASP) * int(trendOption.chart_term[:-1])) > hMax:
+        if trendOption.chart_term[-1] == 'h' and int((int(trendOption.trend_term) + 2 + int(trendOption.MASP)) * int(trendOption.chart_term[:-1])) > hMax:
             hMax = ((trendOption.trend_term + 2 + trendOption.MASP) * int(trendOption.chart_term[:-1]))
 
         options.append({'option':'Trend', 'chart_term': trendOption.chart_term, 'trend_term': trendOption.trend_term, 'trend_type': trendOption.trend_type, 'trend_reverse': trendOption.trend_reverse, "MASP": trendOption.MASP})
@@ -134,7 +146,7 @@ for coin in coins['recommends']:
 
 sortedCoins = sorted(sortedByDisparity, key=lambda x:x['disparity'])
 
-#print(coins['recommends'])
+print(sortedCoins)
 
 money = json.loads(requests.get(url + '/myProperty').text)[1]
 moneyPerCoin:float = 0
@@ -146,23 +158,118 @@ elif buyOtion.checkbox == 2:
 
 print(f'moneyPerCoin: {moneyPerCoin}, money: {money}, percent: {buyOtion.percent_to_buy_method}')
 
-# tet =============================================================================================================================================================
-coinCount = 0
-moneyPerCoin = 1000
+# test =============================================================================================================================================================
+#coinCount = 0
+moneyPerCoin = 10000
 
+orders = ''
+orderList = []
+print(money)
 for coin in sortedCoins:
-    if coinCount == accountOtion.price_count:
+    if coinCount >= int(accountOtion.price_count):
+        print('coin count')
         continue
     if moneyPerCoin > money:
+        print('money')
+        continue
+    if coin['name'] in hadCoin:
+        print('보유 코인')
         continue
 
-    ask = askingPrice.askingPrice(int(float(coin['price'])))
-    splitBuy = moneyPerCoin * 0.5
-    splitUnit = splitBuy / float(coin['price'])
-    order_id = json.loads(requests.post(url + '/buy', json = {"coin":coin['name'], "price":splitBuy, "unit":splitUnit}))[2]
+    print(coinCount, accountOtion.price_count, coin['name'])
 
-    print(order_id)
-    print(f"coin name:{coin['name']}, price:{coin['price']}, ask: {ask}")
+    orders = ''
+
+    # 지정 호가 주문
+    ask = askingPrice.askingPrice(int(float(coin['price'])))
+    splitBuy = moneyPerCoin * 1
+    askPrice = float(coin['price']) + (buyOtion.callmoney_to_buy_method * ask)
+    askPrice = (round(askPrice,4))
+    splitUnit = splitBuy / (float(askPrice))
+    
+    order = json.loads(requests.post(url + '/buy', data = json.dumps({"coin":str(coin['name']), "price":str(askPrice), "unit":str(round(splitUnit, 4))})).text)
+    print(order)
+
+    order_id = order[2]
+
+    '''
+    for i in range(1,6):
+        # 지정 호가 -i 주문
+        ask = askingPrice.askingPrice(int(float(coin['price'])))
+        splitBuy = moneyPerCoin * 0.1
+        askPrice = float(coin['price']) + ((buyOtion.callmoney_to_buy_method - i) * ask)
+
+        askPrice = (round(askPrice,4))
+        splitUnit = splitBuy / (float(askPrice))
+        order_id = json.loads(requests.post(url + '/buy', data = json.dumps({"coin":str(coin['name']), "price":str(askPrice), "unit":str(round(splitUnit, 4))})).text)
+        print(order_id)
+        print({"coin":str(coin['name']), "price":str(askPrice), "unit":str(round(splitUnit, 4))})
+
+        try:
+            orders += order_id[2] + ','
+        except Exception as e:
+            print(e)
+    '''
+    money -= moneyPerCoin
+    coinCount += 1
+    orderList.append({'coin': coin['name'], 'orders': order_id})
+
+print(orderList)
+for ordercheck in orderList:
+    print(ordercheck['coin'])
+    orderID = ordercheck['orders'].split(',')[:-1]
+    unit = 0.0
+    total = 0.0
+    fee = 0.0
+
+    i = 0
+    '''
+    for isOrder in orderID:
+        order_desc = ['bid',ordercheck['coin'], isOrder, 'KRW']
+        orderStatus = bithumb.get_order_completed(order_desc)
+        print(orderStatus['data'])
+        if orderStatus == None:
+            continue
+        if orderStatus['data']['order_status'] == 'Completed':
+            i+=1
+            unit += float(orderStatus['data']['order_qty'])
+            total += float(orderStatus['data']['contract'][0]['total'])
+            fee += float(orderStatus['data']['contract'][0]['fee'])
+        elif orderStatus['data']['order_status'] == 'Pending':
+            print('order pending')
+            cancel = bithumb.cancel_order(order_desc)
+            print(cancel)
+        elif orderStatus['data']['order_status'] == 'Cancel':
+            pass
+        '''
+
+    order_coin = models.orderCoin()
+    order_coin.coin = ordercheck['coin']
+    order_coin.status = 1
+    order_coin.transaction_time = datetime.datetime.now()
+    order_coin.order_id = ordercheck['orders']
+    order_coin.cancel_time = (datetime.datetime.now() + datetime.timedelta(seconds = accountOtion.buy_cancle_time))
+    db.add(order_coin)
+
+    possession_coin = models.possessionCoin()
+    possession_coin.coin = ordercheck['coin']
+    possession_coin.unit = 0.0
+    possession_coin.price = 0.0
+    possession_coin.total = 0.0
+    possession_coin.fee = 0.0
+    possession_coin.status = 1
+    possession_coin.transaction_time = datetime.datetime.now()
+    possession_coin.order_id = ordercheck['orders']
+    possession_coin.cancel_time = (datetime.datetime.now() + datetime.timedelta(seconds = accountOtion.buy_cancle_time))
+    db.add(possession_coin)
+
+    print(possession_coin.coin, possession_coin.transaction_time, possession_coin.cancel_time, '---------------------------------------------------')
+
+try:
+    db.commit()
+except:
+    print('db rollback')
+    db.rollback()
 
 now2 = datetime.datetime.now()
 print(now2-now1)
