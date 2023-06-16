@@ -116,3 +116,6 @@ class deleteTradingOption(BaseModel):
 
 class useTradingOption(BaseModel):
     name: str
+
+class controlAT(BaseModel):
+    flag: int

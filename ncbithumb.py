@@ -250,3 +250,13 @@ async def getNowUsedCondition():
 async def getTradingHis():
     response = await bit.getTradingHis()
     return response
+
+@app.get('/trade/autoTradingCheck')
+async def autoTradingCheck():
+    response = await bit.nowAutoStatusCheck()
+    return response
+
+@app.post('/trade/controlAutoTrading')
+async def controlAutoTrading(item: controlAT):
+    response = await bit.controlAutoTrading(item.flag)
+    return response

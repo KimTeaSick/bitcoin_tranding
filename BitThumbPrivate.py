@@ -361,6 +361,7 @@ class BitThumbPrivate():
     try:
       possessionCoin = await self.mysql.Select(getMyCoinListSql)
       time.sleep(1)
+      print("possessionCoin ::::::::::: ", possessionCoin)
       if len(possessionCoin) == 0:
         return 203
       returnList = []
@@ -884,10 +885,12 @@ class BitThumbPrivate():
           trading_account_option.name = item.name
           trading_account_option.price_count = i[1]['price_count']
           trading_account_option.loss_cut_under_percent = i[1]['loss_cut_under_percent']
+          trading_account_option.loss = i[1]['loss']
           trading_account_option.loss_cut_under_call_price_sell_all = i[1]['loss_cut_under_call_price_sell_all']
           trading_account_option.loss_cut_under_coin_specific_percent = opName = i[1]['loss_cut_under_coin_specific_percent']
           trading_account_option.loss_cut_under_call_price_specific_coin = i[1]['loss_cut_under_call_price_specific_coin']
           trading_account_option.loss_cut_over_percent = i[1]['loss_cut_over_percent']
+          trading_account_option.gain = i[1]['gain']
           trading_account_option.loss_cut_over_call_price_sell_all = i[1]['loss_cut_over_call_price_sell_all']
           trading_account_option.loss_cut_over_coin_specific_percent = i[1]['loss_cut_over_coin_specific_percent']
           trading_account_option.loss_cut_over_call_price_specific_coin = i[1]['loss_cut_over_call_price_specific_coin']
@@ -966,9 +969,9 @@ class BitThumbPrivate():
     now2 = datetime.datetime.now()
     print(now2-now1)
 
-    return {optionL.name:{'Account':{"price_count": accountL.price_count,"loss_cut_under_percent": accountL.loss_cut_under_percent, "loss_cut_under_call_price_sell_all":accountL.loss_cut_under_call_price_sell_all, "loss_cut_under_coin_specific_percent": accountL.loss_cut_under_coin_specific_percent,"loss_cut_under_call_price_specific_coin": accountL.loss_cut_under_call_price_specific_coin, "loss_cut_over_percent":accountL.loss_cut_over_percent, "loss_cut_over_call_price_sell_all": accountL.loss_cut_over_call_price_sell_all,"loss_cut_over_coin_specific_percent": accountL.loss_cut_over_coin_specific_percent, "loss_cut_over_call_price_specific_coin":accountL.loss_cut_over_call_price_specific_coin, "buy_cancle_time":accountL.buy_cancle_time, "sell_cancle_time":accountL.sell_cancle_time},
-                            "Buy": {"percent_to_buy_method": buyL.percent_to_buy_method, "price_to_buy_method": buyL.price_to_buy_method,"callmoney_to_buy_method":buyL.callmoney_to_buy_method, "checkbox":buyL.checkbox},
-                            "Sell": {"upper_percent_to_price_condition": sellL.upper_percent_to_price_condition,"down_percent_to_price_condition": sellL.down_percent_to_price_condition,"disparity_for_upper_case": sellL.disparity_for_upper_case,"upper_percent_to_disparity_condition": sellL.upper_percent_to_disparity_condition,"disparity_for_down_case": sellL.disparity_for_down_case, "down_percent_to_disparity_condition":sellL.down_percent_to_disparity_condition, "call_money_to_sell_method": sellL.call_money_to_sell_method,"percent_to_split_sell": sellL.percent_to_split_sell,"shot_MACD_value": sellL.shot_MACD_value,"long_MACD_value": sellL.long_MACD_value, "MACD_signal_value":sellL.MACD_signal_value},
+    return {optionL.name:{'account':{"price_count": accountL.price_count,"loss_cut_under_percent": accountL.loss_cut_under_percent, "loss_cut_under_call_price_sell_all":accountL.loss_cut_under_call_price_sell_all, "loss_cut_under_coin_specific_percent": accountL.loss_cut_under_coin_specific_percent,"loss_cut_under_call_price_specific_coin": accountL.loss_cut_under_call_price_specific_coin, "loss_cut_over_percent":accountL.loss_cut_over_percent, "loss_cut_over_call_price_sell_all": accountL.loss_cut_over_call_price_sell_all,"loss_cut_over_coin_specific_percent": accountL.loss_cut_over_coin_specific_percent, "loss_cut_over_call_price_specific_coin":accountL.loss_cut_over_call_price_specific_coin, "buy_cancle_time":accountL.buy_cancle_time, "sell_cancle_time":accountL.sell_cancle_time, "loss":accountL.loss, "gain":accountL.gain},
+                            "buy": {"percent_to_buy_method": buyL.percent_to_buy_method, "price_to_buy_method": buyL.price_to_buy_method,"callmoney_to_buy_method":buyL.callmoney_to_buy_method, "checkbox":buyL.checkbox},
+                            "sell": {"upper_percent_to_price_condition": sellL.upper_percent_to_price_condition,"down_percent_to_price_condition": sellL.down_percent_to_price_condition,"disparity_for_upper_case": sellL.disparity_for_upper_case,"upper_percent_to_disparity_condition": sellL.upper_percent_to_disparity_condition,"disparity_for_down_case": sellL.disparity_for_down_case, "down_percent_to_disparity_condition":sellL.down_percent_to_disparity_condition, "call_money_to_sell_method": sellL.call_money_to_sell_method,"percent_to_split_sell": sellL.percent_to_split_sell,"shot_MACD_value": sellL.shot_MACD_value,"long_MACD_value": sellL.long_MACD_value, "MACD_signal_value":sellL.MACD_signal_value},
                             }}
 
   async def updateTradingOption(self, item):
@@ -978,10 +981,12 @@ class BitThumbPrivate():
         if i[0] == 'account':
           price_count = i[1]['price_count']
           loss_cut_under_percent = i[1]['loss_cut_under_percent']
+          loss =  i[1]['loss']
           loss_cut_under_call_price_sell_all = i[1]['loss_cut_under_call_price_sell_all']
           loss_cut_under_coin_specific_percent = opName = i[1]['loss_cut_under_coin_specific_percent']
           loss_cut_under_call_price_specific_coin = i[1]['loss_cut_under_call_price_specific_coin']
           loss_cut_over_percent = i[1]['loss_cut_over_percent']
+          gain =  i[1]['gain']
           loss_cut_over_call_price_sell_all = i[1]['loss_cut_over_call_price_sell_all']
           loss_cut_over_coin_specific_percent = i[1]['loss_cut_over_coin_specific_percent']
           loss_cut_over_call_price_specific_coin = i[1]['loss_cut_over_call_price_specific_coin']
@@ -1015,10 +1020,12 @@ class BitThumbPrivate():
 
       accountL.price_count = price_count
       accountL.loss_cut_under_percent = loss_cut_under_percent
+      accountL.loss = loss
       accountL.loss_cut_under_call_price_sell_all = loss_cut_under_call_price_sell_all
       accountL.loss_cut_under_coin_specific_percent = loss_cut_under_coin_specific_percent
       accountL.loss_cut_under_call_price_specific_coin = loss_cut_under_call_price_specific_coin
       accountL.loss_cut_over_percent = loss_cut_over_percent
+      accountL.gain = gain
       accountL.loss_cut_over_call_price_sell_all = loss_cut_over_call_price_sell_all
       accountL.loss_cut_over_coin_specific_percent = loss_cut_over_coin_specific_percent
       accountL.loss_cut_over_call_price_specific_coin = loss_cut_over_call_price_specific_coin
@@ -1074,7 +1081,7 @@ class BitThumbPrivate():
     except Exception as e:
       print(e)
 
-  async def usetradingOption(self, item):
+  async def useTradingOption(self, item):
     print(item)
     useOption = db.query(models.tradingOption).filter(models.tradingOption.name == item.name).first()
     optionL = db.query(models.tradingOption).filter(models.tradingOption.used == 1).all()
@@ -1178,3 +1185,14 @@ class BitThumbPrivate():
       return returnValue
     except:
       return 444 
+    
+  async def nowAutoStatusCheck(self):
+    status = await self.mysql.Select(autoStatusCheck)
+    return {"now_status" : status[0][0]}
+  
+  async def controlAutoTrading(self, flag):
+    try:
+      await self.mysql.Update(updateAutoStatus, [flag])
+      return 200
+    except:
+      return 444

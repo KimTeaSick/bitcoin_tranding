@@ -337,10 +337,12 @@ class tradingAccountOtion(Base):
 
     price_count = Column(Integer)
     loss_cut_under_percent = Column(Integer)
+    loss = Column(Integer)
     loss_cut_under_call_price_sell_all = Column(Integer)
     loss_cut_under_coin_specific_percent = Column(Integer)
     loss_cut_under_call_price_specific_coin = Column(Integer)
     loss_cut_over_percent = Column(Integer)
+    gain = Column(Integer)
     loss_cut_over_call_price_sell_all = Column(Integer)
     loss_cut_over_coin_specific_percent = Column(Integer)
     loss_cut_over_call_price_specific_coin = Column(Integer)
