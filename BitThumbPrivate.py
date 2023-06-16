@@ -486,6 +486,7 @@ class BitThumbPrivate():
                 await self.autoTrading()
 
   async def buy(self, coin, price, unit): #매수
+    print(coin, price, unit, '333333333333333333333333333333333')
     buyLog = self.bithumb.buy_limit_order(coin, price, unit) #params 1: 종목, 2: 가격, 3: 갯수
     time.sleep(0.1)
     print(buyLog)
