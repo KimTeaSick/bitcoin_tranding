@@ -348,6 +348,8 @@ class tradingAccountOtion(Base):
     loss_cut_over_call_price_specific_coin = Column(Integer)
     buy_cancle_time = Column(Integer)
     sell_cancle_time = Column(Integer)
+    loss = Column(Integer)
+    gain = Column(Integer)
 
 class tradingBuyOption(Base):
     __tablename__ = "nc_c_buy_option_t"
@@ -385,3 +387,35 @@ class possessionCoin(Base):
     price = Column(String(100))
     total = Column(String(100))
     fee = Column(String(100))
+    status = Column(Integer)
+    transaction_time = Column(String(100))
+    conclusion_time = Column(String(100))
+    order_id = Column(String(100))
+    cancel_time = Column(String(100))
+
+class possessionLog(Base):
+    __tablename__ = 'nc_p_possession_coin_his_t'
+
+    idx = Column(Integer, primary_key=True)
+
+    coin = Column(String(100))
+    unit = Column(String(100))
+    price = Column(String(100))
+    total = Column(String(100))
+    fee = Column(String(100))
+    status = Column(Integer)
+    transaction_time = Column(String(100))
+    conclusion_time = Column(String(100))
+    type = Column(String(100))
+    order_id = Column(String(100))
+
+class orderCoin(Base):
+    __tablename__ = 'nc_r_order_coin_t'
+
+    coin = Column(String(100), primary_key=True)
+
+    status = Column(Integer)
+    transaction_time = Column(String(100))
+    conclusion_time = Column(String(100))
+    order_id = Column(String(100))
+    cancel_time = Column(String(100))

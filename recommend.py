@@ -56,7 +56,7 @@ async def recommendCoin(options, mMax, hMax):
             #dfhList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':dfs.Close, 'Volume':dfs.Volume, 'Transaction_amount':dfs.Transaction_amount})
             dfhList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':int(dfs.STime), 'time':dfs.time, 'Close':float(dfs.Close), 'Volume':float(dfs.Volume), 'Transaction_amount':float(dfs.Close) * float(dfs.Volume)})
 
-        coinList = db.query(models.coinList).all()
+        coinList = db.query(models.coinList).filter(models.coinList.warning == 0).all()
         #coins = []
         coinNames = []
 
