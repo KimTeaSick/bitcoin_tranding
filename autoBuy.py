@@ -11,13 +11,14 @@ import json
 from pybithumb import Bithumb
 import time
 
+
 # api url
 # url = 'http://192.168.10.43:8888'
 url = 'http://52.78.246.119:8888'
-
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
 connenctKey = "9ae8ae53e7e0939722284added991d55"
 bithumb = Bithumb(connenctKey, secretKey)
+
 
 now1 = datetime.datetime.now()
 try:
@@ -34,6 +35,7 @@ async def recommendCoins(options, mMax, hMax):
 possessionCoins = db.query(models.possessionCoin).all()
 useRecommendOPtion = db.query(models.searchOption).filter(models.searchOption.used == 1).first()
 useTradingOption = db.query(models.tradingOption).filter(models.tradingOption.used == 1).first()
+
 
 coinCount = len(possessionCoins)
 hadCoin = []
@@ -66,6 +68,7 @@ macdOption = db.query(models.MACDOption).filter(models.MACDOption.name == useRec
 mMax:int = 0
 hMax:int = 0
 options: list = []
+db.query(models.recommendList).delete()
 
 if priceOtion.flag == 1:
     if priceOtion.high_price != 0:
@@ -138,12 +141,17 @@ print(f'mMax: {mMax}, hMax: {hMax}')
 # 검색 코인 receive
 coins = asyncio.run(recommendCoins(options, mMax, hMax))
 print('----------------------------------------------------------------------------------검색 완료')
-
 # 코인 disparity 순으로 정렬
 sortedByDisparity = []
 for coin in coins['recommends']:
+    print("asdasdasdas", useRecommendOPtion.name)
     coinName = list(coin.keys())[0]
     sortedByDisparity.append({'name': coinName,'disparity': coin[coinName]['disparity'], 'price': coin[coinName]['closing_price']})
+    RCCoin = models.recommendList()
+    RCCoin.coin_name = coinName
+    RCCoin.catch_price = coin[coinName]['closing_price']
+    RCCoin.option_name = useRecommendOPtion.name
+
 
 sortedCoins = sorted(sortedByDisparity, key=lambda x:x['disparity'])
 

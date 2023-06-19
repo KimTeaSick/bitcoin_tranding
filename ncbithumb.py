@@ -102,16 +102,16 @@ def sendAvgData(item: getAvgDataBody):
 
 @app.post("/dash/getRecommendCoin")
 async def getRecommendPrice(item: getRecommendOption):
-    try:
+    # try:
         now1 = datetime.datetime.now()
         response = await bit.getRecommendCoin(item)
         now2 = datetime.datetime.now()
         print(now2 - now1)
         mysql.Insert(insertLog,["검색 기능 사용"])
         return response
-    except:
-        mysql.Insert(insertLog,["검색 기능 사용 실패"])
-        return 444
+    # except:
+        # mysql.Insert(insertLog,["검색 기능 사용 실패"])
+        # return 444
 
 
 @app.get("/dash/getPossessoionCoinInfo")

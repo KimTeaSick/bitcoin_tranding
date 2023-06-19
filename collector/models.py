@@ -176,14 +176,7 @@ class coin1DPrice(Base):
     empty_count = Column(Integer, default=0)
 
 # ==========================================================================================================================================조건 부합 코인 저장
-class recommandT(Base):
-    __tablename__ = "nc_f_recommend_coin_t"
 
-    idx = Column(Integer, primary_key=True)
-
-    coin_name = Column(String(100))
-    catch_price = Column(String(100))
-    option_name = Column(String(100))
 
 class recommandList(Base):
     __tablename__ = "nc_f_recommend_coin_list_t"

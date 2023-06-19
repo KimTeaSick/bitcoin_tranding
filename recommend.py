@@ -27,7 +27,7 @@ async def recommendCoin(options, mMax, hMax):
 
         print('options ::::::: ',options, '=====================================')
         # pc 시간, db에 쌓인 유닉스 시간, 비교 필수
-        await mysql.AllDelete(deleteSearchCoinListSql)
+        
         now1 = datetime.datetime.now()
         nowstamp = int(int(now1.timestamp()) /60) * 60 #+ (60*540)
         print(datetime.datetime.utcfromtimestamp(nowstamp), 'now-------------------------------------------------------------------------')
