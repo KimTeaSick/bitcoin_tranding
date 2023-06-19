@@ -49,6 +49,7 @@ class BitThumbPrivate():
   async def getMyPossessionCoinList(self):
     myCoinList = await self.mysql.Select(getMyCoinListSql)
     return myCoinList
+  
 
 
   def callGetTradingFee(self): # 수수료 구하기

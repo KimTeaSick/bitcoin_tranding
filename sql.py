@@ -131,4 +131,6 @@ def getTradingHisSql():
   return ''' select * from nc_p_possession_coin_his_t '''
 
 autoStatusCheck = "SELECT status FROM nc_b_now_auto_status_t"
-updateAutoStatus = " UPDATE nc_b_now_auto_status_t SET status = %s WHERE idx = 1"
+updateAutoStatus = "UPDATE nc_b_now_auto_status_t SET status = %s WHERE idx = 1"
+
+insertLog = "INSERT INTO nc_f_log_t (content, insert_date) VALUES (%s, now())"

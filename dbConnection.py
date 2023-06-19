@@ -4,10 +4,14 @@ import asyncio
 import os 
 
 load_dotenv()
-PORT = "3306"
-HOST = "192.168.10.202"
+
+PORT = 3306
+# HOST = "192.168.10.202"
+HOST = "nc-db-1.cyu1ow4eutwz.ap-northeast-2.rds.amazonaws.com"
 DATABASE = "nc_bit_trading"
-USERNAME = "ipxnms"
+# USERNAME = "ipxnms"
+# PASSWORD = "$kim99bsd00"
+USERNAME = "admin"
 PASSWORD = "$kim99bsd00"
 
 class MySql():
@@ -16,7 +20,8 @@ class MySql():
             host = HOST,
             user = USERNAME,
             passwd = PASSWORD,
-            database = DATABASE
+            database = DATABASE,
+            port = PORT
         )
 
     def Insert( self, sql, val ):
