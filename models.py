@@ -174,21 +174,6 @@ class coin30MPrice(Base):
     time = Column(String(100))
     empty_count = Column(Integer, default=0)
 
-'''class coin1HPrice(Base):
-    __tablename__ = "nc_p_1H_bithumb_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    STime = Column(Integer)
-    Open = Column(String(100))
-    Close = Column(String(100))
-    High = Column(String(100))
-    Low = Column(String(100))
-    Volume = Column(String(100))
-    coin_name = Column(String(100))
-    time = Column(String(100))
-    empty_count = Column(Integer, default=0)'''
-
 class coin1HPrice(Base):
     __tablename__ = "nc_p_1H_bithumb_t"
 
@@ -336,3 +321,101 @@ class coinPrice1H(Base):
     Volume = Column(Float)
     Transaction_amount = Column(Float)
     Disparity = Column(Float)
+
+class tradingOption(Base):
+    __tablename__ = "nc_b_trading_option_t"
+
+    name = Column(String(100), primary_key=True)
+    insert_time = Column(String(100))
+    update_time = Column(String(100))
+    used = Column(Integer)
+
+class tradingAccountOtion(Base):
+    __tablename__ = "nc_c_account_option_t"
+
+    name = Column(String(100), primary_key=True)
+
+    price_count = Column(Integer)
+    loss_cut_under_percent = Column(Integer)
+    loss = Column(Integer)
+    loss_cut_under_call_price_sell_all = Column(Integer)
+    loss_cut_under_coin_specific_percent = Column(Integer)
+    loss_cut_under_call_price_specific_coin = Column(Integer)
+    loss_cut_over_percent = Column(Integer)
+    gain = Column(Integer)
+    loss_cut_over_call_price_sell_all = Column(Integer)
+    loss_cut_over_coin_specific_percent = Column(Integer)
+    loss_cut_over_call_price_specific_coin = Column(Integer)
+    buy_cancle_time = Column(Integer)
+    sell_cancle_time = Column(Integer)
+    loss = Column(Integer)
+    gain = Column(Integer)
+
+class tradingBuyOption(Base):
+    __tablename__ = "nc_c_buy_option_t"
+
+    name = Column(String(100), primary_key=True)
+
+    percent_to_buy_method = Column(Integer)
+    price_to_buy_method = Column(Integer)
+    callmoney_to_buy_method = Column(Integer)
+    checkbox = Column(Integer)
+
+class tradingSellOption(Base):
+    __tablename__ = "nc_c_sell_option_t"
+
+    name = Column(String(100), primary_key=True)
+
+    upper_percent_to_price_condition = Column(Integer)
+    down_percent_to_price_condition = Column(Integer)
+    disparity_for_upper_case = Column(Integer)
+    upper_percent_to_disparity_condition = Column(Integer)
+    disparity_for_down_case = Column(Integer)
+    down_percent_to_disparity_condition = Column(Integer)
+    call_money_to_sell_method = Column(String(100))
+    percent_to_split_sell = Column(Integer)
+    shot_MACD_value = Column(Integer)
+    long_MACD_value = Column(Integer)
+    MACD_signal_value = Column(Integer)
+
+class possessionCoin(Base):
+    __tablename__ = 'nc_r_possession_coin_t'
+    idx = Column(Integer, primary_key=True)
+    coin = Column(String(100))
+
+    unit = Column(String(100))
+    price = Column(String(100))
+    total = Column(String(100))
+    fee = Column(String(100))
+    status = Column(Integer)
+    transaction_time = Column(String(100))
+    conclusion_time = Column(String(100))
+    order_id = Column(String(100))
+    cancel_time = Column(String(100))
+
+class possessionLog(Base):
+    __tablename__ = 'nc_p_possession_coin_his_t'
+
+    idx = Column(Integer, primary_key=True)
+
+    coin = Column(String(100))
+    unit = Column(String(100))
+    price = Column(String(100))
+    total = Column(String(100))
+    fee = Column(String(100))
+    status = Column(Integer)
+    transaction_time = Column(String(100))
+    conclusion_time = Column(String(100))
+    type = Column(String(100))
+    order_id = Column(String(100))
+
+class orderCoin(Base):
+    __tablename__ = 'nc_r_order_coin_t'
+
+    coin = Column(String(100), primary_key=True)
+
+    status = Column(Integer)
+    transaction_time = Column(String(100))
+    conclusion_time = Column(String(100))
+    order_id = Column(String(100))
+    cancel_time = Column(String(100))

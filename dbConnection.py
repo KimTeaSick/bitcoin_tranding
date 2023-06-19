@@ -4,10 +4,14 @@ import asyncio
 import os 
 
 load_dotenv()
-PORT = "3306"
-HOST = "192.168.10.202"
+
+PORT = 3306
+# HOST = "192.168.10.202"
+HOST = "nc-db-1.cyu1ow4eutwz.ap-northeast-2.rds.amazonaws.com"
 DATABASE = "nc_bit_trading"
-USERNAME = "ipxnms"
+# USERNAME = "ipxnms"
+# PASSWORD = "$kim99bsd00"
+USERNAME = "admin"
 PASSWORD = "$kim99bsd00"
 
 class MySql():
@@ -16,7 +20,8 @@ class MySql():
             host = HOST,
             user = USERNAME,
             passwd = PASSWORD,
-            database = DATABASE
+            database = DATABASE,
+            port = PORT
         )
 
     def Insert( self, sql, val ):
@@ -45,12 +50,22 @@ class MySql():
             mycursor.close()
         except mysql.connector.Error as err:
             self.mydb.reconnect()    
+            
+    async def AllDelete( self, sql ):
+        try:
+            mycursor = self.mydb.cursor(prepared=True)
+            mycursor.execute(sql)
+            self.mydb.commit()
+            mycursor.close()
+        except mysql.connector.Error as err:
+            self.mydb.reconnect()    
 
     async def Select(self, sql ):
         try:
             mycursor = self.mydb.cursor(prepared=False)
             mycursor.execute(sql)
             result = mycursor.fetchall()
+            self.mydb.commit()
             selectData = []
             for data in result:
                 selectData.append(data)

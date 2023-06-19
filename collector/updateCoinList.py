@@ -38,8 +38,9 @@ for coin in coins:
     coinNameList.append(f'{coin[korName+1:engName]}_KRW')
     coinNewName.append({'coinEnglishName': f'{coin[korName+1:engName]}_KRW', 'coinKRName':coin[:korName]})
 
-    if '투자유의종목':
-        warnning.append(f'{coin[:korName]}_KRW')
+    if '투자유의종목' in coin:
+        print(coin)
+        warnning.append(f'{coin[korName+1:engName]}_KRW')
 
 url = "https://api.bithumb.com/public/ticker/ALL_KRW"
 
@@ -65,6 +66,8 @@ for coin in coinList:
         coin.delflag = 1
     if coin.coin_name in warnning:
         coin.warning = '1'
+
+print(warnning)
 
 for coin in coinlist1:
     if coin == 'date_KRW':

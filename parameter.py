@@ -1,29 +1,37 @@
+
 from typing import Optional
 from pydantic import BaseModel
 
 
 class GetCandleStickBody(BaseModel):
-  id:  Optional[str] = None
-  term: Optional[str] = None
+    id:  Optional[str] = None
+    term: Optional[str] = None
+
 
 class BuyAndSell(BaseModel):
-  coin: str
-  unit: str
+    coin: str
+    price: str
+    unit: str
+
 
 class getOrderListBody(BaseModel):
-  page: str
+    page: str
+
 
 class getAvgDataBody(BaseModel):
-  range: int
-  coin: str
-  term: str
+    range: int
+    coin: str
+    term: str
+
 
 class getDateOrderListBody(BaseModel):
-  date: list
-  page: str
+    date: list
+    page: str
+
 
 class getAccountInfoBody(BaseModel):
-  date: list
+    date: list
+
 
 class getRecommendOption(BaseModel):
     Price: dict
@@ -33,26 +41,31 @@ class getRecommendOption(BaseModel):
     Disparity: dict
     MACD: dict
 
-class getSearchOptionBody(BaseModel):  
-  name:str
-  price: str
-  trends_term: str
-  trends: str
-  avg_volume: str
-  first_disparity: str
-  second_disparity: str
-  transaction_amount: str
+
+class getSearchOptionBody(BaseModel):
+    name: str
+    price: str
+    trends_term: str
+    trends: str
+    avg_volume: str
+    first_disparity: str
+    second_disparity: str
+    transaction_amount: str
+
 
 class updateSearchOptionBody(getSearchOptionBody):
-  idx: int
+    idx: int
+
 
 class updateDisparityOptionBody(BaseModel):
-  line_one: dict
-  line_two: dict
-  line_three: dict
-  
+    line_one: dict
+    line_two: dict
+    line_three: dict
+
+
 class updateUseSearchOptionBody(BaseModel):
-  num: str
+    num: str
+
 
 class insertOption(BaseModel):
     Name: str
@@ -63,10 +76,12 @@ class insertOption(BaseModel):
     Disparity: dict
     MACD: dict
 
-class getOptionDetail(BaseModel):  
-  option: str
 
-class updateOption(BaseModel):  
+class getOptionDetail(BaseModel):
+    option: str
+
+
+class updateOption(BaseModel):
     Name: str
     Price: dict
     TransactionAmount: dict
@@ -75,8 +90,32 @@ class updateOption(BaseModel):
     Disparity: dict
     MACD: dict
 
-class deleteOption(BaseModel):  
-  option: str
 
-class useOption(BaseModel):  
-  option: str
+class deleteOption(BaseModel):
+    option: str
+
+
+class useOption(BaseModel):
+    option: str
+
+
+class tradingOption(BaseModel):
+    name: str
+    account: dict
+    buy: dict
+    sell: dict
+
+
+class getTradingOptionDetail(BaseModel):
+    name: str
+
+
+class deleteTradingOption(BaseModel):
+    name: str
+
+
+class useTradingOption(BaseModel):
+    name: str
+
+class controlAT(BaseModel):
+    flag: int

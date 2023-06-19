@@ -22,11 +22,7 @@ from sqlalchemy.orm import Session
 import models
 import datetime
 
-try:
-    db = SessionLocal()
-    db: Session
-finally:
-    db.close()
+
 
 load_dotenv()
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
@@ -36,6 +32,12 @@ h ="24h"
 url = f"https://api.bithumb.com/public/candlestick/BTC_KRW/{h}"
 headers = {"accept": "application/json"}
 
+try:
+  db = SessionLocal()
+  db: Session
+finally:
+  db.close()
+  
 class BitThumbPrivate():
   def __init__(self):
     self.bithumb = Bithumb(connenctKey, secretKey)
@@ -47,6 +49,8 @@ class BitThumbPrivate():
   async def getMyPossessionCoinList(self):
     myCoinList = await self.mysql.Select(getMyCoinListSql)
     return myCoinList
+  
+
 
   def callGetTradingFee(self): # 수수료 구하기
     print(self.bithumb.get_trading_fee("BTC"))
@@ -56,7 +60,7 @@ class BitThumbPrivate():
     headers = {"accept": "application/json"}
     response = json.loads(requests.get(url, headers=headers).text)
     return response
-  
+
   def getCandleStick(self, item): #차트 데이터
     dataList = []
     url = f"https://api.bithumb.com/public/candlestick/{item.id}_KRW/{item.term}"
@@ -154,13 +158,16 @@ class BitThumbPrivate():
     money = 0
     for i in coinList:
       coinInfo = self.getBitCoinList(str(i[0]).replace('total_',""))
+      print("coinInfo ::::: ",coinInfo)
+      if int(coinInfo['status']) == 5500:
+        continue
       coinValue = float(coinInfo['data']['closing_price']) * round(float(i[1]), 4)
       list.append(coinValue)
     for index in range(len(list)):
       money += list[index]
     account = self.checkAccount()
     money += account
-    return money
+    return money, account
   
 ## 거래 내역 조회 및 검색 기능
   async def getOrderList(self, page):
@@ -209,6 +216,7 @@ class BitThumbPrivate():
     for index in range(len(list)):
       totalMoney += list[index]
     account = self.checkAccount()
+    print("account :::: ",account)
     totalMoney += account
     if selectData != 333:
       for todayData in selectData:
@@ -334,139 +342,19 @@ class BitThumbPrivate():
             print('short_disparity:', i[1]['short_disparity'], 'long_disparity:', i[1]['long_disparity'])
             continue
 
-          if i[1]['chart_term'][-1] == 'm' and ((int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])) > mMax:
-            mMax = (int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])
+          if i[1]['chart_term'][-1] == 'm' and ((int(i[1]['long_disparity']) * 2 + int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])) > mMax:
+            mMax = (int(i[1]['long_disparity']) * 2 + int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])
 
-          if i[1]['chart_term'][-1] == 'h' and ((int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])) > hMax:
-            hMax = (int(i[1]['long_disparity']) * 2) * int(i[1]['chart_term'][:-1])
+          if i[1]['chart_term'][-1] == 'h' and ((int(i[1]['long_disparity']) * 2 + int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])) > hMax:
+            hMax = (int(i[1]['long_disparity']) * 2 + int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])
 
-          options.append({'option':'MACD', 'chart_term':i[1]['chart_term'], 'short_disparity':i[1]['short_disparity'], 'long_disparity':i[1]['long_disparity'], 'up_down':i[1]['up_down']})
+          options.append({'option':'MACD', 'chart_term':i[1]['chart_term'], 'short_disparity':i[1]['short_disparity'], 'long_disparity':i[1]['long_disparity'],'signal':i[1]['signal'], 'up_down':i[1]['up_down']})
 
     # 검색 코인 receive
     coins = await recommend.recommendCoin(options, mMax, hMax)
 
     if coins == 444:
       return coins
-    '''
-    url = "https://api.bithumb.com/public/ticker/ALL_KRW"
-    headers = {"accept": "application/json"}
-
-    response = requests.get(url, headers=headers)
-    data = response.json()["data"]
-
-    PriceRecommend = coins['Price'][:-1].split()
-    TrAmtRecommend = coins['TransactionAmount'][:-1].split()
-    DisparityRecommend = coins['Disparity'][:-1].split()
-    TrendRecommend = coins['Trend'][:-1].split()
-    MacdRecommend = coins['MACD'][:-1].split()
-    MaspRecommend = coins['MASP'][:-1].split()
-
-    now = datetime.datetime.now()
-    nowstamp = int(int(now.timestamp()) /60) * 60 + (60*540)
-    time = nowstamp - (10 * 60)
-    ToDf = db.query(models.coinPrice1M).filter(models.coinPrice1M.S_time >= time).all()
-
-    dfList = []
-    for i in ToDf:
-        dfList.append({'coin_name':i.coin_name, 'time':i.time, 'Close':i.Close, 'Volume':i.Volume, 'TransactioAmount': float(i.Close) * float(i.Volume)})
-
-    df = pd.DataFrame(dfList)
-
-    recommendCoins = []
-    coinList = db.query(models.coinList).all()
-    for coin in coinList:
-      recommendCoins.append(coin.coin_name)
-
-    # 추천 코인 교집합
-    for i in item:
-      # if i[1]['flag'] != '0':
-        if i[0] == 'Price':
-          recommendCoins = set(recommendCoins) & set(PriceRecommend)
-        if i[0] == 'TransactionAmount':
-          recommendCoins = set(recommendCoins) & set(TrAmtRecommend)
-        if i[0] == 'Disparity':
-          recommendCoins = set(recommendCoins) & set(DisparityRecommend)
-        if i[0] == 'Trend':
-          recommendCoins = set(recommendCoins) & set(TrendRecommend)
-        if i[0] == 'MACD':
-          recommendCoins = set(recommendCoins) & set(MacdRecommend)
-        if i[0] == 'MASP':
-          recommendCoins = set(recommendCoins) & set(MaspRecommend)
-
-    # 리턴할 정보 append
-    priceDict = []
-    TrAmtDict = []
-    DisparityDict = []
-    MaspDict = []
-    TrendDict = []
-    MacdDict = []
-
-    recommendDict = []
-
-    for coin in coinList:
-      if coin.coin_name in PriceRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        priceDict.append({name:data[name]})
-
-      if coin.coin_name in TrAmtRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        TrAmtDict.append({name:data[name]})
-
-      if coin.coin_name in MaspRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        MaspDict.append({name:data[name]})
-
-      if coin.coin_name in DisparityRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        DisparityDict.append({name:data[name]})
-
-      if coin.coin_name in TrendRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        TrendDict.append({name:data[name]})
-
-      if coin.coin_name in MacdRecommend:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-        MacdDict.append({name:data[name]})
-
-      if coin.coin_name in recommendCoins:
-        df2 = df.loc[df['coin_name'] == coin.coin_name]
-        df2.reset_index(drop=True, inplace=True)
-
-        name = coin.coin_name[:-4]
-        data[name]['tenRow'] = [df2]
-
-        recommendDict.append({name:data[name]})
-    '''
-    #return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Disparity':DisparityDict, 'Masp':MaspDict, 'Trend': TrendDict, 'MACD': MacdDict}
 
     return {"coins" : coins, "optionList" : useOptionList}
 
@@ -474,6 +362,7 @@ class BitThumbPrivate():
     try:
       possessionCoin = await self.mysql.Select(getMyCoinListSql)
       time.sleep(1)
+      print("possessionCoin ::::::::::: ", possessionCoin)
       if len(possessionCoin) == 0:
         return 203
       returnList = []
@@ -598,7 +487,18 @@ class BitThumbPrivate():
                 print("minus", possessionCoinInfo)
                 self.sell(possessionCoinInfo[0], float(possessionCoinInfo[1]))
                 await self.autoTrading()
-  
+
+  async def buy(self, coin, price, unit): #매수
+    print(coin, price, unit, '333333333333333333333333333333333')
+    buyLog = self.bithumb.buy_limit_order(coin, price, unit) #params 1: 종목, 2: 가격, 3: 갯수
+    time.sleep(0.1)
+    print(buyLog)
+    returnLog = list(buyLog)
+
+    return returnLog
+
+
+  '''  
   async def buy(self, coin, unit): #매수
     buyLog = self.bithumb.buy_market_order(coin, unit) #params 1: 종목, 2: 갯수
     time.sleep(0.1)
@@ -653,8 +553,8 @@ class BitThumbPrivate():
             break
       return 200
     else:
-      return 404
-    
+      return 404'''
+
   async def sell(self, coin, unit): #매도
     sellLog = self.bithumb.sell_market_order(coin, unit) #params 1: 종목, 2: 갯수
     time.sleep(0.1)
@@ -788,6 +688,7 @@ class BitThumbPrivate():
       return e
 
   async def optionList(self):
+    #try:
     optionL = db.query(models.searchOption).all()
     options = []
 
@@ -970,3 +871,330 @@ class BitThumbPrivate():
       db.commit()
     except:
       db.rollback()
+# ===============================================================================================================trading option
+
+  async def insertTradingOPtion(self, item):
+    try:
+      print(item.name)
+      trading_option = models.tradingOption()
+      trading_account_option = models.tradingAccountOtion()
+      trading_buy_option = models.tradingBuyOption()
+      trading_sell_option = models.tradingSellOption()
+
+      for i in item:
+        print(item.name, i[0])
+        if i[0] == 'account':
+          trading_account_option.name = item.name
+          trading_account_option.price_count = i[1]['price_count']
+          trading_account_option.loss_cut_under_percent = i[1]['loss_cut_under_percent']
+          trading_account_option.loss = i[1]['loss']
+          trading_account_option.loss_cut_under_call_price_sell_all = i[1]['loss_cut_under_call_price_sell_all']
+          trading_account_option.loss_cut_under_coin_specific_percent = opName = i[1]['loss_cut_under_coin_specific_percent']
+          trading_account_option.loss_cut_under_call_price_specific_coin = i[1]['loss_cut_under_call_price_specific_coin']
+          trading_account_option.loss_cut_over_percent = i[1]['loss_cut_over_percent']
+          trading_account_option.gain = i[1]['gain']
+          trading_account_option.loss_cut_over_call_price_sell_all = i[1]['loss_cut_over_call_price_sell_all']
+          trading_account_option.loss_cut_over_coin_specific_percent = i[1]['loss_cut_over_coin_specific_percent']
+          trading_account_option.loss_cut_over_call_price_specific_coin = i[1]['loss_cut_over_call_price_specific_coin']
+          trading_account_option.buy_cancle_time = i[1]['buy_cancle_time']
+          trading_account_option.sell_cancle_time = i[1]['sell_cancle_time']
+
+          db.add(trading_account_option)
+
+        if i[0] == 'buy':
+          trading_buy_option.name = item.name
+          trading_buy_option.percent_to_buy_method = i[1]['percent_to_buy_method']
+          trading_buy_option.price_to_buy_method = i[1]['price_to_buy_method']
+          trading_buy_option.callmoney_to_buy_method = i[1]['callmoney_to_buy_method']
+          trading_buy_option.checkbox = i[1]['checkbox']
+          db.add(trading_buy_option)
+
+        if i[0] == 'sell':
+          trading_sell_option.name = item.name
+          trading_sell_option.upper_percent_to_price_condition = i[1]['upper_percent_to_price_condition']
+          trading_sell_option.down_percent_to_price_condition = i[1]['down_percent_to_price_condition']
+          trading_sell_option.disparity_for_upper_case = i[1]['disparity_for_upper_case']
+          trading_sell_option.upper_percent_to_disparity_condition = i[1]['upper_percent_to_disparity_condition']
+          trading_sell_option.disparity_for_down_case = i[1]['disparity_for_down_case']
+          trading_sell_option.down_percent_to_disparity_condition = i[1]['down_percent_to_disparity_condition']
+          trading_sell_option.call_money_to_sell_method = i[1]['call_money_to_sell_method']
+          trading_sell_option.percent_to_split_sell = i[1]['percent_to_split_sell']
+          trading_sell_option.shot_MACD_value = i[1]['shot_MACD_value']
+          trading_sell_option.long_MACD_value = i[1]['long_MACD_value']
+          trading_sell_option.MACD_signal_value = i[1]['MACD_signal_value']
+
+          db.add(trading_sell_option)
+
+
+      trading_option.name = item.name
+      trading_option.insert_time = datetime.datetime.now()
+      trading_option.update_time = "-"
+      trading_option.used = 0
+      print(item.name)
+
+      db.add(trading_option)
+
+      try:
+        db.commit()
+        return 'Insert sucess'
+
+      except Exception as e:
+        db.rollback()
+        print("db.rollback()",e)
+        return e
+
+    except Exception as e:
+      print(e)
+      return e
+
+  async def tradingOptionList(self):
+    #try:
+    optionL = db.query(models.tradingOption).all()
+    options = []
+
+    for option in optionL:
+      options.append({'Name':option.name, 'Create_date':option.insert_time[:19], 'Update_date': option.update_time[:19], 'used': option.used})
+      print(options)
+
+    return options
+
+  async def tradingOptionDetail(self, item):
+    print(item)
+    now1 = datetime.datetime.now()
+
+    optionL = db.query(models.tradingOption).filter(models.tradingOption.name == item.name).first()
+
+    accountL = db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == item.name).first()
+    buyL = db.query(models.tradingBuyOption).filter(models.tradingBuyOption.name == item.name).first()
+    sellL = db.query(models.tradingSellOption).filter(models.tradingSellOption.name == item.name).first()
+
+    now2 = datetime.datetime.now()
+    print(now2-now1)
+
+    return {optionL.name:{'account':{"price_count": accountL.price_count,"loss_cut_under_percent": accountL.loss_cut_under_percent, "loss_cut_under_call_price_sell_all":accountL.loss_cut_under_call_price_sell_all, "loss_cut_under_coin_specific_percent": accountL.loss_cut_under_coin_specific_percent,"loss_cut_under_call_price_specific_coin": accountL.loss_cut_under_call_price_specific_coin, "loss_cut_over_percent":accountL.loss_cut_over_percent, "loss_cut_over_call_price_sell_all": accountL.loss_cut_over_call_price_sell_all,"loss_cut_over_coin_specific_percent": accountL.loss_cut_over_coin_specific_percent, "loss_cut_over_call_price_specific_coin":accountL.loss_cut_over_call_price_specific_coin, "buy_cancle_time":accountL.buy_cancle_time, "sell_cancle_time":accountL.sell_cancle_time, "loss":accountL.loss, "gain":accountL.gain},
+                            "buy": {"percent_to_buy_method": buyL.percent_to_buy_method, "price_to_buy_method": buyL.price_to_buy_method,"callmoney_to_buy_method":buyL.callmoney_to_buy_method, "checkbox":buyL.checkbox},
+                            "sell": {"upper_percent_to_price_condition": sellL.upper_percent_to_price_condition,"down_percent_to_price_condition": sellL.down_percent_to_price_condition,"disparity_for_upper_case": sellL.disparity_for_upper_case,"upper_percent_to_disparity_condition": sellL.upper_percent_to_disparity_condition,"disparity_for_down_case": sellL.disparity_for_down_case, "down_percent_to_disparity_condition":sellL.down_percent_to_disparity_condition, "call_money_to_sell_method": sellL.call_money_to_sell_method,"percent_to_split_sell": sellL.percent_to_split_sell,"shot_MACD_value": sellL.shot_MACD_value,"long_MACD_value": sellL.long_MACD_value, "MACD_signal_value":sellL.MACD_signal_value},
+                            }}
+
+  async def updateTradingOption(self, item):
+      print(item.name)
+
+      for i in item:
+        if i[0] == 'account':
+          price_count = i[1]['price_count']
+          loss_cut_under_percent = i[1]['loss_cut_under_percent']
+          loss =  i[1]['loss']
+          loss_cut_under_call_price_sell_all = i[1]['loss_cut_under_call_price_sell_all']
+          loss_cut_under_coin_specific_percent = opName = i[1]['loss_cut_under_coin_specific_percent']
+          loss_cut_under_call_price_specific_coin = i[1]['loss_cut_under_call_price_specific_coin']
+          loss_cut_over_percent = i[1]['loss_cut_over_percent']
+          gain =  i[1]['gain']
+          loss_cut_over_call_price_sell_all = i[1]['loss_cut_over_call_price_sell_all']
+          loss_cut_over_coin_specific_percent = i[1]['loss_cut_over_coin_specific_percent']
+          loss_cut_over_call_price_specific_coin = i[1]['loss_cut_over_call_price_specific_coin']
+          buy_cancle_time = i[1]['buy_cancle_time']
+          sell_cancle_time = i[1]['sell_cancle_time']
+
+        if i[0] == 'buy':
+          percent_to_buy_method = i[1]['percent_to_buy_method']
+          price_to_buy_method = i[1]['price_to_buy_method']
+          callmoney_to_buy_method = i[1]['callmoney_to_buy_method']
+          checkbox = i[1]['checkbox']
+
+        if i[0] == 'sell':
+          upper_percent_to_price_condition = i[1]['upper_percent_to_price_condition']
+          down_percent_to_price_condition = i[1]['down_percent_to_price_condition']
+          disparity_for_upper_case = i[1]['disparity_for_upper_case']
+          upper_percent_to_disparity_condition = i[1]['upper_percent_to_disparity_condition']
+          disparity_for_down_case = i[1]['disparity_for_down_case']
+          down_percent_to_disparity_condition = i[1]['down_percent_to_disparity_condition']
+          call_money_to_sell_method = i[1]['call_money_to_sell_method']
+          percent_to_split_sell = i[1]['percent_to_split_sell']
+          shot_MACD_value = i[1]['shot_MACD_value']
+          long_MACD_value = i[1]['long_MACD_value']
+          MACD_signal_value = i[1]['MACD_signal_value']
+
+      optionL = db.query(models.tradingOption).filter(models.tradingOption.name == item.name).first()
+
+      accountL = db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == item.name).first()
+      buyL = db.query(models.tradingBuyOption).filter(models.tradingBuyOption.name == item.name).first()
+      sellL = db.query(models.tradingSellOption).filter(models.tradingSellOption.name == item.name).first()
+
+      accountL.price_count = price_count
+      accountL.loss_cut_under_percent = loss_cut_under_percent
+      accountL.loss = loss
+      accountL.loss_cut_under_call_price_sell_all = loss_cut_under_call_price_sell_all
+      accountL.loss_cut_under_coin_specific_percent = loss_cut_under_coin_specific_percent
+      accountL.loss_cut_under_call_price_specific_coin = loss_cut_under_call_price_specific_coin
+      accountL.loss_cut_over_percent = loss_cut_over_percent
+      accountL.gain = gain
+      accountL.loss_cut_over_call_price_sell_all = loss_cut_over_call_price_sell_all
+      accountL.loss_cut_over_coin_specific_percent = loss_cut_over_coin_specific_percent
+      accountL.loss_cut_over_call_price_specific_coin = loss_cut_over_call_price_specific_coin
+      accountL.buy_cancle_time = buy_cancle_time
+      accountL.sell_cancle_time = sell_cancle_time
+
+
+      buyL.percent_to_buy_method = percent_to_buy_method
+      buyL.price_to_buy_method = price_to_buy_method
+      buyL.callmoney_to_buy_method = callmoney_to_buy_method
+      buyL.checkbox = checkbox
+
+
+      sellL.upper_percent_to_price_condition = upper_percent_to_price_condition
+      sellL.down_percent_to_price_condition = down_percent_to_price_condition
+      sellL.disparity_for_upper_case = disparity_for_upper_case
+      sellL.upper_percent_to_disparity_condition = upper_percent_to_disparity_condition
+      sellL.disparity_for_down_case = disparity_for_down_case
+      sellL.down_percent_to_disparity_condition = down_percent_to_disparity_condition
+      sellL.call_money_to_sell_method = call_money_to_sell_method
+      sellL.percent_to_split_sell = percent_to_split_sell
+      sellL.shot_MACD_value = shot_MACD_value
+      sellL.long_MACD_value = long_MACD_value
+      sellL.MACD_signal_value = MACD_signal_value
+
+      optionL.update_time = datetime.datetime.now()
+
+      try:
+        db.commit()
+        print('commit')
+      except:
+        db.rollback()
+        print('rollback')
+
+      return 'Insert sucess'
+
+  async def deleteTradingOption(self, item):
+    try:
+      db.query(models.tradingOption).filter(models.tradingOption.name == item.name).delete()
+
+      db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == item.name).delete()
+      db.query(models.tradingBuyOption).filter(models.tradingBuyOption.name == item.name).delete()
+      db.query(models.tradingSellOption).filter(models.tradingSellOption.name == item.name).delete()
+
+      try:
+        db.commit()
+      except Exception as e:
+        print(e)
+        db.rollback()
+
+      return 'delete sucess'
+
+    except Exception as e:
+      print(e)
+
+  async def useTradingOption(self, item):
+    print(item)
+    useOption = db.query(models.tradingOption).filter(models.tradingOption.name == item.name).first()
+    optionL = db.query(models.tradingOption).filter(models.tradingOption.used == 1).all()
+    for option in optionL:
+      option.used = 0
+    useOption.used = 1
+    useOption.Update_date = datetime.datetime.now()
+    try:
+      db.commit()
+    except:
+      db.rollback()
+
+  async def getSearchPriceList(self):
+    try:
+      returnValue = []
+      searchList = await self.mysql.Select(selectSearchPriceList)
+      for coin in searchList:
+        returnValue.append({'name': coin[0], 'catch_price': coin[1]})
+      return returnValue
+    except:
+      return 444
+    
+  async def getNowUseCondition(self):
+    try:
+      searchCondition = await self.mysql.Select(findUseSearchCondition)
+      tradingCondition = await self.mysql.Select(findUseTradingCondition)
+      searchOption = await self.mysql.Select(useSearchOptionStatus(searchCondition[0][1]))
+      tradingOption = await self.mysql.Select(useTradingOptionStatus(tradingCondition[0][0]))
+      searchOptionReturnValue = {
+        "name": searchOption[0][0],
+        "low_price": searchOption[0][1],
+        "high_price": searchOption[0][2],
+        "chart_term": searchOption[0][3],
+        "low_transaction_amount": searchOption[0][4],
+        "high_transaction_amount": searchOption[0][5],
+        "chart_term": searchOption[0][6],
+        "first_disparity": searchOption[0][7],
+        "comparison": searchOption[0][8],
+        "second_disparity": searchOption[0][9],
+        "chart_term": searchOption[0][10],
+        "MASP": searchOption[0][11],
+        "trend_term": searchOption[0][12],
+        "trend_type": searchOption[0][13],
+        "trend_reverse": searchOption[0][14],
+        "chart_term": searchOption[0][15],
+        "disparity_term": searchOption[0][16],
+        "low_disparity": searchOption[0][17],
+        "high_disparity": searchOption[0][18],
+        "chart_term": searchOption[0][19],
+        "short_disparity": searchOption[0][20],
+        "long_disparity": searchOption[0][21],
+        "up_down": searchOption[0][22]
+      }
+      tradingOptionReturnValue = {
+        "name": tradingOption[0][0],
+        "price_count": tradingOption[0][1],
+        "loss_cut_under_percent": tradingOption[0][2],
+        "loss_cut_under_call_price_sell_all": tradingOption[0][3],
+        "loss_cut_under_coin_specific_percent": tradingOption[0][4],
+        "loss_cut_under_call_price_specific_coin": tradingOption[0][5],
+        "loss_cut_over_percent": tradingOption[0][6],
+        "loss_cut_over_call_price_sell_all": tradingOption[0][7],
+        "loss_cut_over_coin_specific_percent": tradingOption[0][8],
+        "loss_cut_over_call_price_specific_coin": tradingOption[0][9],
+        "buy_cancle_time": tradingOption[0][10],
+        "sell_cancle_time": tradingOption[0][11],
+        "percent_to_buy_method": tradingOption[0][12],
+        "price_to_buy_method": tradingOption[0][13],
+        "callmoney_to_buy_method": tradingOption[0][14],
+        "upper_percent_to_price_condition": tradingOption[0][15],
+        "down_percent_to_price_condition": tradingOption[0][16],
+        "disparity_for_upper_case": tradingOption[0][17],
+        "upper_percent_to_disparity_condition": tradingOption[0][18],
+        "disparity_for_down_case": tradingOption[0][19],
+        "down_percent_to_disparity_condition ": tradingOption[0][20],
+        "call_money_to_sell_method ": tradingOption[0][21],
+        "percent_to_split_sell ": tradingOption[0][22],
+        "shot_MACD_value ": tradingOption[0][23],
+        "long_MACD_value ": tradingOption[0][24],
+        "MACD_signal_value": tradingOption[0][25],
+      }
+      return {"searchOption" : searchOptionReturnValue, "tradingOption":tradingOptionReturnValue}
+    except:
+      return 444 
+    
+  async def getTradingHis(self):
+    try:
+      returnValue = []
+      tradingHis = await self.mysql.Select(getTradingHisSql())
+      for his in tradingHis:
+        returnValue.append({
+          "coin_name": his[1], 
+          "unit":his[2], 
+          "price": his[3], 
+          "total": his[4], 
+          "fee": his[5],
+          "status": his[6]
+          })
+
+      print("tradingHis :::::: ",returnValue)
+      return returnValue
+    except:
+      return 444 
+    
+  async def nowAutoStatusCheck(self):
+    status = await self.mysql.Select(autoStatusCheck)
+    return {"now_status" : status[0][0]}
+  
+  async def controlAutoTrading(self, flag):
+    try:
+      await self.mysql.Update(updateAutoStatus, [flag])
+      return 200
+    except:
+      return 444
