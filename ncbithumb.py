@@ -7,6 +7,7 @@ from dbConnection import *
 from parameter import *
 from sql import *
 import datetime
+import uvicorn
 
 app = FastAPI()
 
@@ -260,3 +261,8 @@ async def autoTradingCheck():
 async def controlAutoTrading(item: controlAT):
     response = await bit.controlAutoTrading(item.flag)
     return response
+
+if __name__ == "__main__":
+    config = uvicorn.Config("ncbithumb:app", port=8888, log_level="info", host="0.0.0.0")
+    server = uvicorn.Server(config)
+    server.run()
