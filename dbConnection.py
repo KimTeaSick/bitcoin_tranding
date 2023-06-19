@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 import mysql.connector
 import asyncio
 import os 
+from sql import *
 
 load_dotenv()
 
@@ -16,13 +17,18 @@ PASSWORD = "$kim99bsd00"
 
 class MySql():
     def __init__(self):
-        self.mydb = mysql.connector.connect(
-            host = HOST,
-            user = USERNAME,
-            passwd = PASSWORD,
-            database = DATABASE,
-            port = PORT
-        )
+        try:
+            self.mydb = mysql.connector.connect(
+                host = HOST,
+                user = USERNAME,
+                passwd = PASSWORD,
+                database = DATABASE,
+                port = PORT
+            )
+        except mysql.connector.Error as e:
+            print('Database Error: ', e) 
+            self.Insert(insertLog,[e])
+
 
     def Insert( self, sql, val ):
         try:

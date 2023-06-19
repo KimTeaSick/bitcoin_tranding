@@ -107,10 +107,10 @@ async def getRecommendPrice(item: getRecommendOption):
         response = await bit.getRecommendCoin(item)
         now2 = datetime.datetime.now()
         print(now2 - now1)
-        await mysql.Insert(insertLog,["검색 기능 사용"])
+        mysql.Insert(insertLog,["검색 기능 사용"])
         return response
     except:
-        await mysql.Insert(insertLog,["검색 기능 사용 실패"])
+        mysql.Insert(insertLog,["검색 기능 사용 실패"])
         return 444
 
 

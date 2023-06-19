@@ -12,7 +12,8 @@ from pybithumb import Bithumb
 import time
 
 # api url
-url = 'http://192.168.10.43:8888'
+# url = 'http://192.168.10.43:8888'
+url = 'http://52.78.246.119:8888'
 
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
 connenctKey = "9ae8ae53e7e0939722284added991d55"

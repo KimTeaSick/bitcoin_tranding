@@ -7,6 +7,7 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
         MaspValue = []
         print('masp:', len(coinList), '33333333333333333333333333333333333333333333333333333333333333333333333333')
 
+        pd.set_option('display.max_columns', None)
         # 이격도 조건중 더 큰값 
         bigger = int(first_disparity)
         if bigger < int(second_disparity):
@@ -20,15 +21,13 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
             masTime = nowstamp - (bigger * (times) * 3600)
 
         df = pd.DataFrame(dfList)
-        df['time'] = pd.to_datetime(df['time'])
-        
+        df['date'] = pd.to_datetime(df['time'])
         df2 = df.loc[df['S_time'] > masTime]
 
         # 코인별로 순회하며 조건에 맞는지 찾기
         for coin in coinList:
-            try:
-                df3 = df2.loc[df['coin_name'] == coin]
-                df3.reset_index(drop=True, inplace=True)
+            #try:
+                df3 = df2.loc[df['coin_name'] == coin].copy()
 
                 # 시간 범위 내 거래량 0인 코인 빼기
                 vol = df3['Volume'].sum()
@@ -36,6 +35,11 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
                     continue
 
                 # 빈 시간 0 채움
+                df3.loc[:, 'time'] = pd.to_datetime(df3['time'])
+                df3.index = pd.to_datetime(df3['time'])
+                df3 = df3[~df3.index.duplicated(keep='first')]
+                df3.reset_index(drop=True, inplace=True)
+
                 df3 = df3.set_index('time').resample('1H').asfreq()
                 df3 = df3.fillna(method='ffill')
 
@@ -64,8 +68,8 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
                         MaspL.append(coin)
                         MaspValue.append({'coin_name': coin, 'first_disparity': avgP1, 'second_disparity': avgP2})
 
-            except Exception as e:
-                print(e, coin, 'Masp error')
+            #except Exception as e:
+                #print(e, coin, 'Masp error')
 
         print('masp', len(MaspL), '33333333333333333333333333333333333333333333333')
 
