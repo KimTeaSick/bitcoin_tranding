@@ -30,13 +30,15 @@ def getDBCoinList(price, transaction_price):
 
 deleteCoinSql = 'SELECT FROM nc_r_coin_list_t WHERE coin_name = %s'
 
-getDisparityOptionSql = 'SELECT disparity_idx, disparity_name, disparity_value, disparity_color from nc_b_disparity_option_t WHERE disparity_name = "line_one" or disparity_name = "line_two" or disparity_name = "line_three"'
+getMASPoptionSql = 'SELECT idx, name, term, color, stroke from nc_b_disparity_option_t'
 
-updateDisparityOptionSql  = 'UPDATE nc_b_disparity_option_t SET disparity_value = %s, disparity_color = %s WHERE disparity_name = %s'
+insetMASPoptionSql = 'INSERT INTO nc_b_disparity_option_t ( name, term, color, stroke ) VALUES ( %s, %s, %s, %s )'
+
+updateMASPoptionSql  = 'UPDATE nc_b_disparity_option_t SET disparity_value = %s, disparity_color = %s WHERE disparity_name = %s'
+
+deleteMASPoptionSql  = 'DELETE FROM nc_b_disparity_option_t WHERE idx = %s'
 
 selectSearchOptionSql = 'SELECT * FROM nc_b_search_option_t'
-
-selectUseSearchOptionSql = 'SELECT search_idx FROM nc_b_use_search_option_t'
 
 def selectActiveSearchOptionSql(option_idx): 
   return 'SELECT first_disparity, second_disparity, trends, trends_idx, avg_volume, transaction_amount, price FROM nc_b_search_option_t WHERE idx = ' + option_idx
@@ -44,8 +46,6 @@ def selectActiveSearchOptionSql(option_idx):
 insertSearchOptionSql = 'INSERT INTO nc_b_search_option_t (name, first_disparity, second_disparity,trends_idx, trends, avg_volume, transaction_amount, price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
 
 updateSearchOptionSql = 'UPDATE nc_b_search_option_t SET name = %s , first_disparity = %s , second_disparity = %s ,trends_idx = %s, trends = %s , avg_volume = %s , transaction_amount = %s , price = %s WHERE idx = %s'
-
-updateUseSearchOption = 'UPDATE nc_b_use_search_option_t SET search_idx = %s '
 
 selectSearchPriceList = 'SELECT * from nc_f_recommend_coin_t'
 
@@ -128,7 +128,7 @@ def useTradingOptionStatus(name):
   where op.name like ''' + "'" + name + "'"
 
 def getTradingHisSql():
-  return ''' select * from nc_p_possession_coin_his_t '''
+  return ''' select * from nc_p_possession_coin_his_t order by idx desc'''
 
 autoStatusCheck = "SELECT status FROM nc_b_now_auto_status_t"
 updateAutoStatus = "UPDATE nc_b_now_auto_status_t SET status = %s WHERE idx = 1"

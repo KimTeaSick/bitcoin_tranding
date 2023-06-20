@@ -443,14 +443,6 @@ class BitThumbPrivate():
       item.idx
     ])
 
-  async def updateUseSearchOption(self, num):
-    print("numnum :::::::::", num)
-    try:
-      await self.mysql.Update(updateUseSearchOption, [ num ])
-      return 200
-    except:
-      return 303
-
 # Auto But and Selling
   async def autoTrading(self):
     uri = "wss://pubwss.bithumb.com/pub/ws"
@@ -681,55 +673,60 @@ class BitThumbPrivate():
       except Exception as e:
         db.rollback()
         print("db.rollback()",e)
-        return e
+        return 444
 
     except Exception as e:
       print(e)
-      return e
+      return 444
 
   async def optionList(self):
-    #try:
-    optionL = db.query(models.searchOption).all()
-    options = []
+    try:
+      optionL = db.query(models.searchOption).all()
+      options = []
 
-    for option in optionL:
-      if option.Update_date == None:
-        option.Update_date = "-"
-      else:
-        option.Update_date = option.Update_date[0:19]
-      options.append({'Name':option.name, 'Create_date':option.Create_date[0:19], 'Update_date': option.Update_date, 'used': option.used})
-      print(options)
-
-    return options
+      for option in optionL:
+        if option.Update_date == None:
+          option.Update_date = "-"
+        else:
+          option.Update_date = option.Update_date[0:19]
+        options.append({'Name':option.name, 'Create_date':option.Create_date[0:19], 'Update_date': option.Update_date, 'used': option.used})
+        print(options)
+      return options
+    except Exception as e:
+      print("optionList Error :::: ", e)
+      self.mysql.Insert(insertLog,[e])
+      db.rollback()
+      return 444
+  
 
   async def optionDetail(self, item):
-    print(item)
-    now1 = datetime.datetime.now()
+    try:
+      print(item)
+      now1 = datetime.datetime.now()
 
-    optionL = db.query(models.searchOption).filter(models.searchOption.name == item.option).first()
+      optionL = db.query(models.searchOption).filter(models.searchOption.name == item.option).first()
 
-    pri = db.query(models.PriceOption).filter(models.PriceOption.name == optionL.Price).first()
-    tra = db.query(models.TransactionAmountOption).filter(models.TransactionAmountOption.name == optionL.Transaction_amount).first()
-    mas = db.query(models.MASPOption).filter(models.MASPOption.name == optionL.MASP).first()
-    dis = db.query(models.DisparityOption).filter(models.DisparityOption.name == optionL.Disparity).first()
-    trd = db.query(models.TrendOption).filter(models.TrendOption.name == optionL.Trend).first()
-    mac = db.query(models.MACDOption).filter(models.MACDOption.name == optionL.MACD).first()
+      pri = db.query(models.PriceOption).filter(models.PriceOption.name == optionL.Price).first()
+      tra = db.query(models.TransactionAmountOption).filter(models.TransactionAmountOption.name == optionL.Transaction_amount).first()
+      mas = db.query(models.MASPOption).filter(models.MASPOption.name == optionL.MASP).first()
+      dis = db.query(models.DisparityOption).filter(models.DisparityOption.name == optionL.Disparity).first()
+      trd = db.query(models.TrendOption).filter(models.TrendOption.name == optionL.Trend).first()
+      mac = db.query(models.MACDOption).filter(models.MACDOption.name == optionL.MACD).first()
 
-    now2 = datetime.datetime.now()
-    print(now2-now1)
-    print("flag", pri.flag)
-    print("flag", tra.flag)
-    print("flag", mas.flag)
-    print("flag", dis.flag)
-    print("flag", trd.flag)
-    print("flag", mac.flag)
+      now2 = datetime.datetime.now()
+      print(now2-now1)
 
-    return {optionL.name:{'Price':{"low_price": pri.low_price,"high_price": pri.high_price, "flag":pri.flag},
-                                  "TransactionAmount": {"chart_term": tra.chart_term, "low_transaction_amount": tra.low_transaction_amount,"high_transaction_amount":tra.high_transaction_amount, "flag":tra.flag},
-                                  "MASP": {"chart_term": mas.chart_term,"first_disparity": mas.first_disparity,"comparison": mas.comparison,"second_disparity": mas.second_disparity, "flag":mas.flag},
-                                  "Trend": {"chart_term": trd.chart_term,"MASP":trd.MASP,"trend_term": trd.trend_term,"trend_type": trd.trend_type,"trend_reverse": trd.trend_reverse, "flag":trd.flag},
-                                  "Disparity": {"chart_term": dis.chart_term,"disparity_term": dis.disparity_term,"low_disparity": dis.low_disparity,"high_disparity": dis.high_disparity, "flag":dis.flag},
-                                  "MACD": {"chart_term": mac.chart_term,"short_disparity": mac.short_disparity,"long_disparity": mac.long_disparity,"up_down": mac.up_down, "flag":mac.flag, "signal":mac.signal}}}
+      return {optionL.name:{'Price':{"low_price": pri.low_price,"high_price": pri.high_price, "flag":pri.flag},
+                                    "TransactionAmount": {"chart_term": tra.chart_term, "low_transaction_amount": tra.low_transaction_amount,"high_transaction_amount":tra.high_transaction_amount, "flag":tra.flag},
+                                    "MASP": {"chart_term": mas.chart_term,"first_disparity": mas.first_disparity,"comparison": mas.comparison,"second_disparity": mas.second_disparity, "flag":mas.flag},
+                                    "Trend": {"chart_term": trd.chart_term,"MASP":trd.MASP,"trend_term": trd.trend_term,"trend_type": trd.trend_type,"trend_reverse": trd.trend_reverse, "flag":trd.flag},
+                                    "Disparity": {"chart_term": dis.chart_term,"disparity_term": dis.disparity_term,"low_disparity": dis.low_disparity,"high_disparity": dis.high_disparity, "flag":dis.flag},
+                                    "MACD": {"chart_term": mac.chart_term,"short_disparity": mac.short_disparity,"long_disparity": mac.long_disparity,"up_down": mac.up_down, "flag":mac.flag, "signal":mac.signal}}}
+    except Exception as e:
+      print("optionList Error :::: ", e)
+      self.mysql.Insert(insertLog,[e])
+      db.rollback()
+      return 444
 
   async def updateOption(self, item):
       opName = ''
@@ -828,6 +825,7 @@ class BitThumbPrivate():
         db.commit()
         print('commit')
       except:
+        self.mysql.Insert(insertLog,[e])
         db.rollback()
         print('rollback')
 
@@ -850,10 +848,11 @@ class BitThumbPrivate():
         db.commit()
       except Exception as e:
         print(e)
+        self.mysql.Insert(insertLog,[e])
         db.rollback()
 
       return 'delete sucess'
-
+    
     except Exception as e:
       print(e)
 
@@ -941,42 +940,55 @@ class BitThumbPrivate():
       except Exception as e:
         db.rollback()
         print("db.rollback()",e)
-        return e
+        self.mysql.Insert(insertLog,[e])
+        return 444
 
     except Exception as e:
       print(e)
-      return e
+      return 444
 
   async def tradingOptionList(self):
-    #try:
-    optionL = db.query(models.tradingOption).all()
-    options = []
+    try:
+      optionL = db.query(models.tradingOption).all()
+      options = []
 
-    for option in optionL:
-      options.append({'Name':option.name, 'Create_date':option.insert_time[:19], 'Update_date': option.update_time[:19], 'used': option.used})
-      print(options)
+      for option in optionL:
+        options.append({'Name':option.name, 'Create_date':option.insert_time[:19], 'Update_date': option.update_time[:19], 'used': option.used})
+        print(options)
 
-    return options
+      return options
+    except Exception as e:
+      print("tradingOptionListError :::: ", e)
+      self.mysql.Insert(insertLog,[e])
+      db.rollback()
+      return 444
 
   async def tradingOptionDetail(self, item):
-    print(item)
-    now1 = datetime.datetime.now()
+    try:
+      print(item)
+      now1 = datetime.datetime.now()
 
-    optionL = db.query(models.tradingOption).filter(models.tradingOption.name == item.name).first()
+      optionL = db.query(models.tradingOption).filter(models.tradingOption.name == item.name).first()
 
-    accountL = db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == item.name).first()
-    buyL = db.query(models.tradingBuyOption).filter(models.tradingBuyOption.name == item.name).first()
-    sellL = db.query(models.tradingSellOption).filter(models.tradingSellOption.name == item.name).first()
+      accountL = db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == item.name).first()
+      buyL = db.query(models.tradingBuyOption).filter(models.tradingBuyOption.name == item.name).first()
+      sellL = db.query(models.tradingSellOption).filter(models.tradingSellOption.name == item.name).first()
 
-    now2 = datetime.datetime.now()
-    print(now2-now1)
+      now2 = datetime.datetime.now()
+      print(now2-now1)
 
-    return {optionL.name:{'account':{"price_count": accountL.price_count,"loss_cut_under_percent": accountL.loss_cut_under_percent, "loss_cut_under_call_price_sell_all":accountL.loss_cut_under_call_price_sell_all, "loss_cut_under_coin_specific_percent": accountL.loss_cut_under_coin_specific_percent,"loss_cut_under_call_price_specific_coin": accountL.loss_cut_under_call_price_specific_coin, "loss_cut_over_percent":accountL.loss_cut_over_percent, "loss_cut_over_call_price_sell_all": accountL.loss_cut_over_call_price_sell_all,"loss_cut_over_coin_specific_percent": accountL.loss_cut_over_coin_specific_percent, "loss_cut_over_call_price_specific_coin":accountL.loss_cut_over_call_price_specific_coin, "buy_cancle_time":accountL.buy_cancle_time, "sell_cancle_time":accountL.sell_cancle_time, "loss":accountL.loss, "gain":accountL.gain},
-                            "buy": {"percent_to_buy_method": buyL.percent_to_buy_method, "price_to_buy_method": buyL.price_to_buy_method,"callmoney_to_buy_method":buyL.callmoney_to_buy_method, "checkbox":buyL.checkbox},
-                            "sell": {"upper_percent_to_price_condition": sellL.upper_percent_to_price_condition,"down_percent_to_price_condition": sellL.down_percent_to_price_condition,"disparity_for_upper_case": sellL.disparity_for_upper_case,"upper_percent_to_disparity_condition": sellL.upper_percent_to_disparity_condition,"disparity_for_down_case": sellL.disparity_for_down_case, "down_percent_to_disparity_condition":sellL.down_percent_to_disparity_condition, "call_money_to_sell_method": sellL.call_money_to_sell_method,"percent_to_split_sell": sellL.percent_to_split_sell,"shot_MACD_value": sellL.shot_MACD_value,"long_MACD_value": sellL.long_MACD_value, "MACD_signal_value":sellL.MACD_signal_value},
-                            }}
+      return {optionL.name:{'account':{"price_count": accountL.price_count,"loss_cut_under_percent": accountL.loss_cut_under_percent, "loss_cut_under_call_price_sell_all":accountL.loss_cut_under_call_price_sell_all, "loss_cut_under_coin_specific_percent": accountL.loss_cut_under_coin_specific_percent,"loss_cut_under_call_price_specific_coin": accountL.loss_cut_under_call_price_specific_coin, "loss_cut_over_percent":accountL.loss_cut_over_percent, "loss_cut_over_call_price_sell_all": accountL.loss_cut_over_call_price_sell_all,"loss_cut_over_coin_specific_percent": accountL.loss_cut_over_coin_specific_percent, "loss_cut_over_call_price_specific_coin":accountL.loss_cut_over_call_price_specific_coin, "buy_cancle_time":accountL.buy_cancle_time, "sell_cancle_time":accountL.sell_cancle_time, "loss":accountL.loss, "gain":accountL.gain},
+                              "buy": {"percent_to_buy_method": buyL.percent_to_buy_method, "price_to_buy_method": buyL.price_to_buy_method,"callmoney_to_buy_method":buyL.callmoney_to_buy_method, "checkbox":buyL.checkbox},
+                              "sell": {"upper_percent_to_price_condition": sellL.upper_percent_to_price_condition,"down_percent_to_price_condition": sellL.down_percent_to_price_condition,"disparity_for_upper_case": sellL.disparity_for_upper_case,"upper_percent_to_disparity_condition": sellL.upper_percent_to_disparity_condition,"disparity_for_down_case": sellL.disparity_for_down_case, "down_percent_to_disparity_condition":sellL.down_percent_to_disparity_condition, "call_money_to_sell_method": sellL.call_money_to_sell_method,"percent_to_split_sell": sellL.percent_to_split_sell,"shot_MACD_value": sellL.shot_MACD_value,"long_MACD_value": sellL.long_MACD_value, "MACD_signal_value":sellL.MACD_signal_value},
+                              }}
+    except Exception as e:
+      print("tradingOptionListError :::: ", e)
+      self.mysql.Insert(insertLog,[e])
+      db.rollback()
+      return 444
 
   async def updateTradingOption(self, item):
+    try:
       print(item.name)
 
       for i in item:
@@ -1058,12 +1070,19 @@ class BitThumbPrivate():
       try:
         db.commit()
         print('commit')
-      except:
+      except Exception as e:
+        print("tradingOptionListError :::: ", e)
+        self.mysql.Insert(insertLog,[e])
         db.rollback()
-        print('rollback')
+        return 444
 
       return 'Insert sucess'
-
+    except Exception as e:
+      print("tradingOptionListError :::: ", e)
+      self.mysql.Insert(insertLog,[e])
+      db.rollback()
+      return 444
+      
   async def deleteTradingOption(self, item):
     try:
       db.query(models.tradingOption).filter(models.tradingOption.name == item.name).delete()
@@ -1081,7 +1100,10 @@ class BitThumbPrivate():
       return 'delete sucess'
 
     except Exception as e:
-      print(e)
+      print("tradingOptionListError :::: ", e)
+      self.mysql.Insert(insertLog,[e])
+      db.rollback()
+      return 444
 
   async def useTradingOption(self, item):
     print(item)
@@ -1101,9 +1123,11 @@ class BitThumbPrivate():
       returnValue = []
       searchList = await self.mysql.Select(selectSearchPriceList)
       for coin in searchList:
-        returnValue.append({'name': coin[0], 'catch_price': coin[1]})
+        returnValue.append({'name': coin[1], 'catch_price': coin[0]})
       return returnValue
-    except:
+    except Exception as e:
+      print("getSearchPriceList :::: ", e)
+      self.mysql.Insert(insertLog, [e])
       return 444
     
   async def getNowUseCondition(self):
@@ -1166,8 +1190,10 @@ class BitThumbPrivate():
         "MACD_signal_value": tradingOption[0][25],
       }
       return {"searchOption" : searchOptionReturnValue, "tradingOption":tradingOptionReturnValue}
-    except:
-      return 444 
+    except Exception as e:
+      print("tradingOptionListError :::: ", e)
+      self.mysql.Insert(insertLog,[e])
+      return 444
     
   async def getTradingHis(self):
     try:
@@ -1189,12 +1215,19 @@ class BitThumbPrivate():
       return 444 
     
   async def nowAutoStatusCheck(self):
-    status = await self.mysql.Select(autoStatusCheck)
-    return {"now_status" : status[0][0]}
+    try:
+      status = await self.mysql.Select(autoStatusCheck)
+      return {"now_status" : status[0][0]}
+    except Exception as e:
+      print("tradingOptionListError :::: ", e)
+      self.mysql.Insert(insertLog,[e])
+      return 444
   
   async def controlAutoTrading(self, flag):
     try:
       await self.mysql.Update(updateAutoStatus, [flag])
       return 200
-    except:
+    except Exception as e:
+      print("tradingOptionListError :::: ", e)
+      self.mysql.Insert(insertLog,[e])
       return 444

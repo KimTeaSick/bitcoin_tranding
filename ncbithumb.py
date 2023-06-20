@@ -129,16 +129,9 @@ async def getAccountInfo(date1, date2):
     except:
         return 404
 
-
 @app.post('/autotrading')
 async def autoTrading():
     await bit.autoTrading()
-
-
-@app.post('/setting/updateUseSearchOption')
-async def updateUseSearchOption(item: updateUseSearchOptionBody):
-    return await bit.updateUseSearchOption(item.num)
-
 
 @app.get('/setting/getDisparity')
 async def getDisparity():
