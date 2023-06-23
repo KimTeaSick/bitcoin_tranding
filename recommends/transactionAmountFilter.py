@@ -7,9 +7,9 @@ def transactioAmountRecommend(nowstamp, coinList, dfList, chart_term, lowTransac
     print(len(coinList), '거래대금2222222222222222222222222222222222222222222222222222')
 
     if chart_term[-1] == 'm':
-        time = nowstamp - (int(chart_term[:-1]) * 60)
+        time = nowstamp - ((int(chart_term[:-1]) + 1) * 60)
     if chart_term[-1] == 'h':
-        time = nowstamp - (int(chart_term[:-1]) * 3600)
+        time = nowstamp - ((int(chart_term[:-1]) + 1) * 3600)
 
     df = pd.DataFrame(dfList)
     df2 = df.loc[df['S_time'] > time]
