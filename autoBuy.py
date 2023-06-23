@@ -68,7 +68,6 @@ macdOption = db.query(models.MACDOption).filter(models.MACDOption.name == useRec
 mMax:int = 0
 hMax:int = 0
 options: list = []
-db.query(models.recommendList).delete()
 
 if priceOtion.flag == 1:
     if priceOtion.high_price != 0:
@@ -137,7 +136,7 @@ if macdOption.flag == 1:
 
 print(options)
 print(f'mMax: {mMax}, hMax: {hMax}')
-
+db.query(models.recommendList).delete()
 # 검색 코인 receive
 coins = asyncio.run(recommendCoins(options, mMax, hMax))
 print('----------------------------------------------------------------------------------검색 완료')

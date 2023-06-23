@@ -21,7 +21,8 @@ from database import engine, SessionLocal
 from sqlalchemy.orm import Session
 import models
 import datetime
-
+from returnValue import changer
+import subprocess
 
 
 load_dotenv()
@@ -50,8 +51,6 @@ class BitThumbPrivate():
     myCoinList = await self.mysql.Select(getMyCoinListSql)
     return myCoinList
   
-
-
   def callGetTradingFee(self): # 수수료 구하기
     print(self.bithumb.get_trading_fee("BTC"))
 
@@ -158,7 +157,7 @@ class BitThumbPrivate():
     money = 0
     for i in coinList:
       coinInfo = self.getBitCoinList(str(i[0]).replace('total_',""))
-      print("coinInfo ::::: ",coinInfo)
+      # print("coinInfo ::::: ",coinInfo)
       if int(coinInfo['status']) == 5500:
         continue
       coinValue = float(coinInfo['data']['closing_price']) * round(float(i[1]), 4)
@@ -178,9 +177,10 @@ class BitThumbPrivate():
       prev = str((int(page) - 1) * 15)
     selectData = await self.mysql.Select(orderListSql(count, prev))
     orderList = []
+    # print("selectData ::::: ", selectData)
     for data in selectData:
-      orderDesc = (data[2], data[1], data[3], 'KRW')
-      orderList.append(self.bithumb.get_order_completed(orderDesc)['data'])
+      print("selectData ::::: ", changer.ORDER_LIST_CHANGER(data))
+      orderList.append(changer.ORDER_LIST_CHANGER(data))
     return orderList
   
   def getDateOrderList(self, date, page):
@@ -200,8 +200,11 @@ class BitThumbPrivate():
   async def dashProperty(self, date):
     coinList = self.getMyCoinList()
     time.sleep(1)
-    dt = datetime.now()
-    print(dt)
+    dt = datetime.now().replace()
+    start_dt = dt[0:10] + "00:00:00.000000"
+    end_dt = dt[0:10] + "23:59:59.999999"
+    print("start_dt ::::::",start_dt)
+    print("end_dt ::::::",end_dt)
     list = []
     fee = 0
     totalMoney = 0
@@ -216,7 +219,6 @@ class BitThumbPrivate():
     for index in range(len(list)):
       totalMoney += list[index]
     account = self.checkAccount()
-    print("account :::: ",account)
     totalMoney += account
     if selectData != 333:
       for todayData in selectData:
@@ -690,7 +692,6 @@ class BitThumbPrivate():
         else:
           option.Update_date = option.Update_date[0:19]
         options.append({'Name':option.name, 'Create_date':option.Create_date[0:19], 'Update_date': option.Update_date, 'used': option.used})
-        print(options)
       return options
     except Exception as e:
       print("optionList Error :::: ", e)
@@ -857,19 +858,26 @@ class BitThumbPrivate():
       print(e)
 
   async def useOption(self, item):
-    print(item)
-    useOption = db.query(models.searchOption).filter(models.searchOption.name == item.option).first()
-    optionL = db.query(models.searchOption).filter(models.searchOption.used == 1).all()
-
-    for option in optionL:
-      option.used = 0
-
-    useOption.used = 1
-    useOption.Update_date = datetime.datetime.now()
     try:
+      print("useOption :::::", item)
+      useOption = db.query(models.searchOption).filter(models.searchOption.name == item.option).first()
+      print("useOption :::::", useOption.name)
+      optionL = db.query(models.searchOption).filter(models.searchOption.used == 1).all()
+      print("optionL :::::", optionL)
+
+      for option in optionL:
+        option.used = 0
+
+      useOption.used = 1
+      useOption.Update_date = datetime.datetime.now()
       db.commit()
-    except:
+      print("success :::::")
+      return 200
+    except Exception as e:
+      print("fail :::::", e)
       db.rollback()
+      return 444
+      
 # ===============================================================================================================trading option
 
   async def insertTradingOPtion(self, item):
@@ -1199,23 +1207,17 @@ class BitThumbPrivate():
     try:
       returnValue = []
       tradingHis = await self.mysql.Select(getTradingHisSql())
-      for his in tradingHis:
-        returnValue.append({
-          "coin_name": his[1], 
-          "unit":his[2], 
-          "price": his[3], 
-          "total": his[4], 
-          "fee": his[5],
-          "status": his[6]
-          })
 
-      print("tradingHis :::::: ",returnValue)
+      if(tradingHis != None):
+        for his in tradingHis:
+          returnValue.append(changer.TRADING_LIST(his))
       return returnValue
     except:
       return 444 
     
   async def nowAutoStatusCheck(self):
     try:
+      print("str(datetime.now().fromtimestamp()) ::::: ", changer.TIME_Y4MMDDSSHHMMSS(str(datetime.datetime.now().replace())))
       status = await self.mysql.Select(autoStatusCheck)
       return {"now_status" : status[0][0]}
     except Exception as e:
@@ -1225,9 +1227,26 @@ class BitThumbPrivate():
   
   async def controlAutoTrading(self, flag):
     try:
-      await self.mysql.Update(updateAutoStatus, [flag])
+      if(flag == 1):
+        subprocess.run(['/bin/python3', '/data/4season/bitcoin_tranding_230621/autoBuy.py'])
+        await self.mysql.Update(updateAutoStatus, [flag, str(datetime.datetime.now().replace()) ])
+      elif(flag == 0):
+        await self.mysql.Update(updateAutoStatus, [flag,"-"])
       return 200
     except Exception as e:
       print("tradingOptionListError :::: ", e)
       self.mysql.Insert(insertLog,[e])
       return 444
+    
+
+  async def todayAccount(self):
+    try:
+      dt = str(datetime.datetime.now().replace())
+      start_dt = dt[0:10] + " 00:00:00.000000"
+      end_dt = dt[0:10] + " 23:59:59.999999"
+      total_and_deposit = self.myProperty()
+      today_buy_price = await self.mysql.Select(todayBuyPrice(start_dt, end_dt))
+      today_sell_price = await self.mysql.Select(todaySellPrice(start_dt, end_dt))
+      return changer.TODAY_TRADING_RESULT([today_buy_price,today_sell_price,total_and_deposit[0],total_and_deposit[1]])
+    except Exception as e:
+      print(e)

@@ -359,8 +359,12 @@ async def controlAutoTrading(item: controlAT):
         mysql.Insert(insertLog, ["자동 매매 컨트롤 기능 사용 실패"])
         return 444
 
+@app.get('/todayAccount')
+async def todayAccount():
+    response = await bit.todayAccount()
+    return response
 
-# if __name__ == "__main__":
-#     config = uvicorn.Config("ncbithumb:app", port=8888, log_level="info", host="0.0.0.0")
-#     server = uvicorn.Server(config)
-#     server.run()
+if __name__ == "__main__":
+    config = uvicorn.Config("ncbithumb:app", port=8888, log_level="info", host="0.0.0.0")
+    server = uvicorn.Server(config)
+    server.run()

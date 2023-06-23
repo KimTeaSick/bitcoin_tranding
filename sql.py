@@ -12,16 +12,17 @@ sellUpdatePossessionCoin = 'UPDATE nc_r_possession_coin_t SET unit = %s, total =
 deletePossessionCoin = 'DELETE FROM nc_r_possession_coin_t WHERE coin = %s'
 
 def orderListSql(page, prev):
-  return 'SELECT * FROM nc_r_trading_t ORDER BY idx DESC limit ' + page + ' offset ' + prev
-
-
+  return 'SELECT coin, unit, price, total, fee, type, transaction_time FROM nc_p_possession_coin_his_t ORDER BY idx DESC limit ' + page + ' offset ' + prev
 def dateOrderListSql(page, prev, dateStart, dateEnd):
-  return 'SELECT * FROM nc_r_trading_t  WHERE create_at > ' + dateStart + ' AND create_at < ' + dateEnd + ' ORDER BY idx DESC limit ' + page + ' offset ' + prev 
-
+  return 'SELECT * FROM nc_p_possession_coin_his_t  WHERE transaction_time > ' + dateStart + ' AND transaction_time < ' + dateEnd + ' ORDER BY idx DESC limit ' + page + ' offset ' + prev 
 def todayOrderListSql(dateStart, dateEnd):
-  return 'SELECT * FROM nc_r_trading_t  WHERE create_at > ' + dateStart + ' AND create_at < ' + dateEnd 
+  return 'SELECT * FROM nc_p_possession_coin_his_t  WHERE transaction_time > ' + dateStart + ' AND transaction_time < ' + dateEnd 
+orderListCountSql = 'SELECT count(idx) as count FROM nc_p_possession_coin_his_t'
 
-orderListCountSql = 'SELECT count(idx) as count FROM nc_r_trading_t'
+
+
+
+
 
 getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t'
 
@@ -128,9 +129,15 @@ def useTradingOptionStatus(name):
   where op.name like ''' + "'" + name + "'"
 
 def getTradingHisSql():
-  return ''' select * from nc_p_possession_coin_his_t order by idx desc'''
+  return "SELECT * FROM nc_p_possession_coin_his_t WHERE transaction_time >= (SELECT start_date FROM nc_b_now_auto_status_t) order by idx desc"
 
 autoStatusCheck = "SELECT status FROM nc_b_now_auto_status_t"
-updateAutoStatus = "UPDATE nc_b_now_auto_status_t SET status = %s WHERE idx = 1"
+updateAutoStatus = "UPDATE nc_b_now_auto_status_t SET status = %s, start_date = %s WHERE idx = 1"
 
-insertLog = "INSERT INTO nc_f_log_t (content, insert_date) VALUES (%s, now())"
+insertLog = "INSERT INTO nc_f_log_t (content, insert_date) VALUES (%s, now())" 
+
+def todayBuyPrice(dateStart, dateEnd):
+  return 'SELECT add(total) FROM nc_p_possession_coin_his_t WHERE transaction_time > ' + "'" + dateStart + "'" + ' AND transaction_time < ' + "'" + dateEnd + "'" + " AND type = 'bid' "
+
+def todaySellPrice(dateStart, dateEnd):
+  return 'SELECT add(total) FROM nc_p_possession_coin_his_t WHERE transaction_time > ' + "'" + dateStart + "'" + ' AND transaction_time < ' + "'" + dateEnd + "'" + " AND type = 'ask' "

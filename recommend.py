@@ -17,6 +17,7 @@ from recommends import MaspFilter
 from recommends import trendFilter
 from recommends import disparityFilter
 from recommends import MacdFilter
+
 mysql = MySql()
 async def recommendCoin(options, mMax, hMax):
         try:
@@ -238,7 +239,6 @@ async def recommendCoin(options, mMax, hMax):
                 insertList.append({'name':coinKey[0], 'price':coinValue[0]['closing_price']})
                 coinValue[0]['closing_price']
                 coinKey[0]
-                mysql.Insert(insertSearchCoinListSql,[coinKey[0], coinValue[0]['closing_price']])
             print('insertList ::::::::: ', insertList)
 
         return {'recommends': recommendDict, 'Price':priceDict, 'TransactioAmount':TrAmtDict, 'Masp':MaspDict, 'Trend': TrendDict, 'Disparity':DisparityDict, 'MACD': MacdDict}
