@@ -86,8 +86,8 @@ class BitThumbPrivate():
     return orderBook
 
   def checkAccount(self): #보유 예수금 목록
-    KRW = self.bithumb.get_balance('BTC')
-    KRW = KRW[2]
+    response = self.bithumb.get_balance('BTC')
+    KRW = response[2]
     return KRW
 
   def setBuyCondition(self): #매수 조건
@@ -367,29 +367,35 @@ class BitThumbPrivate():
       print("possessionCoin ::::::::::: ", possessionCoin)
       if len(possessionCoin) == 0:
         return 203
-      returnList = []
-      for coin in possessionCoin:
-        coinInfo = self.getBitCoinList(coin[0])['data']
-        coinValue = float(coinInfo['closing_price'])
-        returnList.append({
-          "coin" : coin[0], 
-          "info" : { 
-                  "unit" : coin[1],
-                  "now_price" : coinValue,
-                  "buy_price" : coin[2],
-                  "buy_total_price" : coin[3],
-                  "evaluate_price" : float(coinValue) * float(coin[1]), #평가금액
-                  "profit" : float(coinValue) * float(coin[1]) - float(coin[3]),
-                  "rate" : (float(coinValue) * float(coin[1]) - float(coin[3])) / float(coin[3]) 
-                  }, 
-        })
-      return returnList
-    except:
-      return 333
+      else:
+        return_list = []
+        for coin in possessionCoin:
+          print(" coin ::::: ", coin)
+          coinInfo = self.getBitCoinList(coin[0])['data']
+          print("coin_info", coinInfo)
+          coinValue = float(coinInfo['closing_price'])
+          print("coin_value", coinValue)
+          return_list.append({
+            "coin" : coin[0], 
+            "info" : { 
+                    "unit" : coin[1],
+                    "now_price" : coinValue,
+                    "buy_price" : coin[2],
+                    "buy_total_price" : coin[3],
+                    "evaluate_price" : float(coinValue) * float(coin[1]), #평가금액
+                    "profit" : float(coinValue) * float(coin[1]) - float(coin[3]),
+                    "rate" : (float(coinValue) * float(coin[1]) - float(coin[3])) / float(coin[3]) 
+                    },
+          })
+          print("return_list :::: ", return_list)
+        return return_list
+    except Exception as e:
+      print("possession coin error is :::: ", e)
+      return e
 
 # Setting Page 
   async def getDisparityOption(self):
-    options = await self.mysql.Select(getDisparityOptionSql)
+    options = await self.mysql.Select(getMASPoptionSql)
     options = { options[0][1]:{"idx":options[0][0], "name":options[0][1],"range":options[0][2], "color":options[0][3]},
                 options[1][1]:{"idx":options[1][0], "name":options[1][1],"range":options[1][2], "color":options[1][3]},
                 options[2][1]:{"idx":options[2][0], "name":options[2][1],"range":options[2][2], "color":options[2][3]} }
@@ -398,7 +404,7 @@ class BitThumbPrivate():
   async def updateDisparityOption(self, item):
     try:
       for data in item:
-        await self.mysql.Update(updateDisparityOptionSql,[str(data[1]['range']), data[1]['color'], data[1]['name']])
+        await self.mysql.Update(updateMASPoptionSql,[str(data[1]['range']), data[1]['color'], data[1]['name']])
       return 200
     except:
       return 303
@@ -1131,7 +1137,7 @@ class BitThumbPrivate():
       returnValue = []
       searchList = await self.mysql.Select(selectSearchPriceList)
       for coin in searchList:
-        returnValue.append({'name': coin[1], 'catch_price': coin[0]})
+        returnValue.append({'name': coin[1], 'catch_price': coin[2]})
       return returnValue
     except Exception as e:
       print("getSearchPriceList :::: ", e)
@@ -1217,7 +1223,7 @@ class BitThumbPrivate():
     
   async def nowAutoStatusCheck(self):
     try:
-      print("str(datetime.now().fromtimestamp()) ::::: ", changer.TIME_Y4MMDDSSHHMMSS(str(datetime.datetime.now().replace())))
+      # print("str(datetime.now().fromtimestamp()) ::::: ", changer.TIME_Y4MMDDSSHHMMSS(str(datetime.datetime.now().replace())))
       status = await self.mysql.Select(autoStatusCheck)
       return {"now_status" : status[0][0]}
     except Exception as e:
@@ -1228,9 +1234,32 @@ class BitThumbPrivate():
   async def controlAutoTrading(self, flag):
     try:
       if(flag == 1):
-        subprocess.run(['/bin/python3', '/data/4season/bitcoin_tranding_230621/autoBuy.py'])
+        subprocess.run(['/bin/python3', '/data/4season/bitcoin_trading_back/autoBuy.py'])
+        # subprocess.run(['/usr/bin/python3', '/Users/josephkim/Desktop/bitcoin_trading_back/autoBuy.py'])
         await self.mysql.Update(updateAutoStatus, [flag, str(datetime.datetime.now().replace()) ])
       elif(flag == 0):
+        orderList = db.query(models.orderCoin).all()
+        for order in orderList:
+          Possession = db.query(models.possessionCoin).filter(models.possessionCoin.coin == order.coin).first()
+          if order.status == 1:
+            order_desc = ['bid',order.coin, order.order_id, 'KRW']
+          elif order.status == 3 or order.status == 5:
+            order_desc = ['ask',order.coin, order.order_id, 'KRW']
+
+          cancel = self.bithumb.cancel_order(order_desc)
+          if cancel == True:
+              if order.status == 1:
+                Possession.status = 0
+              elif order.status == 3 or order.status == 5:
+                Possession.status = 4
+
+              db.delete(order)
+              Possession.status = 0
+          try:
+            db.commit()
+          except:
+            db.rollback()
+
         await self.mysql.Update(updateAutoStatus, [flag,"-"])
       return 200
     except Exception as e:
@@ -1244,9 +1273,13 @@ class BitThumbPrivate():
       dt = str(datetime.datetime.now().replace())
       start_dt = dt[0:10] + " 00:00:00.000000"
       end_dt = dt[0:10] + " 23:59:59.999999"
+      print("start_dt", start_dt)
+      print("end_dt", end_dt)
       total_and_deposit = self.myProperty()
       today_buy_price = await self.mysql.Select(todayBuyPrice(start_dt, end_dt))
       today_sell_price = await self.mysql.Select(todaySellPrice(start_dt, end_dt))
+      print(today_buy_price)
+      print(today_sell_price)
       return changer.TODAY_TRADING_RESULT([today_buy_price,today_sell_price,total_and_deposit[0],total_and_deposit[1]])
     except Exception as e:
       print(e)

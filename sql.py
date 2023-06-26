@@ -24,7 +24,7 @@ orderListCountSql = 'SELECT count(idx) as count FROM nc_p_possession_coin_his_t'
 
 
 
-getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t'
+getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t WHERE status = 0'
 
 def getDBCoinList(price, transaction_price): 
   return 'SELECT coin_name FROM nc_r_coin_list_t WHERE price >= ' + price + ' AND price IS NOT NULL AND transaction_price >= ' + transaction_price
@@ -137,7 +137,7 @@ updateAutoStatus = "UPDATE nc_b_now_auto_status_t SET status = %s, start_date = 
 insertLog = "INSERT INTO nc_f_log_t (content, insert_date) VALUES (%s, now())" 
 
 def todayBuyPrice(dateStart, dateEnd):
-  return 'SELECT add(total) FROM nc_p_possession_coin_his_t WHERE transaction_time > ' + "'" + dateStart + "'" + ' AND transaction_time < ' + "'" + dateEnd + "'" + " AND type = 'bid' "
+  return 'SELECT sum(total) FROM nc_p_possession_coin_his_t WHERE transaction_time > ' + "'" + dateStart + "'" + ' AND transaction_time < ' + "'" + dateEnd + "'" + " AND type = 'bid' "
 
 def todaySellPrice(dateStart, dateEnd):
-  return 'SELECT add(total) FROM nc_p_possession_coin_his_t WHERE transaction_time > ' + "'" + dateStart + "'" + ' AND transaction_time < ' + "'" + dateEnd + "'" + " AND type = 'ask' "
+  return 'SELECT sum(total) FROM nc_p_possession_coin_his_t WHERE transaction_time > ' + "'" + dateStart + "'" + ' AND transaction_time < ' + "'" + dateEnd + "'" + " AND type = 'ask' "
