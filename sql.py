@@ -19,12 +19,7 @@ def todayOrderListSql(dateStart, dateEnd):
   return 'SELECT * FROM nc_p_possession_coin_his_t  WHERE transaction_time > ' + dateStart + ' AND transaction_time < ' + dateEnd 
 orderListCountSql = 'SELECT count(idx) as count FROM nc_p_possession_coin_his_t'
 
-
-
-
-
-
-getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t WHERE status = 0'
+getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t'
 
 def getDBCoinList(price, transaction_price): 
   return 'SELECT coin_name FROM nc_r_coin_list_t WHERE price >= ' + price + ' AND price IS NOT NULL AND transaction_price >= ' + transaction_price
@@ -83,7 +78,8 @@ def useSearchOptionStatus(name):
   macd.chart_term,
   macd.short_disparity,
   macd.long_disparity,
-  macd.up_down 
+  macd.signal,
+  macd.up_down
   from nc_b_search_option_t op
   left join nc_c_pr_price_t p on p.name = op.name and p.flag = 1
   left join nc_c_pr_transaction_amount_t ta on ta.name = op.name and ta.flag = 1
@@ -141,3 +137,7 @@ def todayBuyPrice(dateStart, dateEnd):
 
 def todaySellPrice(dateStart, dateEnd):
   return 'SELECT sum(total) FROM nc_p_possession_coin_his_t WHERE transaction_time > ' + "'" + dateStart + "'" + ' AND transaction_time < ' + "'" + dateEnd + "'" + " AND type = 'ask' "
+
+get_yesterday_balance = "SELECT account_balance FROM nc_r_account_rate_t WHERE insert_date = ( SELECT MAX(insert_date) FROM nc_r_account_rate_t )"
+
+get_bithumb_coin_list_sql = "SELECT coin_name, kr_name, warning FROM nc_r_coin_list_t WHERE delflag = 0 "

@@ -86,9 +86,13 @@ class BitThumbPrivate():
     return orderBook
 
   def checkAccount(self): #보유 예수금 목록
-    response = self.bithumb.get_balance('BTC')
-    KRW = response[2]
-    return KRW
+    try:
+      response = self.bithumb.get_balance('BTC')
+      KRW = response[2]
+      return KRW
+    except Exception as e:
+      print("checkAccount Error :::: ", e)
+      return 444
 
   def setBuyCondition(self): #매수 조건
     url = f"https://api.bithumb.com/public/ticker/ALL_KRW"
@@ -128,13 +132,11 @@ class BitThumbPrivate():
 
   def getBuyPrice(self, coin):
     buyPrice = self.bithumb.get_orderbook(coin)['bids'][1]['price']
-    print(buyPrice)
     return buyPrice
     
   def buyQuantity (self, buyPrice ) :
     buy_quantity = self.checkAccount() *  0.9970 / buyPrice # 수수료 0.25% 계산
     buy_quantity = float ( "{:.4f}".format(buy_quantity) )  # 소수점 4자리 수 버림
-    print ( self.checkAccount(), buyPrice, buy_quantity)
     return buy_quantity
   
   def bulkSale(self):
@@ -157,7 +159,6 @@ class BitThumbPrivate():
     money = 0
     for i in coinList:
       coinInfo = self.getBitCoinList(str(i[0]).replace('total_',""))
-      # print("coinInfo ::::: ",coinInfo)
       if int(coinInfo['status']) == 5500:
         continue
       coinValue = float(coinInfo['data']['closing_price']) * round(float(i[1]), 4)
@@ -177,9 +178,7 @@ class BitThumbPrivate():
       prev = str((int(page) - 1) * 15)
     selectData = await self.mysql.Select(orderListSql(count, prev))
     orderList = []
-    # print("selectData ::::: ", selectData)
     for data in selectData:
-      print("selectData ::::: ", changer.ORDER_LIST_CHANGER(data))
       orderList.append(changer.ORDER_LIST_CHANGER(data))
     return orderList
   
@@ -203,8 +202,6 @@ class BitThumbPrivate():
     dt = datetime.now().replace()
     start_dt = dt[0:10] + "00:00:00.000000"
     end_dt = dt[0:10] + "23:59:59.999999"
-    print("start_dt ::::::",start_dt)
-    print("end_dt ::::::",end_dt)
     list = []
     fee = 0
     totalMoney = 0
@@ -231,19 +228,15 @@ class BitThumbPrivate():
       return accountData
 
   def getDisparity(self, coin, disparity, trends):
-    print(" 1 ::::::::::: ", coin)
     flag = True
     url = f"https://api.bithumb.com/public/candlestick/"+coin[0]+"_KRW/6h"
     headers = {"accept": "application/json"}
     data = json.loads(requests.get(url, headers=headers).text)['data']
-    print(" 2 ::::::::::: get Data")
     df = pd.DataFrame(data, columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
     AR = tuple(df['Close'].rolling(window = 5).mean().fillna('undefined'))
     AR_BASE = AR[-10: -1]
     BASE = df['Close'].values.tolist()
-    print(" 3 ::::::::::: make AVG Data")
     for term in range(0, int(trends)):
-      print(" 4 ::::::::::: Data carculate")
       if term == 0:
         separation = (float(BASE[len(BASE) - (term + 1)]) / float(AR_BASE[len(AR_BASE) - (term + 1)])) * 100
         if separation < int(disparity):
@@ -260,8 +253,6 @@ class BitThumbPrivate():
       self.getDisparity(coin, first_disparity, trends)
 
   async def getRecommendCoin(self, item):
-    print(datetime.datetime.now())
-    print("item ::::::::",item)
     useOptionList = []
     options = []
     mMax = 0
@@ -364,34 +355,19 @@ class BitThumbPrivate():
     try:
       possessionCoin = await self.mysql.Select(getMyCoinListSql)
       time.sleep(1)
-      print("possessionCoin ::::::::::: ", possessionCoin)
       if len(possessionCoin) == 0:
         return 203
       else:
-        return_list = []
+        returnList = []
         for coin in possessionCoin:
-          print(" coin ::::: ", coin)
           coinInfo = self.getBitCoinList(coin[0])['data']
-          print("coin_info", coinInfo)
           coinValue = float(coinInfo['closing_price'])
-          print("coin_value", coinValue)
-          return_list.append({
-            "coin" : coin[0], 
-            "info" : { 
-                    "unit" : coin[1],
-                    "now_price" : coinValue,
-                    "buy_price" : coin[2],
-                    "buy_total_price" : coin[3],
-                    "evaluate_price" : float(coinValue) * float(coin[1]), #평가금액
-                    "profit" : float(coinValue) * float(coin[1]) - float(coin[3]),
-                    "rate" : (float(coinValue) * float(coin[1]) - float(coin[3])) / float(coin[3]) 
-                    },
-          })
-          print("return_list :::: ", return_list)
-        return return_list
+          returnList.append(changer.POSSESSION_COIN_LIST(coin, coinValue))          
+        print("returnListreturnList", returnList)
+        return returnList
     except Exception as e:
-      print("possession coin error is :::: ", e)
-      return e
+      print("possessoionCoinInfo Error :::: ", e)
+      return 333
 
 # Setting Page 
   async def getDisparityOption(self):
@@ -460,7 +436,6 @@ class BitThumbPrivate():
     for i in possessionCoin:
       # coinName = str(i[0]).replace('total_',"")
       coinNames.append(i[0].upper()+"_KRW")
-    print("coinNames :::::::::::::::::::: ",coinNames)
 
     async with websockets.connect(uri, ping_interval=None) as websocket:
       subscribe_fmt = {
@@ -558,7 +533,6 @@ class BitThumbPrivate():
   async def sell(self, coin, unit): #매도
     sellLog = self.bithumb.sell_market_order(coin, unit) #params 1: 종목, 2: 갯수
     time.sleep(0.1)
-    print(sellLog)
     if(type(sellLog) == tuple):
       detailLog = self.bithumb.get_order_completed(sellLog)['data']
       if len(detailLog['contract']) > 0:
@@ -1150,59 +1124,8 @@ class BitThumbPrivate():
       tradingCondition = await self.mysql.Select(findUseTradingCondition)
       searchOption = await self.mysql.Select(useSearchOptionStatus(searchCondition[0][1]))
       tradingOption = await self.mysql.Select(useTradingOptionStatus(tradingCondition[0][0]))
-      searchOptionReturnValue = {
-        "name": searchOption[0][0],
-        "low_price": searchOption[0][1],
-        "high_price": searchOption[0][2],
-        "chart_term": searchOption[0][3],
-        "low_transaction_amount": searchOption[0][4],
-        "high_transaction_amount": searchOption[0][5],
-        "chart_term": searchOption[0][6],
-        "first_disparity": searchOption[0][7],
-        "comparison": searchOption[0][8],
-        "second_disparity": searchOption[0][9],
-        "chart_term": searchOption[0][10],
-        "MASP": searchOption[0][11],
-        "trend_term": searchOption[0][12],
-        "trend_type": searchOption[0][13],
-        "trend_reverse": searchOption[0][14],
-        "chart_term": searchOption[0][15],
-        "disparity_term": searchOption[0][16],
-        "low_disparity": searchOption[0][17],
-        "high_disparity": searchOption[0][18],
-        "chart_term": searchOption[0][19],
-        "short_disparity": searchOption[0][20],
-        "long_disparity": searchOption[0][21],
-        "up_down": searchOption[0][22]
-      }
-      tradingOptionReturnValue = {
-        "name": tradingOption[0][0],
-        "price_count": tradingOption[0][1],
-        "loss_cut_under_percent": tradingOption[0][2],
-        "loss_cut_under_call_price_sell_all": tradingOption[0][3],
-        "loss_cut_under_coin_specific_percent": tradingOption[0][4],
-        "loss_cut_under_call_price_specific_coin": tradingOption[0][5],
-        "loss_cut_over_percent": tradingOption[0][6],
-        "loss_cut_over_call_price_sell_all": tradingOption[0][7],
-        "loss_cut_over_coin_specific_percent": tradingOption[0][8],
-        "loss_cut_over_call_price_specific_coin": tradingOption[0][9],
-        "buy_cancle_time": tradingOption[0][10],
-        "sell_cancle_time": tradingOption[0][11],
-        "percent_to_buy_method": tradingOption[0][12],
-        "price_to_buy_method": tradingOption[0][13],
-        "callmoney_to_buy_method": tradingOption[0][14],
-        "upper_percent_to_price_condition": tradingOption[0][15],
-        "down_percent_to_price_condition": tradingOption[0][16],
-        "disparity_for_upper_case": tradingOption[0][17],
-        "upper_percent_to_disparity_condition": tradingOption[0][18],
-        "disparity_for_down_case": tradingOption[0][19],
-        "down_percent_to_disparity_condition ": tradingOption[0][20],
-        "call_money_to_sell_method ": tradingOption[0][21],
-        "percent_to_split_sell ": tradingOption[0][22],
-        "shot_MACD_value ": tradingOption[0][23],
-        "long_MACD_value ": tradingOption[0][24],
-        "MACD_signal_value": tradingOption[0][25],
-      }
+      searchOptionReturnValue = changer.SEARCH_CONDITION(searchOption)
+      tradingOptionReturnValue = changer.TRADING_CONDITION(tradingOption)
       return {"searchOption" : searchOptionReturnValue, "tradingOption":tradingOptionReturnValue}
     except Exception as e:
       print("tradingOptionListError :::: ", e)
@@ -1223,7 +1146,6 @@ class BitThumbPrivate():
     
   async def nowAutoStatusCheck(self):
     try:
-      # print("str(datetime.now().fromtimestamp()) ::::: ", changer.TIME_Y4MMDDSSHHMMSS(str(datetime.datetime.now().replace())))
       status = await self.mysql.Select(autoStatusCheck)
       return {"now_status" : status[0][0]}
     except Exception as e:
@@ -1238,28 +1160,6 @@ class BitThumbPrivate():
         # subprocess.run(['/usr/bin/python3', '/Users/josephkim/Desktop/bitcoin_trading_back/autoBuy.py'])
         await self.mysql.Update(updateAutoStatus, [flag, str(datetime.datetime.now().replace()) ])
       elif(flag == 0):
-        orderList = db.query(models.orderCoin).all()
-        for order in orderList:
-          Possession = db.query(models.possessionCoin).filter(models.possessionCoin.coin == order.coin).first()
-          if order.status == 1:
-            order_desc = ['bid',order.coin, order.order_id, 'KRW']
-          elif order.status == 3 or order.status == 5:
-            order_desc = ['ask',order.coin, order.order_id, 'KRW']
-
-          cancel = self.bithumb.cancel_order(order_desc)
-          if cancel == True:
-              if order.status == 1:
-                Possession.status = 0
-              elif order.status == 3 or order.status == 5:
-                Possession.status = 4
-
-              db.delete(order)
-              Possession.status = 0
-          try:
-            db.commit()
-          except:
-            db.rollback()
-
         await self.mysql.Update(updateAutoStatus, [flag,"-"])
       return 200
     except Exception as e:
@@ -1273,13 +1173,29 @@ class BitThumbPrivate():
       dt = str(datetime.datetime.now().replace())
       start_dt = dt[0:10] + " 00:00:00.000000"
       end_dt = dt[0:10] + " 23:59:59.999999"
-      print("start_dt", start_dt)
-      print("end_dt", end_dt)
       total_and_deposit = self.myProperty()
       today_buy_price = await self.mysql.Select(todayBuyPrice(start_dt, end_dt))
       today_sell_price = await self.mysql.Select(todaySellPrice(start_dt, end_dt))
-      print(today_buy_price)
-      print(today_sell_price)
       return changer.TODAY_TRADING_RESULT([today_buy_price,today_sell_price,total_and_deposit[0],total_and_deposit[1]])
     except Exception as e:
       print(e)
+
+  async def nowRate(self):
+    try:
+      row_yesterday_balance = await self.mysql.Select(get_yesterday_balance)
+      yesterday_balance = row_yesterday_balance[0][0]
+      print("yesterday_balance :::: ", yesterday_balance)
+      now_balance = self.myProperty()[0]
+      print("now_balance :::: ", now_balance)
+      now_rate = ((round(now_balance)-yesterday_balance)/round(now_balance))*100
+      print("now_rate :::: ", round(now_rate,3))
+      return{"rate":round(now_rate,3), "now_balance":round(now_balance)}
+    except Exception as e:
+      print(e)
+
+  async def getBithumbCoinList(self):
+    row_coin_list = await self.mysql.Select(get_bithumb_coin_list_sql)
+    coin_list = changer.BITHUMB_COIN_LIST(row_coin_list)
+    with open('/Users/josephkim/Desktop/ATSYS/nc_bit_trading/src/variables/coin_list.json', 'w', encoding="utf-8") as make_file:
+      json.dump(coin_list, make_file, ensure_ascii=False, indent="\t")
+    return coin_list

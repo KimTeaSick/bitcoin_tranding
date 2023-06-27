@@ -1,5 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse
 from pagiNation import PagiNation
 from BitThumbPrivate import *
 from mongoDB import MongoDB
@@ -8,6 +10,7 @@ from parameter import *
 from sql import *
 import datetime
 import uvicorn
+import os
 
 app = FastAPI()
 
@@ -363,6 +366,18 @@ async def controlAutoTrading(item: controlAT):
 async def todayAccount():
     response = await bit.todayAccount()
     return response
+
+@app.get("/nowRate")
+async def nowRate():
+    response = await bit.nowRate()
+    return response
+
+@app.get("/coinlist.json")
+async def getCoinJsonFile():
+    response = await bit.getBithumbCoinList()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    print("dir_path :::: ", dir_path)
+    return FileResponse(dir_path + "/coin_list.json")
 
 if __name__ == "__main__":
     config = uvicorn.Config("ncbithumb:app", port=8888, log_level="info", host="0.0.0.0")
