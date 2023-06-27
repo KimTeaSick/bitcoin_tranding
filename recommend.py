@@ -31,7 +31,7 @@ async def recommendCoin(options, mMax, hMax):
         now1 = datetime.datetime.now()
         nowstamp = int(int(now1.timestamp()) /60) * 60 #+ (60*540)
         print(datetime.datetime.utcfromtimestamp(nowstamp), 'now-------------------------------------------------------------------------')
-        print(hMax, 'hMax')
+        print(mMax, 'mMax')
 
         # 분단위
         mNowStamp = nowstamp - (mMax * 60)
@@ -41,6 +41,8 @@ async def recommendCoin(options, mMax, hMax):
         for dfs in dfmSource:
             i +=1
             dfmList.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':(dfs.Close), 'Volume':dfs.Volume, 'Transaction_amount':dfs.Transaction_amount})
+
+        print(len(dfmList))
 
         #시간 단위
         hNowStamp = nowstamp - (hMax * 3600)
@@ -60,10 +62,10 @@ async def recommendCoin(options, mMax, hMax):
         #coins = []
         coinNames = []
 
-        currentCoin = db.query(models.coinCurrentCandlePrice).all()
+        currentCoin = db.query(models.coinCurrentPrice).all()
 
         for current in currentCoin:
-            dfhList.append({'coin_name':current.coin_name,'S_time':int(current.STime), 'time':current.time, 'Close':float(current.Close), 'Volume':float(0.0), 'Transaction_amount':float(current.Close) * float(0.0)})
+            dfhList.append({'coin_name':current.coin_name,'S_time':int(current.S_time), 'time':current.time, 'Close':float(current.Close), 'Volume':float(0.0), 'Transaction_amount':float(current.Close) * float(0.0)})
 
         for coin in coinList:
             #coins.append({'name':coin.coin_name, 'Close':coin.Close, 'Transaction_amount':coin.Transaction_amount})

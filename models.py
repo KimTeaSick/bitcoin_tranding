@@ -244,7 +244,7 @@ class recommandT(Base):
     catch_price = Column(String(100))
     option_name = Column(String(100))
 
-class recommandList(Base):
+class recommendList(Base):
     __tablename__ = "nc_f_recommend_coin_list_t"
 
     idx = Column(Integer, primary_key=True)
@@ -390,6 +390,9 @@ class possessionCoin(Base):
     conclusion_time = Column(String(100))
     order_id = Column(String(100))
     cancel_time = Column(String(100))
+    macd_chart = Column(String(100))
+    disparity_chart = Column(String(100))
+    optionName = Column(String(100))
 
 class possessionLog(Base):
     __tablename__ = 'nc_p_possession_coin_his_t'

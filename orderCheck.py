@@ -5,8 +5,7 @@ import models
 import datetime
 from pybithumb import Bithumb
 
-# api url
-url = 'http://192.168.10.43:8888'
+
 
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
 connenctKey = "9ae8ae53e7e0939722284added991d55"
@@ -31,31 +30,15 @@ for order in orderList:
         orderStatus = bithumb.get_order_completed(order_desc)
         if orderStatus['data']['order_status'] == 'Completed':
             had_coin = db.query(models.possessionCoin).filter(models.possessionCoin.coin == order.coin).first()
-            if had_coin == None:
-                possession_coin = models.possessionCoin()
-                possession_coin.coin = order.coin
-                possession_coin.unit = orderStatus['data']['contract'][0]['units']
-                possession_coin.price = orderStatus['data']['contract'][0]['price']
-                possession_coin.total = orderStatus['data']['contract'][0]['total']
-                possession_coin.fee = orderStatus['data']['contract'][0]['fee']
-                possession_coin.status = 0
-                possession_coin.transaction_time = order.transaction_time
-                possession_coin.conclusion_time = datetime.datetime.now()
-                possession_coin.order_id = '-'
-                print(datetime.datetime.utcfromtimestamp(int(orderStatus['data']['contract'][0]['transaction_date'][:-6])), 'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccc')
-                db.add(possession_coin)
 
-                db.delete(order)
+            had_coin.unit = float(had_coin.unit) + float(orderStatus['data']['contract'][0]['units'])
+            had_coin.price = float(had_coin.price) + float(orderStatus['data']['contract'][0]['price'])
+            had_coin.total = float(had_coin.total) + float(orderStatus['data']['contract'][0]['total'])
+            had_coin.fee = float(had_coin.fee) + float(orderStatus['data']['contract'][0]['fee'])
+            had_coin.status = 0
+            had_coin.transaction_time = datetime.datetime.now()
 
-            else:
-                had_coin.unit = float(had_coin.unit) + float(orderStatus['data']['contract'][0]['units'])
-                had_coin.price = float(had_coin.price) + float(orderStatus['data']['contract'][0]['price'])
-                had_coin.total = float(had_coin.total) + float(orderStatus['data']['contract'][0]['total'])
-                had_coin.fee = float(had_coin.fee) + float(orderStatus['data']['contract'][0]['fee'])
-                had_coin.status = 0
-                had_coin.transaction_time = datetime.datetime.now()
-
-                db.delete(order)
+            db.delete(order)
 
             transactionLog = models.possessionLog()
             transactionLog.coin = order.coin
