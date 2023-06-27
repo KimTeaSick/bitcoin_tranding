@@ -1160,6 +1160,28 @@ class BitThumbPrivate():
         # subprocess.run(['/usr/bin/python3', '/Users/josephkim/Desktop/bitcoin_trading_back/autoBuy.py'])
         await self.mysql.Update(updateAutoStatus, [flag, str(datetime.datetime.now().replace()) ])
       elif(flag == 0):
+        orderList = db.query(models.orderCoin).all()
+        for order in orderList:
+          Possession = db.query(models.possessionCoin).filter(models.possessionCoin.coin == order.coin).first()
+          if order.status == 1:
+            order_desc = ['bid',order.coin, order.order_id, 'KRW']
+          elif order.status == 3 or order.status == 5:
+            order_desc = ['ask',order.coin, order.order_id, 'KRW']
+
+          cancel = self.bithumb.cancel_order(order_desc)
+          if cancel == True:
+              if order.status == 1:
+                Possession.status = 0
+              elif order.status == 3 or order.status == 5:
+                Possession.status = 4
+
+              db.delete(order)
+              Possession.status = 0
+          try:
+            db.commit()
+          except:
+            db.rollback()
+
         await self.mysql.Update(updateAutoStatus, [flag,"-"])
       return 200
     except Exception as e:
@@ -1199,3 +1221,5 @@ class BitThumbPrivate():
     with open('/Users/josephkim/Desktop/ATSYS/nc_bit_trading/src/variables/coin_list.json', 'w', encoding="utf-8") as make_file:
       json.dump(coin_list, make_file, ensure_ascii=False, indent="\t")
     return coin_list
+  
+  
