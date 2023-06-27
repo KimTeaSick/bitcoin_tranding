@@ -1,0 +1,11 @@
+{'coin': 'EFI', 'reason': 'loss cut under', 'unit': '117.4068', 'close': '69.39', 'ask': 0.01, 'askprice': 0}
+{'coin': 'GRT', 'reason': 'loss cut under', 'unit': '22.6404', 'close': '144.2', 'ask': 0.1, 'askprice': 0}
+{'coin': 'GRACY', 'reason': 'loss cut under', 'unit': '132.1865', 'close': '58.7', 'ask': 0.01, 'askprice': 0}
+{'coin': 'MKR', 'reason': 'loss cut under', 'unit': '0.0085', 'close': '910000', 'ask': 500, 'askprice': 0}
+{'coin': 'GRACY', 'reason': 'loss cut under', 'unit': '132.1865', 'close': '58.7', 'ask': 0.01, 'askprice': 0}
+{'coin': 'MKR', 'reason': 'loss cut under', 'unit': '0.0085', 'close': '910000', 'ask': 500, 'askprice': 0}
+{'coin': 'POLA', 'reason': 'loss cut under', 'unit': '616.3801', 'close': '12.58', 'ask': 0.01, 'askprice': 0}
+{'coin': 'POLA', 'reason': 'disparity under', 'unit': '616.3801', 'close': '12.58', 'ask': 0.01, 'askprice': '-1'}
+{'coin': 'AZIT', 'reason': 'disparity under', 'unit': '5.7666', 'close': '354', 'ask': 0.1, 'askprice': '-1'}
+{'coin': 'BOBA', 'reason': 'disparity under', 'unit': '5.2986', 'close': '182.1', 'ask': 0.1, 'askprice': '-1'}
+{'coin': 'RLY', 'reason': 'disparity under', 'unit': '754.2863', 'close': '10.3', 'ask': 0.01, 'askprice': '-1'}

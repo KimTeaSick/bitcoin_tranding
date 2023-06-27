@@ -1,4 +1,3 @@
-import json
 import recommend
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
@@ -121,7 +120,6 @@ if trendOption.flag == 1:
 
 if macdOption.flag == 1:
     if macdOption.short_disparity != 0 and macdOption.long_disparity != 0:
-
         if macdOption.chart_term[-1] == 'm' and ((macdOption.long_disparity * 2 + macdOption.signal) * int(macdOption.chart_term[:-1])) > mMax:
             mMax = (macdOption.long_disparity * 2 + macdOption.signal) * int(macdOption.chart_term[:-1])
 
@@ -176,14 +174,17 @@ for coin in sortedCoins:
         # 구매 안하는 사유
         if coinCount >= int(accountOtion.price_count):
             print('coin count')
+            coin['fail_reason'] = 'coin count'
             continue
 
         if moneyPerCoin > money:
             print('money')
+            coin['fail_reason'] = 'money'
             continue
 
         if coin['name'] in hadCoin:
             print('보유 코인')
+            coin['fail_reason'] = 'possession coin'
             continue
 
         print(coinCount, accountOtion.price_count, coin['name'])
@@ -207,6 +208,7 @@ for coin in sortedCoins:
         money -= moneyPerCoin
         coinCount += 1
         orderList.append({'coin': coin['name'], 'orders': order_id})
+        coin['orders'] = order_id
     except Exception as e:
         print(e)
 
@@ -250,6 +252,13 @@ try:
 except Exception as e:
     print(e)
     db.rollback()
+
+with open("./buyLog", "a") as file:
+    file.write(datetime.datetime.now(), '------------------------------------------------------------------')
+    for buyCoin in sortedCoins:
+        file.write(str(buyCoin) + '\n')
+    file.close()
+
 
 now2 = datetime.datetime.now()
 print(now2-now1)

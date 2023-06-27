@@ -9,11 +9,11 @@ import json
 from pybithumb import Bithumb
 import time
 import pandas as pd
+import numpy as np
 
 now1 = datetime.datetime.now()
 
 # api url
-url = 'http://192.168.10.43:8888'
 bithumbApi = 'https://api.bithumb.com/public/ticker/'
 
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
@@ -33,13 +33,21 @@ useTradingOption = db.query(models.tradingOption).filter(models.tradingOption.us
 accountOtion = db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == useTradingOption.name).first()
 sellOption = db.query(models.tradingSellOption).filter(models.tradingSellOption.name == useTradingOption.name).first()
 
+chartMax = 0
+for possession in possession_coins:
+    if chartMax < int(possession.macd_chart[:-1]):
+        chartMax = int(possession.macd_chart[:-1])
+
+    if chartMax < int(possession.disparity_chart[:-1]):
+        chartMax = int(possession.disparity_chart[:-1])
+
 max = 0
-if sellOption.disparity_for_upper_case > max:
-    max = sellOption.disparity_for_upper_case
-if sellOption.disparity_for_down_case > max:
-    max = sellOption.disparity_for_down_case
-if (sellOption.long_MACD_value + sellOption.MACD_signal_value) > max:
-    max = (sellOption.long_MACD_value + sellOption.MACD_signal_value + 1)
+if (sellOption.disparity_for_upper_case * chartMax) > max:
+    max = sellOption.disparity_for_upper_case * chartMax
+if (sellOption.disparity_for_down_case * chartMax) > max:
+    max = sellOption.disparity_for_down_case * chartMax
+if ((sellOption.long_MACD_value + sellOption.MACD_signal_value) * chartMax) > max:
+    max = (sellOption.long_MACD_value + sellOption.MACD_signal_value + 1) * chartMax
 
 print(sellOption.disparity_for_upper_case, sellOption.disparity_for_down_case)
 max += 10
@@ -60,11 +68,11 @@ for coins in possession_coins:
 
     if coins.status == 4:
         if float(coins.total) != 0.0 or float(nowPrice) != 0.0:
-            resale.append({'coin':coins.coin, 'nowprice': response['data']['closing_price'], 'unit': coins.unit, 'percent': (nowPrice / float(coins.total)) * 100 - 100, 'ask': ask})
+            resale.append({'coin':coins.coin, 'nowprice': response['data']['closing_price'], 'unit': coins.unit, 'percent': (nowPrice / float(coins.total)) * 100 - 100, 'ask': ask, 'macd_chart':coins.macd_chart, 'disparity_chart': coins.disparity_chart})
 
     else:
         if float(coins.total) != 0.0 or float(nowPrice) != 0.0:
-            isSell.append({'coin':coins.coin, 'nowprice': response['data']['closing_price'], 'unit': coins.unit, 'percent': (nowPrice / float(coins.total)) * 100 - 100, 'ask': ask})
+            isSell.append({'coin':coins.coin, 'nowprice': response['data']['closing_price'], 'unit': coins.unit, 'percent': (nowPrice / float(coins.total)) * 100 - 100, 'ask': ask, 'macd_chart':coins.macd_chart, 'disparity_chart': coins.disparity_chart})
 
     nowWallet += nowPrice
 
@@ -82,14 +90,14 @@ except Exception as e:
     percent = 0
 
 print(percent, 'gggggggggggggggggggggggggggggggggggggggggggggggggggg')
-accountOtion.loss_cut_under_percent = 10
+print(accountOtion.loss_cut_under_percent)
 
 # 매도 취소 재매도
 for sell in resale:
     sellReason.append({'coin': sell['coin'], 'reason': 'resale', 'unit': sell['unit'], 'close':sell['nowprice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
 
 # 로스컷 or autosell
-if percent >= accountOtion.loss_cut_over_percent and percent <= accountOtion.loss_cut_under_percent:
+if float(percent) <= float(accountOtion.loss_cut_over_percent):
     print('로스컷 오버')
     for sell in isSell:
         if sell['percent'] >= accountOtion.loss_cut_over_coin_specific_percent and accountOtion.gain == 2:
@@ -101,7 +109,7 @@ if percent >= accountOtion.loss_cut_over_percent and percent <= accountOtion.los
         print('로스컷 오버 판매')
 
 
-elif percent <= accountOtion.loss_cut_under_percent:
+elif float(percent) >= -float(accountOtion.loss_cut_under_percent):
     print('로스컷 언더')
     for sell in isSell:
         if sell['percent'] <= accountOtion.loss_cut_under_coin_specific_percent and accountOtion.loss == 2:
@@ -146,32 +154,43 @@ else:
         df = df.set_index('time').resample('1H').asfreq()
         df = df.fillna(method='ffill')
 
-        print(df)
+        dfx = df[(len(df) % int(sell['disparity_chart'][:-1])):]
+        dfx.reset_index(drop=True, inplace=True)
 
-        df2 = df[len(df)-sellOption.disparity_for_upper_case:]
+        # 리스트를 times개씩 묶기
+        new_df = dfx.groupby(np.arange(len(dfx)) // int(sell['disparity_chart'][:-1])).mean(numeric_only=True)
+        #print(new_df)
+
+        df2 = new_df[len(new_df)-sellOption.disparity_for_upper_case:]
         avgUpper = df2['Close'].mean()
 
-        df3 = df[len(df)-sellOption.disparity_for_down_case:]
+        df3 = new_df[len(new_df)-sellOption.disparity_for_down_case:]
         avgDown = df3['Close'].mean()
 
         upDisp = (float(avgUpper) / float(sell['nowprice'])) * 100 - 100
         dnDisp = (float(avgDown) / float(sell['nowprice'])) * 100 - 100
+        print(new_df)
 
         print(upDisp, dnDisp)
         if upDisp > sellOption.upper_percent_to_disparity_condition:
             sellReason.append({'coin': sell['coin'], 'reason': 'disparity over', 'unit': sell['unit'], 'close':sell['nowprice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
-
             continue
 
         if upDisp > sellOption.down_percent_to_disparity_condition:
             sellReason.append({'coin': sell['coin'], 'reason': 'disparity under', 'unit': sell['unit'], 'close':sell['nowprice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
-
             continue
 
+        dfy = df[(len(df) % int(sell['macd_chart'][:-1])):]
+        dfy.reset_index(drop=True, inplace=True)
+
+        # 리스트를 times개씩 묶기
+        new_df2 = dfy.groupby(np.arange(len(dfy)) // int(sell['macd_chart'][:-1])).mean(numeric_only=True)
+        print(new_df2)
+
         # short EMA 계산
-        emashort = df2['Close'].ewm(span=int(sellOption.shot_MACD_value)).mean()
+        emashort = new_df2['Close'].ewm(span=int(sellOption.shot_MACD_value)).mean()
         # long EMA 계산
-        emalong = df['Close'].ewm(span=int(sellOption.long_MACD_value)).mean()
+        emalong = new_df2['Close'].ewm(span=int(sellOption.long_MACD_value)).mean()
         # MACD 계산
         macd = emashort - emalong
 
@@ -184,6 +203,12 @@ else:
 
     print(sell)
     print(sellList, 'nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn')
+
+with open("./sellLog", "a") as file:
+    file.write(f'{datetime.datetime.now()}------------------------------------------------------------------')
+    for reason in sellReason:
+        file.write(str(reason) + '\n')
+    file.close()
 
 # 매도 주문
 for sellOrder in sellReason:
