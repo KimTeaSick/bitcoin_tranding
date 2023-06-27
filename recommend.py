@@ -61,6 +61,11 @@ async def recommendCoin(options, mMax, hMax):
         #coins = []
         coinNames = []
 
+        currentCoin = db.query(models.coinCurrentCandlePrice).all()
+
+        for current in currentCoin:
+            dfhList.append({'coin_name':current.coin_name,'S_time':int(current.STime), 'time':current.time, 'Close':float(current.Close), 'Volume':float(0.0), 'Transaction_amount':float(current.Close) * float(0.0)})
+
         for coin in coinList:
             #coins.append({'name':coin.coin_name, 'Close':coin.Close, 'Transaction_amount':coin.Transaction_amount})
             coinNames.append(coin.coin_name)

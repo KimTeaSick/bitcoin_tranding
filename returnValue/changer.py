@@ -17,7 +17,8 @@ def TRADING_LIST(value):
         "price": value[3], 
         "total": value[4], 
         "fee": value[5],
-        "status": value[6]
+        "status": value[6],
+        "date": value[7][0:19]
     }
     return R_VALUE
 
@@ -28,8 +29,8 @@ def TIME_Y4MMDDSSHHMMSS(value):
 def TODAY_TRADING_RESULT(value):
     buy = 0
     sell = 0
-    if(value[0] != None): buy = value[0]
-    if(value[1] != None): sell = value[1]
+    if(value[0][0][0] != None): buy = value[0]
+    if(value[1][0][0] != None): sell = value[1]
     R_VALUE={
         "total":round(value[2]),
         "deposit": round(value[3]),

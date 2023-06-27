@@ -9,5 +9,6 @@ __pycache__/
 nohup.out
 
 __pycache__/*.pyc
+__pycache__/*
 __pycache__/*.py[cod]
-recommends/__pycache__/
+recommends/__pycache__/*
