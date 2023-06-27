@@ -254,7 +254,7 @@ except Exception as e:
     db.rollback()
 
 with open("./buyLog", "a") as file:
-    file.write(datetime.datetime.now(), '------------------------------------------------------------------')
+    file.write(f'{datetime.datetime.now()}------------------------------------------------------------------')
     for buyCoin in sortedCoins:
         file.write(str(buyCoin) + '\n')
     file.close()
