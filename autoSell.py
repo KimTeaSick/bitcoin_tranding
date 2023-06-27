@@ -97,7 +97,7 @@ for sell in resale:
     sellReason.append({'coin': sell['coin'], 'reason': 'resale', 'unit': sell['unit'], 'close':sell['nowprice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
 
 # 로스컷 or autosell
-if float(percent) >= float(accountOtion.loss_cut_over_percent):
+if float(percent) <= float(accountOtion.loss_cut_over_percent):
     print('로스컷 오버')
     for sell in isSell:
         if sell['percent'] >= accountOtion.loss_cut_over_coin_specific_percent and accountOtion.gain == 2:
@@ -109,7 +109,7 @@ if float(percent) >= float(accountOtion.loss_cut_over_percent):
         print('로스컷 오버 판매')
 
 
-elif float(percent) <= -float(accountOtion.loss_cut_under_percent):
+elif float(percent) >= -float(accountOtion.loss_cut_under_percent):
     print('로스컷 언더')
     for sell in isSell:
         if sell['percent'] <= accountOtion.loss_cut_under_coin_specific_percent and accountOtion.loss == 2:
@@ -169,6 +169,7 @@ else:
 
         upDisp = (float(avgUpper) / float(sell['nowprice'])) * 100 - 100
         dnDisp = (float(avgDown) / float(sell['nowprice'])) * 100 - 100
+        print(new_df)
 
         print(upDisp, dnDisp)
         if upDisp > sellOption.upper_percent_to_disparity_condition:
