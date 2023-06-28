@@ -377,7 +377,8 @@ async def getCoinJsonFile():
     response = await bit.getBithumbCoinList()
     dir_path = os.path.dirname(os.path.realpath(__file__))
     print("dir_path :::: ", dir_path)
-    return FileResponse(dir_path + "/coin_list.json")
+    # return FileResponse(dir_path + "/coin_list.json")
+    return response
 
 if __name__ == "__main__":
     config = uvicorn.Config("ncbithumb:app", port=8888, log_level="info", host="0.0.0.0")

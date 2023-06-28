@@ -10,6 +10,7 @@ class PagiNation:
 
     async def orderListPageCount(self):
         value = await self.mysql.Select(orderListCountSql)
-        count = value[0][0] / 12
+        count = int(value[0][0]) / 14
         print("count :::::::::::::::::::: ", count)
-        return math.ceil(count)
+        print("count :::::::::::::::::::: ", round(count))
+        return round(count) - 1

@@ -17,6 +17,7 @@ def dateOrderListSql(page, prev, dateStart, dateEnd):
   return 'SELECT * FROM nc_p_possession_coin_his_t  WHERE transaction_time > ' + dateStart + ' AND transaction_time < ' + dateEnd + ' ORDER BY idx DESC limit ' + page + ' offset ' + prev 
 def todayOrderListSql(dateStart, dateEnd):
   return 'SELECT * FROM nc_p_possession_coin_his_t  WHERE transaction_time > ' + dateStart + ' AND transaction_time < ' + dateEnd 
+
 orderListCountSql = 'SELECT count(idx) as count FROM nc_p_possession_coin_his_t'
 
 getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t'
