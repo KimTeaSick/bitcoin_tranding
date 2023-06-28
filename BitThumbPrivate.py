@@ -1171,7 +1171,7 @@ class BitThumbPrivate():
           cancel = self.bithumb.cancel_order(order_desc)
           if cancel == True:
               if order.status == 1:
-                Possession.status = 0
+                db.delete(Possession)
               elif order.status == 3 or order.status == 5:
                 Possession.status = 4
 

@@ -33,6 +33,13 @@ useTradingOption = db.query(models.tradingOption).filter(models.tradingOption.us
 accountOtion = db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == useTradingOption.name).first()
 sellOption = db.query(models.tradingSellOption).filter(models.tradingSellOption.name == useTradingOption.name).first()
 
+autoStatus = db.query(models.autoTradingStatus).filter(models.autoTradingStatus.status == 1).first()
+
+if autoStatus == None:
+    print('exit')
+    print('자동매매 정지')
+    exit()
+
 chartMax = 0
 for possession in possession_coins:
     if chartMax < int(possession.macd_chart[:-1]):
@@ -60,7 +67,6 @@ resale = []
 
 # 총 구매 금액 계산
 for coins in possession_coins:
- 
     possession += float(coins.total)
     response = json.loads(requests.get(bithumbApi + coins.coin+'_KRW', headers=headers).text)
     nowPrice = float(response['data']['closing_price']) * float(coins.unit)
@@ -97,7 +103,7 @@ for sell in resale:
     sellReason.append({'coin': sell['coin'], 'reason': 'resale', 'unit': sell['unit'], 'close':sell['nowprice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
 
 # 로스컷 or autosell
-if float(percent) <= float(accountOtion.loss_cut_over_percent):
+if float(percent) >= float(accountOtion.loss_cut_over_percent):
     print('로스컷 오버')
     for sell in isSell:
         if sell['percent'] >= accountOtion.loss_cut_over_coin_specific_percent and accountOtion.gain == 2:
@@ -227,6 +233,7 @@ for sellOrder in sellReason:
             order_coin.transaction_time = datetime.datetime.now()
             order_coin.order_id = orderids[2]
             order_coin.cancel_time = (datetime.datetime.now() + datetime.timedelta(seconds = accountOtion.buy_cancle_time))
+            order_coin.sell_reason = sellOrder['reason']
             db.add(order_coin)
 
             db.commit()
@@ -245,6 +252,7 @@ for sellOrder in sellReason:
             order_coin.transaction_time = datetime.datetime.now()
             order_coin.order_id = orderids[2]
             order_coin.cancel_time = (datetime.datetime.now() + datetime.timedelta(seconds = accountOtion.buy_cancle_time))
+            order_coin.sell_reason = sellOrder['reason']
             db.add(order_coin)
 
             db.commit()
