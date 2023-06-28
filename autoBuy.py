@@ -33,6 +33,13 @@ possessionCoins = db.query(models.possessionCoin).all()
 useRecommendOPtion = db.query(models.searchOption).filter(models.searchOption.used == 1).first()
 useTradingOption = db.query(models.tradingOption).filter(models.tradingOption.used == 1).first()
 
+autoStatus = db.query(models.autoTradingStatus).filter(models.autoTradingStatus.status == 1).first()
+
+if autoStatus == None:
+    print('exit')
+    print('자동매매 정지')
+    exit()
+
 # 보유코인 갯수
 coinCount = len(possessionCoins)
 hadCoin = []

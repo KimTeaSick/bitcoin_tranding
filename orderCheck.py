@@ -16,8 +16,15 @@ try:
 finally:
     db.close()
 
+autoStatus = db.query(models.autoTradingStatus).filter(models.autoTradingStatus.status == 1).first()
+
+if autoStatus == None:
+    print('자동 매매 정지 exit')
+    exit()
+
 orderList = db.query(models.orderCoin).all()
 krTime = 60 * 60 * 9
+
 # 주문 확인 매매 성공 확인, 취소
 for order in orderList:
     # 매수 확인
@@ -96,6 +103,7 @@ for order in orderList:
             transactionLog.conclusion_time = datetime.datetime.now()
             transactionLog.type = 'ask'
             transactionLog.order_id = order.order_id
+            transactionLog.sell_reason = order.sell_reason
             db.add(transactionLog)
 
         if orderStatus['data']['order_status'] == 'Pending':

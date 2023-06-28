@@ -412,6 +412,7 @@ class possessionLog(Base):
     conclusion_time = Column(String(100))
     type = Column(String(100))
     order_id = Column(String(100))
+    sell_reason = Column(String(100))
 
 class orderCoin(Base):
     __tablename__ = 'nc_r_order_coin_t'
@@ -423,3 +424,12 @@ class orderCoin(Base):
     conclusion_time = Column(String(100))
     order_id = Column(String(100))
     cancel_time = Column(String(100))
+    sell_reason = Column(String(100))
+
+class autoTradingStatus(Base):
+    __tablename__ = 'nc_b_now_auto_status_t'
+
+    idx = Column(Integer, primary_key=True)
+
+    status = Column(Integer)
+    start_date = Column(String(100))
