@@ -52,17 +52,19 @@ def MacdRecommend(nowstamp, coinList, dfList, chart_term, short_disparity, long_
         # MACD 계산
         macd = emashort - emalong
         macdSignal = macd.ewm(span=int(signal)).mean()
+        macdOscillator = macd - macdSignal
 
         # 상승, 하락 비교
         if len(df3) != 0 and up_down == 'up':
-            if macd.iloc[-1] >= 0:
+            if float(macdOscillator.iloc[-1]) >= 0:
                 MacdL.append(coin)
                 MacdValue.append({'coin_name':coin, 'macd_short': emashort.iloc[-1], 'macd_long':emalong.iloc[-1], 'macd':macd.iloc[-1], 'macd_signal':macdSignal.iloc[-1]})
 
         if len(df3) != 0 and up_down == 'down':
-            if macd.iloc[-1] <= 0:
+            if float(macdOscillator.iloc[-1]) <= 0:
                 MacdL.append(coin)
                 MacdValue.append({'coin_name':coin, 'macd_short': emashort.iloc[-1], 'macd_long':emalong.iloc[-1], 'macd':macd.iloc[-1], 'macd_signal':macdSignal.iloc[-1]})
+        print(MacdValue)
 
     print(len(MacdL), '000000000000000000000000000000000000000000000000000000000000000000000')
     return MacdL, MacdValue
