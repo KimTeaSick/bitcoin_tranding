@@ -19,7 +19,7 @@ def TRADING_LIST(value):
         "fee": value[5],
         "status": value[6],
         "date": value[7][0:19],
-        "sell_reason": value[12]
+        "sell_reason": value[11]
     }
     return R_VALUE
 
