@@ -81,6 +81,15 @@ class BitThumbPrivate():
       _d = tuple(dataList)
       return _d[-121:-1]
 
+  def calndel_for_search(self, item):
+    coin =item["id"]
+    term =item["term"]
+    url = f"https://api.bithumb.com/public/candlestick/{coin}_KRW/{term}"
+    headers = {"accept": "application/json"}
+    response = requests.get(url, headers=headers).text
+    response = json.loads(response)
+    return response
+
   def getCoinOrderBook(self, coin): #코인 거래 내역
     orderBook = self.bithumb.get_orderbook(coin)
     return orderBook
