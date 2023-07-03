@@ -123,7 +123,7 @@ def POSSESSION_COIN_LIST(coin, coin_now_price):
                     "buy_total_price" : coin[3],
                     "evaluate_price" : float(coin_now_price) * float(coin[1]), #평가금액
                     "profit" : float(coin_now_price) * float(coin[1]) - float(coin[3]),
-                    "rate" : (float(coin_now_price) * float(coin[1]) - float(coin[3])) / float(coin[3]) 
+                    "rate" : ((float(coin_now_price) * float(coin[1]) - float(coin[3])) / float(coin[3])) * 100
                     }
             }
     def type_two(coin, coin_now_price, status):

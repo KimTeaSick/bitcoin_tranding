@@ -7,10 +7,7 @@ from datetime import datetime
 
 bit = BitThumbPrivate()
 
-def MASP_condition(coin_list):
-    print("MASP_condition coin_list :::::", coin_list)
-    first_period=15 
-    second_period=60 
+def MASP_condition(coin_list, first, comparison, second):
     return_value = []
     close_data = []
     date_data = []
@@ -24,15 +21,19 @@ def MASP_condition(coin_list):
       pd_data = pd.DataFrame({'date':date_data,'close':close_data})
       close_price = pd_data['close']
       # print("close_data :::: ", close_price)
-      first_ema = close_price.ewm(span=first_period, adjust=False).mean()
+      first_ema = close_price.ewm(span=int(first), adjust=False).mean()
       # 장기 지수 이동 평균 계산
-      second_ema = close_price.ewm(span=second_period, adjust=False).mean()
+      second_ema = close_price.ewm(span=int(second), adjust=False).mean()
       masp_data = pd.DataFrame({
         'Name': str(coin).replace("_KRW", ""),
         'First': first_ema,
         'Second': second_ema,
       })
-      if float(masp_data.iloc[-1]['First']) > float(masp_data.iloc[-1]['Second']): 
+      if comparison == '>=':
+        if float(masp_data.iloc[-1]['First']) >= float(masp_data.iloc[-1]['Second']): 
           return_value.append(str(coin).replace("_KRW", ""))
-          print("masp_data :::: ",masp_data.iloc[-1]['Name'])
+      elif comparison == '<=':
+        if float(masp_data.iloc[-1]['First']) <= float(masp_data.iloc[-1]['Second']): 
+          return_value.append(str(coin).replace("_KRW", ""))
+    print("masp_data return_value :::: ", return_value)
     return return_value

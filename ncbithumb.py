@@ -1,7 +1,6 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
-from fastapi.responses import FileResponse
+from search_option import search
 from pagiNation import PagiNation
 from BitThumbPrivate import *
 from mongoDB import MongoDB
@@ -378,6 +377,11 @@ async def getCoinJsonFile():
     dir_path = os.path.dirname(os.path.realpath(__file__))
     print("dir_path :::: ", dir_path)
     # return FileResponse(dir_path + "/coin_list.json")
+    return response
+
+@app.post("/newSearch")
+async def newSearch():
+    response = await search.search()
     return response
 
 if __name__ == "__main__":

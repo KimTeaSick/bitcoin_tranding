@@ -22,7 +22,7 @@ SEARCH_CONDITION_LIST = [
   "d_low_disparity",
   "d_high_disparity",
   "d_flag",
-  "`macd_chart_term`",
+  "macd_chart_term",
   "macd_short_disparity",
   "macd_long_disparity",
   "macd_signal",

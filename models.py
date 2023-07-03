@@ -245,14 +245,14 @@ class recommendList(Base):
     catch_price = Column(String(100))
     option_name = Column(String(100))
 
-class recommendList(Base):
-    __tablename__ = "nc_f_recommend_coin_list_t"
+# class recommendList(Base):
+#     __tablename__ = "nc_f_recommend_coin_list_t"
 
-    idx = Column(Integer, primary_key=True)
+#     idx = Column(Integer, primary_key=True)
 
-    coin_name = Column(String(100))
-    catch_price = Column(String(100))
-    option_name = Column(String(100))
+#     coin_name = Column(String(100))
+#     catch_price = Column(String(100))
+#     option_name = Column(String(100))
 
 # nmsVersion performance ================================================================================================
 class coinCurrentPrice(Base):
