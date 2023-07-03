@@ -40,7 +40,14 @@ class getRecommendOption(BaseModel):
     Trend: dict
     Disparity: dict
     MACD: dict
-
+    
+class newSearchBody(BaseModel):
+    Price: dict
+    TransactionAmount: dict
+    MASP: dict
+    Trend: dict
+    Disparity: dict
+    MACD: dict
 
 class getSearchOptionBody(BaseModel):
     name: str

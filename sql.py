@@ -183,4 +183,4 @@ left join nc_c_disparity_t d on sot.name = d.name
 left join nc_c_macd_t macd on sot.name = macd .name
 where sot.used = 1
 '''
-def get_coin_close_price(low_limit, high_limit): return 'select * from( select coin_name, Close from nc_p_min_bithumb_t where (coin_name, time) in ( select coin_name, max(time) as time from nc_p_min_bithumb_t where Close > ' + low_limit + ' AND Close < ' + high_limit + ' group by coin_name) ) t group by coin_name'
+def get_coin_close_price(low_limit, high_limit): return 'select * from( select coin_name from nc_p_min_bithumb_t where (coin_name, time) in ( select coin_name, max(time) as time from nc_p_min_bithumb_t where Close > ' + low_limit + ' AND Close < ' + high_limit + ' group by coin_name) ) t group by coin_name'
