@@ -142,3 +142,45 @@ def todaySellPrice(dateStart, dateEnd):
 get_yesterday_balance = "SELECT account_balance FROM nc_r_account_rate_t WHERE insert_date = ( SELECT MAX(insert_date) FROM nc_r_account_rate_t )"
 
 get_bithumb_coin_list_sql = "SELECT coin_name, kr_name, warning FROM nc_r_coin_list_t WHERE delflag = 0 "
+
+get_search_option = '''
+select 
+p.low_price,
+p.high_price,
+p.flag as p_flag,
+ta.chart_term as t_term,
+ta.low_transaction_amount,
+ta.high_transaction_amount,
+ta.flag as t_flag,
+masp.chart_term as masp_term,
+masp.first_disparity,
+masp.comparison,
+masp.second_disparity,
+masp.flag as masp_flag,
+t.chart_term as t_term,
+t.MASP,
+t.trend_term,
+t.trend_type,
+t.trend_reverse,
+t.flag as t_flag,
+d.chart_term as d_term,
+d.disparity_term,
+d.low_disparity,
+d.high_disparity,
+d.flag as d_flag,
+macd.chart_term as macd_term,
+macd.short_disparity,
+macd.long_disparity,
+macd.signal,
+macd.up_down,
+macd.flag as macd_flag
+from nc_b_search_option_t sot
+left join nc_c_pr_price_t p on sot.name = p.name
+left join nc_c_pr_transaction_amount_t ta on sot.name = ta.name 
+left join nc_c_masp_t masp on sot.name = masp.name 
+left join nc_c_trend_t t on sot.name = t.name 
+left join nc_c_disparity_t d on sot.name = d.name
+left join nc_c_macd_t macd on sot.name = macd .name
+where sot.used = 1
+'''
+def get_coin_close_price(low_limit, high_limit): return 'select * from( select coin_name, Close from nc_p_min_bithumb_t where (coin_name, time) in ( select coin_name, max(time) as time from nc_p_min_bithumb_t where Close > ' + low_limit + ' AND Close < ' + high_limit + ' group by coin_name) ) t group by coin_name'

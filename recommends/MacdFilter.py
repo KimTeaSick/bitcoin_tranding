@@ -93,8 +93,7 @@ def MacdRecommend(nowstamp, coinList, dfList, chart_term, short_disparity, long_
     # 코인별로 순회하며 조건에 맞는지 찾기
     for coin in coinList:
         #df3 = df2.loc[df['coin_name'] == coin].copy()
-
-        data=requests.get(f'https://api.bithumb.com/public/candlestick/{coin}/1h')
+        data=requests.get(f'https://api.bithumb.com/public/candlestick/{coin}/{chart_term}')
         data=data.json()
         data=data.get("data")
         df=pd.DataFrame(data)
