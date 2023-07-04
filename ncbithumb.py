@@ -379,6 +379,11 @@ async def getCoinJsonFile():
     # return FileResponse(dir_path + "/coin_list.json")
     return response
 
+@app.get("/trade/orderList")
+async def getoderList():
+    response = await bit.getATOrderList()
+    return response
+
 @app.post("/newRawSearch")
 async def newSearch(item: newSearchBody):
     response = await search.raw_search(item)

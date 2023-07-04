@@ -7,10 +7,10 @@ import numpy as np
 bit = BitThumbPrivate()
 
 def MACD_condition(coin_list, chart_term, short, long, signal, up_down):
-    print("MACD_condition coin_list :::::", coin_list)
+    # print("MACD_condition coin_list :::::", coin_list)
     close_data = []
     date_data = []
-    return_value =[]
+    return_coin =[]
     for coin in coin_list:
         item = {"id": str(coin).replace("_KRW", ""), "term": chart_term}
         row_candle_data = bit.calndel_for_search(item)
@@ -34,10 +34,10 @@ def MACD_condition(coin_list, chart_term, short, long, signal, up_down):
         
         if up_down == 'up':
             if float(macd_data.iloc[-1]['Signal']) < float(macd_data.iloc[-1]['MACD']): 
-                return_value.append(str(coin).replace("_KRW", ""))
+                return_coin.append(str(coin).replace("_KRW", ""))
         elif up_down == 'down':
             if float(macd_data.iloc[-1]['Signal']) > float(macd_data.iloc[-1]['MACD']): 
-                return_value.append(str(coin).replace("_KRW", ""))
+                return_coin.append(str(coin).replace("_KRW", ""))
 
-    print("macd_data return_value :::: ", return_value)
-    return return_value
+    print("macd_data return_coin :::: ", return_coin)
+    return return_coin

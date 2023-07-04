@@ -154,3 +154,14 @@ def POSSESSION_COIN_LIST(coin, coin_now_price):
         return type_one(coin, coin_now_price, "매도 중")
     elif coin[5] == 6:
         return type_two(coin, coin_now_price, "매도 완료")
+    
+def ATOrderList(value):
+    return {
+        'coin': value[0],
+        'status': value[1],
+        'transaction_time': value[2],
+        'conclusion_time': value[3],
+        'order_id': value[4],
+        'cancel_time': value[5],
+        'sell_reason': value[6],
+    }

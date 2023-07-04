@@ -1231,4 +1231,12 @@ class BitThumbPrivate():
       json.dump(coin_list, make_file, ensure_ascii=False, indent="\t")
     return coin_list
   
-  
+  async def getATOrderList(self):
+    return_value = []
+    raw_data = await self.mysql.Select(getATOrderList)
+    if len(raw_data) == 0:
+      return return_value
+    else:
+      for o_list in raw_data:
+        return_value.append(changer.ATOrderList(o_list))
+    return return_value

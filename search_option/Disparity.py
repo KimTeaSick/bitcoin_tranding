@@ -6,7 +6,8 @@ import numpy as np
 
 bit = BitThumbPrivate()
 def Disparity_condition(coin_list, term, low_limit, high_limit):
-    return_value = []
+    return_coin=[]
+    return_value=[{}]
     close_data =[]
     date_data =[]
     for coin in coin_list:
@@ -22,7 +23,8 @@ def Disparity_condition(coin_list, term, low_limit, high_limit):
         arr_close = float(close_price.iloc[-1])
         arr_masp = float(masp_ema.iloc[-1])
         if (arr_masp / arr_close) * 100 > float(low_limit) and (arr_masp / arr_close) * 100 < float(high_limit): 
-            return_value.append(str(coin).replace("_KRW", ""))
+            return_coin.append(str(coin).replace("_KRW", ""))
+            return_value[0][str(coin).replace("_KRW", "")] = { 'disparity': ((arr_masp / arr_close) * 100), 'disparity_term': term}
             # print("Disparity_condition :::: ",str(coin).replace("_KRW", ""), (arr_masp / arr_close) * 100)
-    print("Disparity_condition return_value :::: ", return_value)
-    return return_value
+    print("Disparity_condition return_coin :::: ", return_coin)
+    return return_coin, return_value

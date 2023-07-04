@@ -8,7 +8,7 @@ bit = BitThumbPrivate()
 
 def Trend_condition(coin_list, masp, t_trend_term, up_down):
     trend_term = 15
-    return_value = []
+    return_coin = []
     close_data =[]
     date_data =[]
     for coin in coin_list:
@@ -41,8 +41,8 @@ def Trend_condition(coin_list, masp, t_trend_term, up_down):
             flag = False
             break
         if flag: 
-          print("trend :::: ", str(coin).replace("_KRW", ""))
-          return_value.append(str(coin).replace("_KRW", ""))
+          # print("trend :::: ", str(coin).replace("_KRW", ""))
+          return_coin.append(str(coin).replace("_KRW", ""))
       
       if up_down == 'down_trend': # 하락 추세
         flag = False
@@ -53,8 +53,8 @@ def Trend_condition(coin_list, masp, t_trend_term, up_down):
             flag = False 
             break
         if flag: 
-          print("trend :::: ", str(coin).replace("_KRW", ""))
-          return_value.append(str(coin).replace("_KRW", ""))
+          # print("trend :::: ", str(coin).replace("_KRW", ""))
+          return_coin.append(str(coin).replace("_KRW", ""))
 
-    print("trend_condition return_value :::: ", return_value)
-    return return_value
+    print("trend_condition return_coin :::: ", return_coin)
+    return return_coin

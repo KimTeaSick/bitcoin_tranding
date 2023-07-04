@@ -8,7 +8,7 @@ from datetime import datetime
 bit = BitThumbPrivate()
 
 def MASP_condition(coin_list, first, comparison, second):
-    return_value = []
+    return_coin = []
     close_data = []
     date_data = []
     for coin in coin_list:
@@ -31,9 +31,9 @@ def MASP_condition(coin_list, first, comparison, second):
       })
       if comparison == '>=':
         if float(masp_data.iloc[-1]['First']) >= float(masp_data.iloc[-1]['Second']): 
-          return_value.append(str(coin).replace("_KRW", ""))
+          return_coin.append(str(coin).replace("_KRW", ""))
       elif comparison == '<=':
         if float(masp_data.iloc[-1]['First']) <= float(masp_data.iloc[-1]['Second']): 
-          return_value.append(str(coin).replace("_KRW", ""))
-    print("masp_data return_value :::: ", return_value)
-    return return_value
+          return_coin.append(str(coin).replace("_KRW", ""))
+    print("masp_data return_coin :::: ", return_coin)
+    return return_coin
