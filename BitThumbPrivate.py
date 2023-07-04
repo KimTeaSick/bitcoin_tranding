@@ -44,7 +44,7 @@ class BitThumbPrivate():
     self.bithumb = Bithumb(connenctKey, secretKey)
     self.coinList = list(self.getBitCoinList('ALL')['data'].keys())[0:-1]
     self.recommandCoinList = []
-    self.bitLib = bitLib()
+    #self.bitLib = bitLib()
     self.mysql = MySql()
 
   async def getMyPossessionCoinList(self):

@@ -45,8 +45,8 @@ class MyThread(threading.Thread):
                     print(data[-1][0]/1000, newtime, coin.coin_name)
                     #insertdata.append({'STime':dat[0]/1000, 'Open':dat[1], 'Close': dat[2], 'High':dat[3], 'Low':dat[4], 'Volume':dat[5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(dat[0]/1000)})
 
-                    #for dat in data:
-                        #insertdata.append({'STime':dat[0]/1000, 'Open':dat[1], 'Close': dat[2], 'High':dat[3], 'Low':dat[4], 'Volume':dat[5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(dat[0]/1000)})
+                    for dat in data:
+                        insertdata.append({'STime':dat[0]/1000, 'Open':dat[1], 'Close': dat[2], 'High':dat[3], 'Low':dat[4], 'Volume':dat[5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(dat[0]/1000)})
                 except Exception as e:
                     print(e)
 
@@ -80,8 +80,8 @@ if __name__ == '__main__':
 
     print(insertdata)
 
-    #db.bulk_insert_mappings(models.coin1HPrice, insertdata)
-    #db.commit()
+    db.bulk_insert_mappings(models.coin1HPrice, insertdata)
+    db.commit()
 
     now2 = datetime.datetime.now()
     print(f'Running Time: {now2 - now1}')
