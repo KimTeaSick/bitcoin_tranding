@@ -1,6 +1,7 @@
 from sqlalchemy import Boolean, Column, Integer, String, Float
 from database import Base
 
+
 class coinList(Base):
     __tablename__ = "nc_r_coin_list_t"
 
@@ -9,6 +10,7 @@ class coinList(Base):
     coin_name = Column(String(100))
     warning = Column(String(100))
     delflag = Column(Integer)
+
 
 class coinCurrentCandlePrice(Base):
     __tablename__ = "nc_p_coin_current_candle_price_t"
@@ -22,6 +24,7 @@ class coinCurrentCandlePrice(Base):
     Volume = Column(String(100))
     time = Column(String(100))
     empty_count = Column(Integer, default=0)
+
 
 class searchOption(Base):
     __tablename__ = "nc_b_search_option_t"
@@ -38,6 +41,7 @@ class searchOption(Base):
     Update_date = Column(String(100))
     used = Column(Integer)
 
+
 class PriceOption(Base):
     __tablename__ = "nc_c_pr_price_t"
     idx = Column(Integer, primary_key=True, index=True)
@@ -45,6 +49,7 @@ class PriceOption(Base):
     high_price = Column(Integer)
     name = Column(String(100))
     flag = Column(Integer)
+
 
 class TransactionAmountOption(Base):
     __tablename__ = "nc_c_pr_transaction_amount_t"
@@ -54,6 +59,7 @@ class TransactionAmountOption(Base):
     high_transaction_amount = Column(Integer)
     name = Column(String(100))
     flag = Column(Integer)
+
 
 class MASPOption(Base):
     __tablename__ = "nc_c_masp_t"
@@ -65,6 +71,7 @@ class MASPOption(Base):
     name = Column(String(100))
     flag = Column(Integer)
 
+
 class DisparityOption(Base):
     __tablename__ = "nc_c_disparity_t"
     idx = Column(Integer, primary_key=True, index=True)
@@ -74,6 +81,7 @@ class DisparityOption(Base):
     high_disparity = Column(Integer)
     name = Column(String(100))
     flag = Column(Integer)
+
 
 class TrendOption(Base):
     __tablename__ = "nc_c_trend_t"
@@ -99,6 +107,8 @@ class MACDOption(Base):
     flag = Column(Integer)
 
 # candle performance ============================================================================================================
+
+
 class coinMinPrice(Base):
     __tablename__ = "nc_p_min_bithumb_t"
 
@@ -113,6 +123,7 @@ class coinMinPrice(Base):
     coin_name = Column(String(100))
     time = Column(String(100))
     empty_count = Column(Integer, default=0)
+
 
 class coin3MPrice(Base):
     __tablename__ = "nc_p_3min_bithumb_t"
@@ -129,6 +140,7 @@ class coin3MPrice(Base):
     time = Column(String(100))
     empty_count = Column(Integer, default=0)
 
+
 class coin5MPrice(Base):
     __tablename__ = "nc_p_5min_bithumb_t"
 
@@ -143,6 +155,7 @@ class coin5MPrice(Base):
     coin_name = Column(String(100))
     time = Column(String(100))
     empty_count = Column(Integer, default=0)
+
 
 class coin10MPrice(Base):
     __tablename__ = "nc_p_10min_bithumb_t"
@@ -159,6 +172,7 @@ class coin10MPrice(Base):
     time = Column(String(100))
     empty_count = Column(Integer, default=0)
 
+
 class coin30MPrice(Base):
     __tablename__ = "nc_p_30min_bithumb_t"
 
@@ -174,6 +188,7 @@ class coin30MPrice(Base):
     time = Column(String(100))
     empty_count = Column(Integer, default=0)
 
+
 class coin1HPrice(Base):
     __tablename__ = "nc_p_1H_bithumb_t"
 
@@ -187,7 +202,8 @@ class coin1HPrice(Base):
     Volume = Column(String(100))
     coin_name = Column(String(100))
     time = Column(String(100))
-    #empty_count = Column(Integer, default=0)
+    # empty_count = Column(Integer, default=0)
+
 
 class coin6HPrice(Base):
     __tablename__ = "nc_p_6H_bithumb_t"
@@ -204,6 +220,7 @@ class coin6HPrice(Base):
     time = Column(String(100))
     empty_count = Column(Integer, default=0)
 
+
 class coin12HPrice(Base):
     __tablename__ = "nc_p_12H_bithumb_t"
 
@@ -218,6 +235,7 @@ class coin12HPrice(Base):
     coin_name = Column(String(100))
     time = Column(String(100))
     empty_count = Column(Integer, default=0)
+
 
 class coin1DPrice(Base):
     __tablename__ = "nc_p_1D_bithumb_t"
@@ -235,6 +253,7 @@ class coin1DPrice(Base):
     empty_count = Column(Integer, default=0)
 
 # ==========================================================================================================================================조건 부합 코인 저장
+
 
 class recommendList(Base):
     __tablename__ = "nc_f_recommend_coin_t"
@@ -255,6 +274,8 @@ class recommendList(Base):
 #     option_name = Column(String(100))
 
 # nmsVersion performance ================================================================================================
+
+
 class coinCurrentPrice(Base):
     __tablename__ = "nc_p_coin_current_price_t"
 
@@ -268,6 +289,7 @@ class coinCurrentPrice(Base):
     Low = Column(Float)
     Volume = Column(Float)
     Transaction_amount = Column(Float)
+
 
 class coinPrice1M(Base):
     __tablename__ = "nc_p_1m_coin_price_t"
@@ -287,6 +309,7 @@ class coinPrice1M(Base):
     Transaction_amount = Column(Float)
     Disparity = Column(Float)
 
+
 class coinPrice30M(Base):
     __tablename__ = "nc_p_30m_coin_price_t"
 
@@ -304,6 +327,7 @@ class coinPrice30M(Base):
     Volume = Column(Float)
     Transaction_amount = Column(Float)
     Disparity = Column(Float)
+
 
 class coinPrice1H(Base):
     __tablename__ = "nc_p_1h_coin_price_t"
@@ -323,6 +347,7 @@ class coinPrice1H(Base):
     Transaction_amount = Column(Float)
     Disparity = Column(Float)
 
+
 class tradingOption(Base):
     __tablename__ = "nc_b_trading_option_t"
 
@@ -330,6 +355,7 @@ class tradingOption(Base):
     insert_time = Column(String(100))
     update_time = Column(String(100))
     used = Column(Integer)
+
 
 class tradingAccountOtion(Base):
     __tablename__ = "nc_c_account_option_t"
@@ -352,6 +378,7 @@ class tradingAccountOtion(Base):
     loss = Column(Integer)
     gain = Column(Integer)
 
+
 class tradingBuyOption(Base):
     __tablename__ = "nc_c_buy_option_t"
 
@@ -361,6 +388,7 @@ class tradingBuyOption(Base):
     price_to_buy_method = Column(Integer)
     callmoney_to_buy_method = Column(Integer)
     checkbox = Column(Integer)
+
 
 class tradingSellOption(Base):
     __tablename__ = "nc_c_sell_option_t"
@@ -379,10 +407,11 @@ class tradingSellOption(Base):
     long_MACD_value = Column(Integer)
     MACD_signal_value = Column(Integer)
 
+
 class possessionCoin(Base):
     __tablename__ = 'nc_r_possession_coin_t'
     # idx = Column(Integer, primary_key=True)
-    coin = Column(String(100),primary_key=True)
+    coin = Column(String(100), primary_key=True)
 
     unit = Column(String(100))
     price = Column(String(100))
@@ -396,6 +425,9 @@ class possessionCoin(Base):
     macd_chart = Column(String(100))
     disparity_chart = Column(String(100))
     optionName = Column(String(100))
+    trailingstop_flag = Column(Integer)
+    max = Column(String(100))
+
 
 class possessionLog(Base):
     __tablename__ = 'nc_p_possession_coin_his_t'
@@ -414,6 +446,7 @@ class possessionLog(Base):
     order_id = Column(String(100))
     sell_reason = Column(String(100))
 
+
 class orderCoin(Base):
     __tablename__ = 'nc_r_order_coin_t'
 
@@ -425,6 +458,7 @@ class orderCoin(Base):
     order_id = Column(String(100))
     cancel_time = Column(String(100))
     sell_reason = Column(String(100))
+
 
 class autoTradingStatus(Base):
     __tablename__ = 'nc_b_now_auto_status_t'
