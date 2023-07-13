@@ -6,8 +6,8 @@ from sqlalchemy.orm import Session
 import datetime
 import pandas as pd
 from pybithumb import Bithumb
-import askingPrice
 import datetime
+import askingPrice
 
 try:
     db = SessionLocal()
@@ -15,11 +15,6 @@ try:
 finally:
     db.close()
 
-# 테스트 계정
-# secretKey = "ee7741a2e52957613c020ded3c91751c"
-# connenctKey = "ef3d9e8fb9b15ca740150fed18cdaaae"
-
-# 본계정
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
 connenctKey = "9ae8ae53e7e0939722284added991d55"
 
@@ -83,8 +78,9 @@ def on_message(ws, message):
 
                     else:
                         print(symbol, possessionCoin[symbol], price, '매도')
-                        askP = price + \
-                            (askOption * askingPrice.askingPrice(price))
+                        # askP = price + (askOption * askingPrice.askingPrice(price))
+                        askP = askingPrice.ASK_PRICE(
+                            f'{symbol}_KRW', askOption, 'sell')
 
                         print(symbol[:-4], float(askP), possessionCoin[symbol]
                               ['unit'], "KRW", askingPrice.askingPrice(price))
@@ -179,7 +175,8 @@ def start():
         models.tradingOption.used == 1).first()
     accountOp = db.query(models.tradingAccountOtion).filter(
         models.tradingAccountOtion.name == useTradingOption.name).first()
-    # trailingOption =
+    sellOption = db.query(models.tradingSellOption).filter(
+        models.tradingSellOption.name == useTradingOption.name).first()
 
     autoStatus = db.query(models.autoTradingStatus).filter(
         models.autoTradingStatus.status == 1).first()
@@ -191,10 +188,9 @@ def start():
         print('자동 매매 정지')
         exit()
 
-    sensingPercent = 3
-    trailingPercent = 3
-
-    askOption = 2
+    sensingPercent = int(sellOption.trailing_start_percent)
+    trailingPercent = int(sellOption.trailing_stop_percent)
+    askOption = sellOption.trailing_order_call_price
 
     coinNames = []
     possessionCoin = {}

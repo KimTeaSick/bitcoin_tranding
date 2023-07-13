@@ -406,6 +406,9 @@ class tradingSellOption(Base):
     shot_MACD_value = Column(Integer)
     long_MACD_value = Column(Integer)
     MACD_signal_value = Column(Integer)
+    trailing_start_percent = Column(String(100))
+    trailing_stop_percent = Column(String(100))
+    trailing_order_call_price = Column(String(100))
 
 
 class possessionCoin(Base):
