@@ -1,6 +1,7 @@
 from sqlalchemy import Boolean, Column, Integer, String, Float
 from database import Base
 
+
 class autoTradingStatus(Base):
     __tablename__ = 'nc_b_now_auto_status_t'
 
@@ -9,6 +10,7 @@ class autoTradingStatus(Base):
     status = Column(Integer)
     start_date = Column(String(100))
 
+
 class tradingOption(Base):
     __tablename__ = "nc_b_trading_option_t"
 
@@ -16,6 +18,7 @@ class tradingOption(Base):
     insert_time = Column(String(100))
     update_time = Column(String(100))
     used = Column(Integer)
+
 
 class tradingAccountOtion(Base):
     __tablename__ = "nc_c_account_option_t"
@@ -38,6 +41,7 @@ class tradingAccountOtion(Base):
     loss = Column(Integer)
     gain = Column(Integer)
 
+
 class orderCoin(Base):
     __tablename__ = 'nc_r_order_coin_t'
 
@@ -50,9 +54,10 @@ class orderCoin(Base):
     cancel_time = Column(String(100))
     sell_reason = Column(String(100))
 
+
 class possessionCoin(Base):
     __tablename__ = 'nc_r_possession_coin_t'
-    coin = Column(String(100),primary_key=True)
+    coin = Column(String(100), primary_key=True)
 
     unit = Column(String(100))
     price = Column(String(100))
@@ -69,3 +74,23 @@ class possessionCoin(Base):
     trailingstop_flag = Column(Integer)
     max = Column(String(100))
 
+
+class tradingSellOption(Base):
+    __tablename__ = "nc_c_sell_option_t"
+
+    name = Column(String(100), primary_key=True)
+
+    upper_percent_to_price_condition = Column(Integer)
+    down_percent_to_price_condition = Column(Integer)
+    disparity_for_upper_case = Column(Integer)
+    upper_percent_to_disparity_condition = Column(Integer)
+    disparity_for_down_case = Column(Integer)
+    down_percent_to_disparity_condition = Column(Integer)
+    call_money_to_sell_method = Column(String(100))
+    percent_to_split_sell = Column(Integer)
+    shot_MACD_value = Column(Integer)
+    long_MACD_value = Column(Integer)
+    MACD_signal_value = Column(Integer)
+    trailing_start_percent = Column(String(100))
+    trailing_stop_percent = Column(String(100))
+    trailing_order_call_price = Column(String(100))

@@ -105,7 +105,7 @@ except Exception as e:
 
 print(percent, 'gggggggggggggggggggggggggggggggggggggggggggggggggggg')
 print(accountOtion.loss_cut_under_percent)
-
+'''
 # 매도 취소 재매도
 for sell in resale:
     sellReason.append({'coin': sell['coin'], 'reason': 'resale', 'unit': sell['unit'], 'close': sell['nowprice'],
@@ -138,28 +138,32 @@ elif float(percent) <= -float(accountOtion.loss_cut_under_percent):
                               'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_under_call_price_sell_all})
 
         print('로스컷 언더 판매')
-
+'''
 # 로스컷 아닐 때 판매 조건
-else:
+# else:
+if True:  # 기준가격 미만 조건만 남김 0712
     print('passing loss cut process')
     print('매도 시작')
     sellList = []
 
     for sell in isSell:
+        '''
         print(sell['coin'])
         # 매도조건 1. 가격기준 / 상승
         if sell['percent'] >= sellOption.upper_percent_to_price_condition:
             sellReason.append({'coin': sell['coin'], 'reason': 'price over', 'unit': sell['unit'], 'close': sell['nowprice'],
                               'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
             continue
+        '''
 
         # 매도조건 1. 가격기준 / 하락
-        elif sell['percent'] <= (- sellOption.down_percent_to_price_condition):
+        # elif sell['percent'] <= (- sellOption.down_percent_to_price_condition):
+        if sell['percent'] <= (- sellOption.down_percent_to_price_condition):
             print((- sellOption.down_percent_to_price_condition))
             sellReason.append({'coin': sell['coin'], 'reason': 'price under', 'unit': sell['unit'], 'close': sell['nowprice'],
                               'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
             continue
-
+        '''
         nowstamp = int(int(now1.timestamp()) / 60) * 60  # + (60*540)
         print(nowstamp, '============================================================')
         hNowStamp = nowstamp - (max * 3600)
@@ -233,9 +237,10 @@ else:
                 sellReason.append({'coin': sell['coin'], 'reason': 'macd signal', 'unit': sell['unit'], 'close': sell['nowprice'],
                                   'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
                 continue
-
+        '''
     print(sell)
     print(sellList, 'nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn')
+
 
 with open("./sellLog", "a") as file:
     file.write(
