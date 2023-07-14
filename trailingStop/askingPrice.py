@@ -6,26 +6,24 @@ bit = BitThumbPrivate()
 
 
 def ASK_PRICE(coin, asking, trading_type):
-    prices = []
+    ask_prices = []
     raw_ask_price_list = bit.bithumb.get_orderbook(coin, limit=11)
     ask_price_list = raw_ask_price_list['bids'] if trading_type == 'buy' else raw_ask_price_list['asks']
-
     for price in ask_price_list:
-        prices.append(price['price'])
+        ask_prices.append(price['price'])
+    price = ask_prices[0] if trading_type == 'buy' else ask_prices[len(ask_prices) - 1]
 
-    # print(prices[round(len(prices)/2)])
+    C_VALUE = askingPrice(price, int(asking[1]))
+
     if asking[0] == '-':
-        return prices[(round(len(prices)/2) + 1) - int(asking[1])]
+        return float(price) - C_VALUE
     elif asking[0] == '+':
-        return prices[(round(len(prices)/2) + 1) + int(asking[1])]
+        return float(price) + C_VALUE
 
 
-# ask_price = ASK_PRICE('BTC_KRW', '-1', 'buy')
-# print("ask_price :::: ", ask_price)
-
-# 호가 계산 함수
-def askingPrice(price):
-    result: float = 0.0
+# 호가 계산 함수 
+def askingPrice(price, asking):
+    result:float = 0.0
     if price < 1:
         result = 0.0001
     elif price >= 1 and price < 10:
@@ -48,5 +46,4 @@ def askingPrice(price):
         result = 500
     elif price >= 1000000:
         result = 1000
-
-    return result
+    return result * asking

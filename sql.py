@@ -118,7 +118,10 @@ def useTradingOptionStatus(name):
   s.percent_to_split_sell ,
   s.shot_MACD_value ,
   s.long_MACD_value ,
-  s.MACD_signal_value 
+  s.MACD_signal_value,
+  s.trailing_start_percent,
+  s.trailing_stop_percent,
+  s.trailing_order_call_price
   from nc_b_trading_option_t op
   left join nc_c_account_option_t ac on op.name = ac.name
   left join nc_c_buy_option_t b on op.name = b.name

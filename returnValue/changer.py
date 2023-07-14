@@ -101,6 +101,9 @@ def TRADING_CONDITION(value):
         "short_MACD_value": value[0][23],
         "long_MACD_value": value[0][24],
         "MACD_signal_value": value[0][25],
+        "trailing_start_percent":value[0][26],
+        "trailing_stop_percent":value[0][27],
+        "trailing_order_call_price":value[0][28],
     }
     return R_VALUE
 

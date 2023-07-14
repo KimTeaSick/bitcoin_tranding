@@ -1321,11 +1321,15 @@ class BitThumbPrivate():
             print(e)
 
     async def getBithumbCoinList(self):
-        row_coin_list = await self.mysql.Select(get_bithumb_coin_list_sql)
-        coin_list = changer.BITHUMB_COIN_LIST(row_coin_list)
-        with open('/Users/josephkim/Desktop/ATSYS/nc_bit_trading/src/variables/coin_list.json', 'w', encoding="utf-8") as make_file:
-            json.dump(coin_list, make_file, ensure_ascii=False, indent="\t")
-        return coin_list
+        try:
+            row_coin_list = await self.mysql.Select(get_bithumb_coin_list_sql)
+            coin_list = changer.BITHUMB_COIN_LIST(row_coin_list)
+            with open('/data/4season/nc_bit_trading/src/variables/coin_list.json', 'w', encoding="utf-8") as make_file:
+                json.dump(coin_list, make_file, ensure_ascii=False, indent="\t")
+            return coin_list
+        except Exception as e:
+            print("Error :::: ",e)
+            return
 
     async def getATOrderList(self):
         return_value = []
