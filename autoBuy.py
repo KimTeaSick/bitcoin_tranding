@@ -4,11 +4,11 @@ from sqlalchemy.orm import Session
 import models
 import datetime
 import asyncio
-import requests
 import askingPrice
-import json
 from pybithumb import Bithumb
+import requests
 import time
+import json
 
 # 빗썸 api 키
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
@@ -36,7 +36,6 @@ useRecommendOPtion = db.query(models.searchOption).filter(
     models.searchOption.used == 1).first()
 useTradingOption = db.query(models.tradingOption).filter(
     models.tradingOption.used == 1).first()
-
 autoStatus = db.query(models.autoTradingStatus).filter(
     models.autoTradingStatus.status == 1).first()
 
@@ -68,14 +67,19 @@ if coinCount > accountOtion.price_count:
 # 검색 조건
 priceOtion = db.query(models.PriceOption).filter(
     models.PriceOption.name == useRecommendOPtion.name).first()
+
 transactionAmountOption = db.query(models.TransactionAmountOption).filter(
     models.TransactionAmountOption.name == useRecommendOPtion.name).first()
+
 maspOtion = db.query(models.MASPOption).filter(
     models.MASPOption.name == useRecommendOPtion.name).first()
+
 trendOption = db.query(models.TrendOption).filter(
     models.TrendOption.name == useRecommendOPtion.name).first()
+
 disparityOtion = db.query(models.DisparityOption).filter(
     models.DisparityOption.name == useRecommendOPtion.name).first()
+
 macdOption = db.query(models.MACDOption).filter(
     models.MACDOption.name == useRecommendOPtion.name).first()
 
@@ -91,7 +95,7 @@ if priceOtion.flag == 1:
             mMax = 5
 
         options.append({'option': 'Price', 'low_price': priceOtion.low_price,
-                       'high_price': priceOtion.high_price})
+                        'high_price': priceOtion.high_price})
 
 if transactionAmountOption.flag == 1:
     if transactionAmountOption.high_transaction_amount != 0:
@@ -102,12 +106,12 @@ if transactionAmountOption.flag == 1:
             hMax = int(transactionAmountOption.chart_term[:-1])
 
     options.append({'option': 'TransactionAmount', 'chart_term': transactionAmountOption.chart_term, 'low_transaction_amount':
-                   transactionAmountOption.low_transaction_amount, 'high_transaction_amount': transactionAmountOption.high_transaction_amount})
+                    transactionAmountOption.low_transaction_amount, 'high_transaction_amount': transactionAmountOption.high_transaction_amount})
 
 if maspOtion.flag == 1:
     if maspOtion.first_disparity != 0 and maspOtion.second_disparity != 0:
         print('first_disparity: ', maspOtion.first_disparity,
-              'second_disparity: ', maspOtion.second_disparity)
+                'second_disparity: ', maspOtion.second_disparity)
 
         if maspOtion.chart_term[-1] == 'm' and (maspOtion.first_disparity * int(maspOtion.chart_term[:-1])) > mMax:
             mMax = maspOtion.first_disparity * int(maspOtion.chart_term[:-1])
@@ -121,7 +125,7 @@ if maspOtion.flag == 1:
                 int(maspOtion.chart_term[:-1])
 
         options.append({'option': 'MASP', 'chart_term': maspOtion.chart_term, 'first_disparity': maspOtion.first_disparity,
-                       'second_disparity': maspOtion.second_disparity, 'comparison': maspOtion.comparison})
+                        'second_disparity': maspOtion.second_disparity, 'comparison': maspOtion.comparison})
 
 if disparityOtion.flag == 1:
     if disparityOtion.chart_term != 0:
@@ -134,7 +138,7 @@ if disparityOtion.flag == 1:
                     int(disparityOtion.chart_term[:-1]))
 
         options.append({'option': 'Disparity', 'chart_term': disparityOtion.chart_term, 'disparity_term': disparityOtion.disparity_term,
-                       'low_disparity': disparityOtion.low_disparity, 'high_disparity': disparityOtion.high_disparity})
+                        'low_disparity': disparityOtion.low_disparity, 'high_disparity': disparityOtion.high_disparity})
 
 if trendOption.flag == 1:
     if trendOption.trend_term != 0 and trendOption.MASP != 0:
@@ -147,7 +151,7 @@ if trendOption.flag == 1:
                     * int(trendOption.chart_term[:-1]))
 
         options.append({'option': 'Trend', 'chart_term': trendOption.chart_term, 'trend_term': trendOption.trend_term,
-                       'trend_type': trendOption.trend_type, 'trend_reverse': trendOption.trend_reverse, "MASP": trendOption.MASP})
+                        'trend_type': trendOption.trend_type, 'trend_reverse': trendOption.trend_reverse, "MASP": trendOption.MASP})
 
 if macdOption.flag == 1:
     if macdOption.short_disparity != 0 and macdOption.long_disparity != 0:
@@ -160,7 +164,7 @@ if macdOption.flag == 1:
                 int(macdOption.chart_term[:-1])
 
         options.append({'option': 'MACD', 'chart_term': macdOption.chart_term, 'short_disparity': macdOption.short_disparity,
-                       'long_disparity': macdOption.long_disparity, 'signal': macdOption.signal, 'up_down': macdOption.up_down})
+                        'long_disparity': macdOption.long_disparity, 'signal': macdOption.signal, 'up_down': macdOption.up_down})
 
 print(options)
 print(f'mMax: {mMax}, hMax: {hMax}')
@@ -169,7 +173,8 @@ db.query(models.recommendList).delete()
 
 # 검색 함수 실행
 coins = asyncio.run(recommendCoins(options, mMax, hMax))
-print('----------------------------------------------------------------------------------검색 완료')
+print('검색 완료 ::::::: ')
+print('-----------------------------------------------------------------------------------------------------------------')
 
 # 코인 disparity 순으로 정렬 / 검색된 코인 insert
 sortedByDisparity = []
@@ -190,7 +195,8 @@ print(sortedCoins)
 
 # 거래 가능 금액 가져오기
 money = bithumb.get_balance('BTC')[2]
-print(money, '333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333')
+print('deposit ::::::: ',money)
+print('-----------------------------------------------------------------------------------------------------------------')
 moneyPerCoin: float = 0
 
 # 코인당 거래할 금액 계산
@@ -231,22 +237,24 @@ for coin in sortedCoins:
 
         # 지정 호가 계산
         # ask = askingPrice.askingPrice(int(float(coin['price'])))
+        # coin_ask_price = float(coin['price']) + (buyOtion.callmoney_to_buy_method * ask)
+        # coin_ask_price = (round(coin_ask_price,4))
         splitBuy = moneyPerCoin * 1
-        # askPrice = float(coin['price']) + (buyOtion.callmoney_to_buy_method * ask)
-        # askPrice = (round(askPrice,4))
 
         if buyOtion.callmoney_to_buy_method > 0:
             ask = f'+{buyOtion.callmoney_to_buy_method}'
         else:
             ask = str(buyOtion.callmoney_to_buy_method)
 
-        askPrice = askingPrice.ASK_PRICE(f"{coin['name']}_KRW", ask, 'buy')
-        print(askPrice, 'mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm')
-        splitUnit = splitBuy / (float(askPrice))
+        coin_ask_price = askingPrice.ASK_PRICE(f"{coin['name']}_KRW", ask, 'buy')
+        print('coin_ask_price ::::::: ', coin_ask_price)
+        print('-----------------------------------------------------------------------------------------------------------------')
+
+        splitUnit = splitBuy / (float(coin_ask_price))
 
         # 주문
         order = bithumb.buy_limit_order(
-            coin['name'], float(askPrice), round(splitUnit, 4), 'KRW')
+            coin['name'], float(coin_ask_price), round(splitUnit, 4), 'KRW')
         print(order)
 
         order_id = order[2]

@@ -187,7 +187,7 @@ class BitThumbPrivate():
         if (page == 1):
             prev = "0"
         else:
-            prev = str((int(page) - 1) * 15)
+            prev = str((int(page) - 1) * 14)
         selectData = await self.mysql.Select(orderListSql(count, prev))
         orderList = []
         for data in selectData:
@@ -199,7 +199,7 @@ class BitThumbPrivate():
         if (page == 1):
             prev = "0"
         else:
-            prev = str((int(page) - 1) * 15)
+            prev = str((int(page) - 1) * 14)
         selectData = self.mysql.Select(
             dateOrderListSql(count, prev, date[0], date[1]))
         orderList = []

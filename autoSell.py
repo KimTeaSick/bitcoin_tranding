@@ -35,7 +35,6 @@ accountOtion = db.query(models.tradingAccountOtion).filter(
     models.tradingAccountOtion.name == useTradingOption.name).first()
 sellOption = db.query(models.tradingSellOption).filter(
     models.tradingSellOption.name == useTradingOption.name).first()
-
 autoStatus = db.query(models.autoTradingStatus).filter(
     models.autoTradingStatus.status == 1).first()
 
@@ -44,7 +43,7 @@ if autoStatus == None:
     print('자동매매 정지')
     exit()
 
-chartMax = 0
+chartMax = 0 # 무슨 변수인지
 for possession in possession_coins:
     if chartMax < int(possession.macd_chart[:-1]):
         chartMax = int(possession.macd_chart[:-1])
@@ -52,7 +51,7 @@ for possession in possession_coins:
     if chartMax < int(possession.disparity_chart[:-1]):
         chartMax = int(possession.disparity_chart[:-1])
 
-max = 0
+max = 0 # 무슨 변수 인지
 if (sellOption.disparity_for_upper_case * chartMax) > max:
     max = sellOption.disparity_for_upper_case * chartMax
 if (sellOption.disparity_for_down_case * chartMax) > max:
@@ -109,7 +108,7 @@ print(accountOtion.loss_cut_under_percent)
 # 매도 취소 재매도
 for sell in resale:
     sellReason.append({'coin': sell['coin'], 'reason': 'resale', 'unit': sell['unit'], 'close': sell['nowprice'],
-                      'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
+                       'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
 
 # 로스컷 or autosell
 if float(percent) >= float(accountOtion.loss_cut_over_percent):
@@ -149,7 +148,7 @@ if True:  # 기준가격 미만 조건만 남김 0712
     for sell in isSell:
         '''
         print(sell['coin'])
-        # 매도조건 1. 가격기준 / 상승
+        # 매도조건 1. 가격기준 / 상승 0714
         if sell['percent'] >= sellOption.upper_percent_to_price_condition:
             sellReason.append({'coin': sell['coin'], 'reason': 'price over', 'unit': sell['unit'], 'close': sell['nowprice'],
                               'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})

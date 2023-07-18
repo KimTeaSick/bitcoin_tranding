@@ -152,7 +152,7 @@ def POSSESSION_COIN_LIST(coin, coin_now_price):
     elif coin[5] == 3:
         return type_one(coin, coin_now_price, "첫번째 매도 중")
     elif coin[5] == 4:
-        return type_one(coin, coin_now_price, "메도 취소")
+        return type_one(coin, coin_now_price, "매도 취소")
     elif coin[5] == 5:
         return type_one(coin, coin_now_price, "매도 중")
     elif coin[5] == 6:

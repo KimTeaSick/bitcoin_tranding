@@ -2,27 +2,27 @@ import pandas as pd
 
 # 거래대금 데이터, 범위 받아 조건에 맞는 코인 리턴 (수집기 수정후 수집기데이터 사용으로 수정예정)
 def transactioAmountRecommend(nowstamp, coinList, dfList, chart_term, lowTransactionAmount, highTransactionAmount):
-    transactionAmountL = []
-    transactionAmountValue = []
-    print(len(coinList), '거래대금2222222222222222222222222222222222222222222222222222')
+    print('-----------------------------------------------------------------------------------------------------------')
+    print('transactio amount start ::::::: ')
+    print('before condition pass coins ::::::: ', len(coinList))
 
-    if chart_term[-1] == 'm':
-        time = nowstamp - ((int(chart_term[:-1]) + 1) * 60)
-    if chart_term[-1] == 'h':
-        time = nowstamp - ((int(chart_term[:-1]) + 1) * 3600)
+    transactionAmount_list = []
+    transactionAmount_value = []
+    time = nowstamp - ((int(chart_term[:-1]) + 1) * 60) if chart_term[-1] == 'm' else nowstamp - ((int(chart_term[:-1]) + 1) * 3600)
 
     df = pd.DataFrame(dfList)
-    df2 = df.loc[df['S_time'] > time]
+    time_satisfied_df = df.loc[df['S_time'] > time]
 
     for coin in coinList:
         if coin in coinList:
-            df3 = df2.loc[df['coin_name'] == coin]
-            if len(df3) != 0 and df3['Transaction_amount'].sum() > float(lowTransactionAmount) and df3['Transaction_amount'].sum() < float(highTransactionAmount):
-                transactionAmountL.append(coin)
-                transactionAmountValue.append({'coin_name': coin, 'Transaction_amount': df3['Transaction_amount'].sum()})
+            matching_coin_name_df = time_satisfied_df.loc[df['coin_name'] == coin]
+            if len(matching_coin_name_df) != 0 and matching_coin_name_df['Transaction_amount'].sum() > float(lowTransactionAmount) and matching_coin_name_df['Transaction_amount'].sum() < float(highTransactionAmount):
+                transactionAmount_list.append(coin)
+                transactionAmount_value.append({'coin_name': coin, 'Transaction_amount': matching_coin_name_df['Transaction_amount'].sum()})
 
         else:
             pass
 
-    print(len(transactionAmountL), '22222222222222222222222222222222222222222222222222222222222222')
-    return transactionAmountL, transactionAmountValue
+    print('transactio amount end ::::::: ', len(transactionAmount_list))
+    print('-----------------------------------------------------------------------------------------------------------')
+    return transactionAmount_list, transactionAmount_value

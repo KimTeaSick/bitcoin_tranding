@@ -107,7 +107,7 @@ def collectNinsert(collector, coins):
             maxPrice = df2['contPrice'].max()
             transaction_amount = df2['contAmt'].sum()
             volume = df2['contQty'].sum()
-            disparity = avgPrice / closePrice * 100
+            disparity = (avgPrice / closePrice) * 100
 
             print(f'시가:{openPrice}, 종가:{closePrice}, 고가:{maxPrice}, 저가:{minPrice}, 평균가:{avgPrice}, 심볼:{coin.coin_name}')
 
