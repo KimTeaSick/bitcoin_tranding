@@ -83,7 +83,7 @@ def on_message(ws, message):
                             f'{symbol}_KRW', askOption, 'sell')
 
                         print(symbol[:-4], float(askP), possessionCoin[symbol]
-                              ['unit'], "KRW", askingPrice.askingPrice(price))
+                                ['unit'], "KRW", askingPrice.askingPrice(price))
 
                         # 매도 주문
                         orderids = bithumb.sell_limit_order(
@@ -102,7 +102,6 @@ def on_message(ws, message):
                         if status.status == 4:
                             status.status = 5
                             order_coin.status = 5
-
                         else:
                             status.status = 3
                             order_coin.status = 3

@@ -104,13 +104,13 @@ for order in orderList:
             if timeCheck[0] == '-':
                 delpossession = db.query(models.possessionCoin).filter(
                     models.possessionCoin.coin == order.coin).first()
-
+                
+                # 분할매도에 완전히 실패할 경우 내역에서 제거하는 로직
                 cancel = bithumb.cancel_order(order_desc)
                 if cancel == True:
                     db.delete(order)
                     if len(orderStatus['data']['contract']) != 0:
                         db.delete(delpossession)
-
         print(orderStatus)
 
         db.commit()
