@@ -182,66 +182,34 @@ class BitThumbPrivate():
         return money, account
 
 # 거래 내역 조회 및 검색 기능
-    async def getOrderList(self, page):
-        count = "14"
-        if (page == 1):
-            prev = "0"
-        else:
-            prev = str((int(page) - 1) * 14)
-        selectData = await self.mysql.Select(orderListSql(count, prev))
-        orderList = []
-        for data in selectData:
-            orderList.append(changer.ORDER_LIST_CHANGER(data))
-        return orderList
+    # async def getOrderList(self, page):
+    #     count = "14"
+    #     if (page == 1):
+    #         prev = "0"
+    #     else:
+    #         prev = str((int(page) - 1) * 14)
+    #     selectData = await self.mysql.Select(orderListSql(count, prev))
+    #     orderList = []
+    #     for data in selectData:
+    #         orderList.append(changer.ORDER_LIST_CHANGER(data))
+    #     return orderList
 
-    def getDateOrderList(self, date, page):
-        count = "14"
-        if (page == 1):
-            prev = "0"
-        else:
-            prev = str((int(page) - 1) * 14)
-        selectData = self.mysql.Select(
-            dateOrderListSql(count, prev, date[0], date[1]))
-        orderList = []
-        for data in selectData:
-            orderDesc = (data[2], data[1], data[3], 'KRW')
-            orderList.append(
-                self.bithumb.get_order_completed(orderDesc)['data'])
-        return orderList
+    # def getDateOrderList(self, date, page):
+    #     count = "14"
+    #     if (page == 1):
+    #         prev = "0"
+    #     else:
+    #         prev = str((int(page) - 1) * 14)
+    #     selectData = self.mysql.Select(
+    #         dateOrderListSql(count, prev, date[0], date[1]))
+    #     orderList = []
+    #     for data in selectData:
+    #         orderDesc = (data[2], data[1], data[3], 'KRW')
+    #         orderList.append(
+    #             self.bithumb.get_order_completed(orderDesc)['data'])
+    #     return orderList
 
 # Dash Page
-    async def dashProperty(self, date):
-        coinList = self.getMyCoinList()
-        time.sleep(1)
-        dt = datetime.now().replace()
-        start_dt = dt[0:10] + "00:00:00.000000"
-        end_dt = dt[0:10] + "23:59:59.999999"
-        list = []
-        fee = 0
-        totalMoney = 0
-        buyingMoney = 0
-        sellingMoney = 0
-        selectData = await self.mysql.Select(todayOrderListSql(date[0], date[1]))
-        time.sleep(1)
-        for i in coinList:
-            coinInfo = self.getBitCoinList(str(i[0]).replace('total_', ""))
-            coinValue = float(
-                coinInfo['data']['closing_price']) * round(float(i[1]), 4)
-            list.append(coinValue)
-        for index in range(len(list)):
-            totalMoney += list[index]
-        account = self.checkAccount()
-        totalMoney += account
-        if selectData != 333:
-            for todayData in selectData:
-                if todayData[2] == 'ask':
-                    sellingMoney += float(todayData[9])
-                else:
-                    buyingMoney += float(todayData[9])
-                fee += float(todayData[8])
-            accountData = [totalMoney, account, buyingMoney, sellingMoney, fee]
-            return accountData
-
     def getDisparity(self, coin, disparity, trends):
         flag = True
         url = f"https://api.bithumb.com/public/candlestick/"+coin[0]+"_KRW/6h"
@@ -276,7 +244,6 @@ class BitThumbPrivate():
         options = []
         mMax = 0
         hMax = 0
-
         # 사용 옵션 확인 및 변환
         for i in item:
             print(i[0])
@@ -287,10 +254,8 @@ class BitThumbPrivate():
                     if int(i[1]['high_price']) == 0:
                         print('high_price', i[1]['high_price'])
                         continue
-
                     if 5 > mMax:
                         mMax = 5
-
                     options.append(
                         {'option': 'Price', 'low_price': i[1]['low_price'], 'high_price': i[1]['high_price']})
 
@@ -410,20 +375,6 @@ class BitThumbPrivate():
             return 333
 
 # Setting Page
-    async def getDisparityOption(self):
-        options = await self.mysql.Select(getMASPoptionSql)
-        options = {options[0][1]: {"idx": options[0][0], "name": options[0][1], "range": options[0][2], "color": options[0][3]},
-                   options[1][1]: {"idx": options[1][0], "name": options[1][1], "range": options[1][2], "color": options[1][3]},
-                   options[2][1]: {"idx": options[2][0], "name": options[2][1], "range": options[2][2], "color": options[2][3]}}
-        return options
-
-    async def updateDisparityOption(self, item):
-        try:
-            for data in item:
-                await self.mysql.Update(updateMASPoptionSql, [str(data[1]['range']), data[1]['color'], data[1]['name']])
-            return 200
-        except:
-            return 303
 
     async def getSearchOptionList(self):
         value = await self.mysql.Select(selectSearchOptionSql)

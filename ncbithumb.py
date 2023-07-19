@@ -1,7 +1,9 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
+from routers.dashborad import dashApi
+from routers.coinList import coinApi
 from search_option import search
-from pagiNation import PagiNation
+from lib.pagiNation import PagiNation
 from BitThumbPrivate import *
 from mongoDB import MongoDB
 from dbConnection import *
@@ -24,26 +26,13 @@ app.add_middleware(
 )
 
 bit = BitThumbPrivate()
-mongo = MongoDB()
 page = PagiNation()
+mongo = MongoDB()
 mysql = MySql()
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
-
-
-@app.get("/getBitcoinInfo")
-def getBitcoinInfo():
-    data = bit.getBitCoinList('ALL')
-    return data
-
-
-@app.get("/getDetailBTCInfo/{item_id}")
-def getDetailBTCInfo(item_id):
-    data = bit.getBitCoinList(item_id)
-    return data
-
 
 @app.post("/getCandleChart")
 def getCandleStick(item: GetCandleStickBody):
@@ -51,13 +40,11 @@ def getCandleStick(item: GetCandleStickBody):
     data = bit.getCandleStick(item)
     return data
 
-
 @app.get("/checkAccount")
 def checkAccount():
     balance = bit.checkAccount()
     myCoinList = bit.getMyCoinList()
     return (balance, myCoinList)
-
 
 @app.get("/ws")
 async def main():
@@ -65,105 +52,50 @@ async def main():
     data = await bit.Insert1m()
     return data
 
-
 @app.post("/sell")
 async def sell(item: BuyAndSell):
     print("item", item)
     res = await bit.sell(item.coin, float(item.unit))
     return res
 
-
 @app.post("/buy")
 async def buy(item: BuyAndSell):
     res = await bit.buy(item.coin, float(item.price), float(item.unit))
     return res
 
-
 @app.get("/myProperty")# 예수금 / 자산현황
 def myProperty():
     return bit.myProperty()
 
-
-@app.post('/getOrderList')
-async def getOrderList(item: getOrderListBody):
-    pageCount = await page.orderListPageCount()
-    data = await bit.getOrderList(item.page)
-    return {"data": data, "page": pageCount}
-
+# @app.post('/getOrderList')
+# async def getOrderList(item: getOrderListBody):
+#     pageCount = await page.orderListPageCount()
+#     data = await bit.getOrderList(item.page)
+#     return {"data": data, "page": pageCount}
 
 @app.post('/getDateOrderList')
 def getDateOrderList(item: getDateOrderListBody):
     # return bit.getDateOrderList(item.date, item.page)
     return {"data": bit.getDateOrderList(item.date, item.page), "page": 1}
 
-
-@app.post("/getAvgData")
-def sendAvgData(item: getAvgDataBody):
-    return mongo.getAvgData(item.range, item.coin, item.term)
-
-
-@app.post("/dash/getRecommendCoin")
-async def getRecommendPrice(item: getRecommendOption):
-    # try:
-        now1 = datetime.datetime.now()
-        response = await bit.getRecommendCoin(item)
-        now2 = datetime.datetime.now()
-        print(now2 - now1)
-        mysql.Insert(insertLog,["검색 기능 사용"])
-        return response
-    # except:
-        # mysql.Insert(insertLog,["검색 기능 사용 실패"])
-        # return 444
-
-
-@app.get("/dash/getPossessoionCoinInfo")
-async def getPossessoionCoinInfo():
-    response = await bit.possessoionCoinInfo()
-    return response
-
-
-@app.get('/dash/accountInfo/')
-async def getAccountInfo(date1, date2):
-    try:
-        response = await bit.dashProperty([str(date1), str(date2)])
-        print("response :::: ",response)
-        return response
-    except:
-        return 404
-
 @app.post('/autotrading')
 async def autoTrading():
     await bit.autoTrading()
-
-@app.get('/setting/getDisparity')
-async def getDisparity():
-    response = await bit.getDisparityOption()
-    return response
-
-
-@app.post('/setting/updateDisparity')
-async def getDisparity(item: updateDisparityOptionBody):
-    response = await bit.updateDisparityOption(item)
-    return response
-
 
 @app.get('/setting/getSearchOptionList')
 async def getSearchOptionList():
     response = await bit.getSearchOptionList()
     return response
 
-
 @app.post('/setting/registerSearchOption')
 def insertSearchOption(item: updateSearchOptionBody):
     response = bit.insertSearchOption(item)
     return response
 
-
 @app.post('/setting/updateSearchOption')
 async def updateSearchOption(item: updateSearchOptionBody):
     response = await bit.updateSearchOption(item)
     return response
-
 
 @app.post('/option/insertOption')
 async def updateSearchOption(item: insertOption):
@@ -173,8 +105,6 @@ async def updateSearchOption(item: insertOption):
         return response
     except:
         mysql.Insert(insertLog, ["검색 옵션 등록 기능 사용 실패"])
-
-
 
 @app.get('/option/optionList')
 async def getOptionList():
@@ -186,8 +116,6 @@ async def getOptionList():
         mysql.Insert(insertLog, ["검색 옵션 조회 기능 사용 실패"])
         return 444
 
-
-
 @app.post('/option/optionDetail')
 async def selectOptionDetail(item: getOptionDetail):
     try:
@@ -197,8 +125,6 @@ async def selectOptionDetail(item: getOptionDetail):
     except:
         mysql.Insert(insertLog, ["검색 옵션 상세 조회 기능 사용 실패"])
         return 444
-
-
 
 @app.post('/option/updateOption')
 async def UpdateOption(item: updateOption):
@@ -222,8 +148,6 @@ async def OptionDelete(item: deleteOption):
         mysql.Insert(insertLog, ["검색 옵션 삭제 기능 사용 실패"])
         return 444
 
-
-
 @app.post('/option/useOption')
 async def OptionUsed(item: useOption):
     try:
@@ -233,8 +157,6 @@ async def OptionUsed(item: useOption):
     except:
         mysql.Insert(insertLog, ["검색 옵션 사용 등록 기능 사용 실패"])
         return 444
-
-
 
 @app.post('/trade/insertTradingOption')
 async def OptionUsed(item: tradingOption):
@@ -246,8 +168,6 @@ async def OptionUsed(item: tradingOption):
         mysql.Insert(insertLog, ["매매 옵션 등록 기능 사용 샐피"])
         return 444
 
-
-
 @app.get('/trade/tradingOptionList')
 async def getOptionList():
     try:
@@ -257,8 +177,6 @@ async def getOptionList():
     except:
         mysql.Insert(insertLog, ["매매 옵션 조회 기능 사용 실패"])
         return 444
-
-
 
 @app.post('/trade/tradingOptionDetail')
 async def selectOptionDetail(item: getTradingOptionDetail):
@@ -270,8 +188,6 @@ async def selectOptionDetail(item: getTradingOptionDetail):
         mysql.Insert(insertLog, ["매매 옵션 상세 조회 기능 사용 실패"])
         return 444
 
-
-
 @app.post('/trade/updateTradingOption')
 async def UpdateOption(item: tradingOption):
     try:
@@ -282,8 +198,6 @@ async def UpdateOption(item: tradingOption):
         mysql.Insert(insertLog, ["매매 옵션 수정 기능 사용 실패"])
         return 444
 
-
-
 @app.post('/trade/deleteTradingOption')
 async def OptionDelete(item: deleteTradingOption):
     try:
@@ -293,7 +207,6 @@ async def OptionDelete(item: deleteTradingOption):
     except:
         mysql.Insert(insertLog, ["매매 옵션 삭제 기능 사용 실패"])
         return 444
-
 
 
 @app.post('/option/useTradingOption')
@@ -328,7 +241,6 @@ async def getNowUsedCondition():
         mysql.Insert(insertLog, ["현재 사용 옵션 조회 기능 사용 실패"])
         return 444
 
-
 @app.get('/trade/getTradingHis')
 async def getTradingHis():
     try:
@@ -339,7 +251,6 @@ async def getTradingHis():
         mysql.Insert(insertLog, ["자동 매매 거래 내역 조회 기능 사용 실패"])
         return 444
 
-
 @app.get('/trade/autoTradingCheck')
 async def autoTradingCheck():
     try:
@@ -349,7 +260,6 @@ async def autoTradingCheck():
     except:
         mysql.Insert(insertLog, ["자동 매매 플래그 기능 사용 실패"])
         return 444
-
 
 @app.post('/trade/controlAutoTrading')
 async def controlAutoTrading(item: controlAT):
@@ -393,6 +303,9 @@ async def newSearch(item: newSearchBody):
 async def newSearch():
     response = await search.search()
     return response
+
+app.include_router(dashApi.dashRouter)
+app.include_router(coinApi.coinRouter)
 
 if __name__ == "__main__":
     config = uvicorn.Config("ncbithumb:app", port=8888, log_level="info", host="0.0.0.0")
