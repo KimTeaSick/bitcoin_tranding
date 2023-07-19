@@ -256,7 +256,7 @@ for sellOrder in sellReason:
             coin = sellOrder['coin']
             # askP = float(sellOrder['close']) + (int(sellOrder['askprice']) * sellOrder['ask'])
 
-            if sellOption.call_money_to_sell_method > 0:
+            if int(sellOption.call_money_to_sell_method) >= 0:
                 ask = f'+{sellOption.call_money_to_sell_method}'
             else:
                 ask = str(sellOption.call_money_to_sell_method)
@@ -286,7 +286,7 @@ for sellOrder in sellReason:
             coin = sellOrder['coin']
             # askP = float(sellOrder['close']) + (int(sellOrder['askprice']) * sellOrder['ask'])
 
-            if sellOption.call_money_to_sell_method > 0:
+            if int(sellOption.call_money_to_sell_method) >= 0:
                 ask = f'+{sellOption.call_money_to_sell_method}'
             else:
                 ask = str(sellOption.call_money_to_sell_method)

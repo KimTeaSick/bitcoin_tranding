@@ -18,10 +18,9 @@ def ASK_PRICE(coin, asking, trading_type):
     elif asking[0] == '+':
         return float(price) + C_VALUE
 
-
-# 호가 계산 함수 
-def askingPrice(price, asking):
-    result:float = 0.0
+# 호가 계산 함수
+def askingPrice(price, asking=1):
+    result: float = 0.0
     if price < 1:
         result = 0.0001
     elif price >= 1 and price < 10:
@@ -45,6 +44,3 @@ def askingPrice(price, asking):
     elif price >= 1000000:
         result = 1000
     return result * asking
-
-print(ASK_PRICE('BTC_KRW', '+1', 'buy'))
-print(ASK_PRICE('BTC_KRW', '+1', 'sell'))

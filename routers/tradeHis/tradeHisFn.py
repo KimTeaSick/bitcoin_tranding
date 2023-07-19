@@ -9,6 +9,11 @@ class TradeHisFn():
     self.bit = BitThumbPrivate()
     self.count = '14'
 
+  async def orderListPageCount(self):
+    value = await self.bit.mysql.Select(orderListCountSql)
+    count = int(value[0][0]) / int(self.count)
+    return round(count)
+
   async def getOrderList(self, page):
     prev = "0" if page == 1 else str((int(page) - 1) * 14)
     selectData = await self.bit.mysql.Select(orderListSql(self.count, prev))
@@ -25,5 +30,5 @@ class TradeHisFn():
     for data in selectData:
       orderDesc = (data[2], data[1], data[3], 'KRW')
       orderList.append(
-        self.bithumb.get_order_completed(orderDesc)['data'])
+        self.bit.bithumb.get_order_completed(orderDesc)['data'])
     return orderList
