@@ -158,10 +158,27 @@ def POSSESSION_COIN_LIST(coin, coin_now_price):
     elif coin[5] == 6:
         return type_two(coin, coin_now_price, "매도 완료")
     
+
+def coin_status(status):
+    if status == 0:
+        return "보유중"
+    elif status == 1:
+        return "매수 중"
+    elif status == 2:
+        return "분할 매수"
+    elif status == 3:
+        return "첫번째 매도 중"
+    elif status == 4:
+        return "매도 취소"
+    elif status == 5:
+        return "매도 중"
+    elif status == 6:
+        return "매도 완료"
+
 def ATOrderList(value):
     return {
         'coin': value[0],
-        'status': value[1],
+        'status': coin_status(value[1]),
         'transaction_time': value[2],
         'conclusion_time': value[3],
         'order_id': value[4],

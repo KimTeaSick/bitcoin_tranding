@@ -1,5 +1,5 @@
 from dbConnection import *
-from sql import *
+from sqld import *
 from dbConnection import MySql
 
 class PagiNation:

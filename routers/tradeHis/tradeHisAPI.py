@@ -3,7 +3,7 @@ sys.path.append("/Users/josephkim/Desktop/bitcoin_trading_back")
 
 from lib.pagiNation import PagiNation
 from fastapi import APIRouter
-from parameter import *
+from .parameter import *
 from .tradeHisFn import TradeHisFn
 
 tradeRouter = APIRouter(

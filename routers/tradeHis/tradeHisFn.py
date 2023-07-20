@@ -2,7 +2,7 @@ import sys
 sys.path.append("/Users/josephkim/Desktop/bitcoin_trading_back")
 from BitThumbPrivate import BitThumbPrivate
 from returnValue import changer
-from sql import *
+from sql.tradeHisSql import *
 
 class TradeHisFn():
   def __init__(self):

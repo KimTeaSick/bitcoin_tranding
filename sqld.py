@@ -15,23 +15,31 @@ def orderListSql(page, prev):
   return 'SELECT coin, unit, price, total, fee, type, transaction_time FROM nc_p_possession_coin_his_t ORDER BY idx DESC limit ' + page + ' offset ' + prev
 def dateOrderListSql(page, prev, dateStart, dateEnd):
   return 'SELECT * FROM nc_p_possession_coin_his_t  WHERE transaction_time > ' + dateStart + ' AND transaction_time < ' + dateEnd + ' ORDER BY idx DESC limit ' + page + ' offset ' + prev 
+
+
+## dash
 def todayOrderListSql(dateStart, dateEnd):
   return 'SELECT * FROM nc_p_possession_coin_his_t  WHERE transaction_time > ' + dateStart + ' AND transaction_time < ' + dateEnd 
 
+getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t'
+##
+
+
 orderListCountSql = 'SELECT count(idx) as count FROM nc_p_possession_coin_his_t'
 
-getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t'
 
 def getDBCoinList(price, transaction_price): 
   return 'SELECT coin_name FROM nc_r_coin_list_t WHERE price >= ' + price + ' AND price IS NOT NULL AND transaction_price >= ' + transaction_price
 
 deleteCoinSql = 'SELECT FROM nc_r_coin_list_t WHERE coin_name = %s'
 
+### coin Sql
 getMASPoptionSql = 'SELECT idx, name, term, color, stroke from nc_b_disparity_option_t'
 
-insetMASPoptionSql = 'INSERT INTO nc_b_disparity_option_t ( name, term, color, stroke ) VALUES ( %s, %s, %s, %s )'
-
 updateMASPoptionSql  = 'UPDATE nc_b_disparity_option_t SET disparity_value = %s, disparity_color = %s WHERE disparity_name = %s'
+###
+
+insetMASPoptionSql = 'INSERT INTO nc_b_disparity_option_t ( name, term, color, stroke ) VALUES ( %s, %s, %s, %s )'
 
 deleteMASPoptionSql  = 'DELETE FROM nc_b_disparity_option_t WHERE idx = %s'
 
@@ -44,6 +52,7 @@ insertSearchOptionSql = 'INSERT INTO nc_b_search_option_t (name, first_disparity
 
 updateSearchOptionSql = 'UPDATE nc_b_search_option_t SET name = %s , first_disparity = %s , second_disparity = %s ,trends_idx = %s, trends = %s , avg_volume = %s , transaction_amount = %s , price = %s WHERE idx = %s'
 
+### Trade
 selectSearchPriceList = 'SELECT * from nc_f_recommend_coin_t'
 
 insertSearchCoinListSql = 'INSERT INTO nc_f_recommend_coin_t (coin_name, catch_price ) VALUES ( %s, %s )'

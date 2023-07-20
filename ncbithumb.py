@@ -11,7 +11,7 @@ from BitThumbPrivate import *
 from mongoDB import MongoDB
 from dbConnection import *
 from parameter import *
-from sql import *
+from sqld import *
 import datetime
 import uvicorn
 import os
@@ -49,12 +49,6 @@ def checkAccount():
     myCoinList = bit.getMyCoinList()
     return (balance, myCoinList)
 
-@app.get("/ws")
-async def main():
-    data = await bit.bithumb_ws_client()
-    data = await bit.Insert1m()
-    return data
-
 @app.post("/sell")
 async def sell(item: BuyAndSell):
     print("item", item)
@@ -69,15 +63,6 @@ async def buy(item: BuyAndSell):
 @app.get("/myProperty")# 예수금 / 자산현황
 def myProperty():
     return bit.myProperty()
-
-@app.post('/getDateOrderList')
-def getDateOrderList(item: getDateOrderListBody):
-    # return bit.getDateOrderList(item.date, item.page)
-    return {"data": bit.getDateOrderList(item.date, item.page), "page": 1}
-
-@app.post('/autotrading')
-async def autoTrading():
-    await bit.autoTrading()
 
 @app.get('/setting/getSearchOptionList')
 async def getSearchOptionList():
@@ -94,184 +79,6 @@ async def updateSearchOption(item: updateSearchOptionBody):
     response = await bit.updateSearchOption(item)
     return response
 
-# @app.post('/option/insertOption')
-# async def updateSearchOption(item: insertOption):
-#     try:
-#         response = await bit.insertOption(item)
-#         mysql.Insert(insertLog, ["검색 옵션 등록 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["검색 옵션 등록 기능 사용 실패"])
-
-# @app.get('/option/optionList')
-# async def getOptionList():
-#     try:
-#         response = await bit.optionList()
-#         mysql.Insert(insertLog, ["검색 옵션 조회 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["검색 옵션 조회 기능 사용 실패"])
-#         return 444
-
-# @app.post('/option/optionDetail')
-# async def selectOptionDetail(item: getOptionDetail):
-#     try:
-#         response = await bit.optionDetail(item)
-#         mysql.Insert(insertLog, ["검색 옵션 상세 조회 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["검색 옵션 상세 조회 기능 사용 실패"])
-#         return 444
-
-# @app.post('/option/updateOption')
-# async def UpdateOption(item: updateOption):
-#     try:
-#         response = await bit.updateOption(item)
-#         mysql.Insert(insertLog, ["검색 옵션 수정 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["검색 옵션 수정 기능 사용 실패"])
-#         return 444
-
-# @app.post('/option/deleteOption')
-# async def OptionDelete(item: deleteOption):
-#     try:
-#         response = await bit.deleteOption(item)
-#         mysql.Insert(insertLog, ["검색 옵션 삭제 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["검색 옵션 삭제 기능 사용 실패"])
-#         return 444
-
-# @app.post('/option/useOption')
-# async def OptionUsed(item: useOption):
-#     try:
-#         response = await bit.useOption(item)
-#         mysql.Insert(insertLog, ["검색 옵션 사용 등록 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["검색 옵션 사용 등록 기능 사용 실패"])
-#         return 444
-
-
-# @app.post('/trade/insertTradingOption')
-# async def OptionUsed(item: tradingOption):
-#     try:
-#         response = await bit.insertTradingOPtion(item)
-#         mysql.Insert(insertLog, ["매매 옵션 등록 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["매매 옵션 등록 기능 사용 샐피"])
-#         return 444
-
-# @app.get('/trade/tradingOptionList')
-# async def getOptionList():
-#     try:
-#         response = await bit.tradingOptionList()
-#         mysql.Insert(insertLog, ["매매 옵션 조회 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["매매 옵션 조회 기능 사용 실패"])
-#         return 444
-
-# @app.post('/trade/tradingOptionDetail')
-# async def selectOptionDetail(item: getTradingOptionDetail):
-#     try:
-#         response = await bit.tradingOptionDetail(item)
-#         mysql.Insert(insertLog, ["매매 옵션 상세 조회 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["매매 옵션 상세 조회 기능 사용 실패"])
-#         return 444
-
-# @app.post('/trade/updateTradingOption')
-# async def UpdateOption(item: tradingOption):
-#     try:
-#         response = await bit.updateTradingOption(item)
-#         mysql.Insert(insertLog, ["매매 옵션 수정 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["매매 옵션 수정 기능 사용 실패"])
-#         return 444
-
-# @app.post('/trade/deleteTradingOption')
-# async def OptionDelete(item: deleteTradingOption):
-#     try:
-#         response = await bit.deleteTradingOption(item)
-#         mysql.Insert(insertLog, ["매매 옵션 삭제 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["매매 옵션 삭제 기능 사용 실패"])
-#         return 444
-
-
-# @app.post('/option/useTradingOption')
-# async def OptionUsed(item: useTradingOption):
-#     try:
-#         response = await bit.useTradingOption(item)
-#         mysql.Insert(insertLog, ["매매 옵션 사용 등록 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["매매 옵션 사용 등록 기능 사용 실패"])
-#         return 444
-
-
-# @app.get("/trade/orderList")
-# async def getoderList():
-#     response = await bit.getATOrderList()
-#     return response
-
-# @app.get('/trade/getSearchPriceList')
-# async def getSearchList():
-#     try:
-#         response = await bit.getSearchPriceList()
-#         mysql.Insert(insertLog, ["검색 종목 조회 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["검색 종목 조회 기능 사용 실패"])
-#         return 444
-
-
-# @app.get('/trade/getNowUsedCondition')
-# async def getNowUsedCondition():
-#     try:
-#         response = await bit.getNowUseCondition()
-#         mysql.Insert(insertLog, ["현재 사용 옵션 조회 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["현재 사용 옵션 조회 기능 사용 실패"])
-#         return 444
-
-# @app.get('/trade/getTradingHis')
-# async def getTradingHis():
-#     try:
-#         response = await bit.getTradingHis()
-#         mysql.Insert(insertLog, ["자동 매매 거래 내역 조회 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["자동 매매 거래 내역 조회 기능 사용 실패"])
-#         return 444
-
-# @app.get('/trade/autoTradingCheck')
-# async def autoTradingCheck():
-#     try:
-#         response = await bit.nowAutoStatusCheck()
-#         mysql.Insert(insertLog, ["자동 매매 플래그 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["자동 매매 플래그 기능 사용 실패"])
-#         return 444
-
-# @app.post('/trade/controlAutoTrading')
-# async def controlAutoTrading(item: controlAT):
-#     try:
-#         response = await bit.controlAutoTrading(item.flag)
-#         mysql.Insert(insertLog, ["자동 매매 컨트롤 기능 사용"])
-#         return response
-#     except:
-#         mysql.Insert(insertLog, ["자동 매매 컨트롤 기능 사용 실패"])
-#         return 444
-
 @app.get('/todayAccount')
 async def todayAccount():
     response = await bit.todayAccount()
@@ -287,7 +94,6 @@ async def getCoinJsonFile():
     response = await bit.getBithumbCoinList()
     dir_path = os.path.dirname(os.path.realpath(__file__))
     print("dir_path :::: ", dir_path)
-    # return FileResponse(dir_path + "/coin_list.json")
     return response
 
 @app.post("/newRawSearch")

@@ -7,7 +7,7 @@ import pandas as pd
 from sqlalchemy import create_engine, desc
 import numpy as np
 import asyncio
-from sql import *
+from sqld import *
 from dbConnection import MySql
 # 조건 모듈
 from recommends import priceFilter

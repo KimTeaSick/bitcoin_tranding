@@ -1,10 +1,10 @@
-import datetime
+from datetime import datetime 
 import sys
 sys.path.append("/Users/josephkim/Desktop/bitcoin_trading_back") 
 
 from BitThumbPrivate import BitThumbPrivate
 from returnValue import changer
-from sql import *
+from sql.dashBoardSql import *
 import time
 
 class DashBoardFn():
@@ -13,7 +13,7 @@ class DashBoardFn():
   
   async def possessoionCoinInfo(self):
     try:
-      possessionCoin = await self.bit.mysql.Select(getMyCoinListSql)
+      possessionCoin = await self.bit.mysql.Select(getMyCoinListSql) #
       time.sleep(1)
       if len(possessionCoin) == 0:
         return 203
@@ -41,7 +41,7 @@ class DashBoardFn():
     totalMoney = 0
     buyingMoney = 0
     sellingMoney = 0
-    selectData = await self.bit.mysql.Select(todayOrderListSql(date[0], date[1]))
+    selectData = await self.bit.mysql.Select(todayOrderListSql(date[0], date[1])) #
     time.sleep(1)
     for i in coinList:
         coinInfo = self.bit.getBitCoinList(str(i[0]).replace('total_', ""))

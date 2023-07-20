@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from .coinFn import CoinFn
-from parameter import *
+from .parameter import *
 
 coinRouter = APIRouter(
     prefix="/coin",

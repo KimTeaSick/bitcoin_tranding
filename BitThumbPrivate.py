@@ -1,27 +1,21 @@
+from lib.searchCondition import optionStandardization
+from sqlalchemy.orm import Session
+from database import SessionLocal
+from returnValue import changer
 from dotenv import load_dotenv
+from dbConnection import MySql
 from pybithumb import Bithumb
 from datetime import datetime
 from pandas import DataFrame
 from dbConnection import *
 from parameter import *
-from multiprocessing import Pool
-import multiprocessing as mp
+from sqld import *
 from lib import *
-from sql import *
-from dbConnection import MySql
-import pandas as pd
-import websockets
-import schedule
+import recommend
+import datetime
 import requests
 import time
 import json
-import recommend
-from database import SessionLocal
-from sqlalchemy.orm import Session
-import models
-import datetime
-from returnValue import changer
-import subprocess
 
 
 load_dotenv()
@@ -68,8 +62,7 @@ class BitThumbPrivate():
         response = json.loads(response)
         if type(response) == dict:
             response = response['data']
-            df = DataFrame(response, columns=[
-                           'Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
+            df = DataFrame(response, columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
             for i in range(0, len(df)):
                 data = df.iloc[i]
                 data.Date = int(data.Date)
@@ -181,150 +174,12 @@ class BitThumbPrivate():
         return money, account
 
 # Dash Page
-    def getDisparity(self, coin, disparity, trends):
-        flag = True
-        url = f"https://api.bithumb.com/public/candlestick/"+coin[0]+"_KRW/6h"
-        headers = {"accept": "application/json"}
-        data = json.loads(requests.get(url, headers=headers).text)['data']
-        df = pd.DataFrame(
-            data, columns=['Date', 'Open', 'Close', 'High', 'Low', 'Volume'])
-        AR = tuple(df['Close'].rolling(window=5).mean().fillna('undefined'))
-        AR_BASE = AR[-10: -1]
-        BASE = df['Close'].values.tolist()
-        for term in range(0, int(trends)):
-            if term == 0:
-                separation = (float(
-                    BASE[len(BASE) - (term + 1)]) / float(AR_BASE[len(AR_BASE) - (term + 1)])) * 100
-                if separation < int(disparity):
-                    return ''
-            result = float(BASE[len(BASE) - (term + 1)]) - \
-                float(AR_BASE[len(AR_BASE) - (term + 1)])
-            if result < 0:
-                flag = False
-                return ''
-        if flag == True:
-            self.recommandCoinList.append({"coin": {"coin": coin[0], "data": self.getBitCoinList(
-                coin[0])["data"]}, "separation": separation})
-
-    async def test(self, coinList, first_disparity, trends):
-        for coin in coinList:
-            self.getDisparity(coin, first_disparity, trends)
-
     async def getRecommendCoin(self, item):
-        useOptionList = []
-        options = []
-        mMax = 0
-        hMax = 0
-        # 사용 옵션 확인 및 변환
-        for i in item:
-            print(i[0])
-            # print("i :::::::::::::::::::: ", i)
-            if i[1]['flag'] != 0:
-                useOptionList.append(i[0])
-                if i[0] == 'Price':
-                    if int(i[1]['high_price']) == 0:
-                        print('high_price', i[1]['high_price'])
-                        continue
-                    if 5 > mMax:
-                        mMax = 5
-                    options.append(
-                        {'option': 'Price', 'low_price': i[1]['low_price'], 'high_price': i[1]['high_price']})
-
-                if i[0] == 'TransactionAmount':
-                    if int(i[1]['high_transaction_amount']) == 0:
-                        print('high_transaction_amount',
-                              i[1]['high_transaction_amount'])
-                        continue
-                    if i[1]['chart_term'][-1] == 'm' and int(i[1]['chart_term'][:-1]) > mMax:
-                        mMax = int(i[1]['chart_term'][:-1])
-                    if i[1]['chart_term'][-1] == 'h' and int(i[1]['chart_term'][:-1]) > hMax:
-                        hMax = int(i[1]['chart_term'][:-1])
-
-                    options.append({'option': 'TransactionAmount', 'chart_term': i[1]['chart_term'], 'low_transaction_amount': i[
-                                   1]['low_transaction_amount'], 'high_transaction_amount': i[1]['high_transaction_amount']})
-
-                if i[0] == 'MASP':
-                    if int(i[1]['first_disparity']) == 0 or int(i[1]['second_disparity']) == 0:
-                        print('first_disparity: ', i[1]['first_disparity'],
-                              'second_disparity: ', i[1]['second_disparity'])
-                        continue
-
-                    if i[1]['chart_term'][-1] == 'm' and int(i[1]['first_disparity']) * int(i[1]['chart_term'][:-1]) > mMax:
-                        mMax = int(i[1]['first_disparity']) * \
-                            int(i[1]['chart_term'][:-1])
-                    if i[1]['chart_term'][-1] == 'm' and int(i[1]['second_disparity']) * int(i[1]['chart_term'][:-1]) > mMax:
-                        mMax = int(i[1]['second_disparity']) * \
-                            int(i[1]['chart_term'][:-1])
-
-                    if i[1]['chart_term'][-1] == 'h' and (int(i[1]['first_disparity']) * int(i[1]['chart_term'][:-1])) > hMax:
-                        hMax = (int(i[1]['first_disparity'])
-                                * int(i[1]['chart_term'][:-1]))
-                    if i[1]['chart_term'][-1] == 'h' and (int(i[1]['second_disparity']) * int(i[1]['chart_term'][:-1])) > hMax:
-                        hMax = (int(i[1]['second_disparity'])
-                                * int(i[1]['chart_term'][:-1]))
-
-                    options.append({'option': 'MASP', 'chart_term': i[1]['chart_term'], 'first_disparity': i[1]
-                                   ['first_disparity'], 'second_disparity': i[1]['second_disparity'], 'comparison': i[1]['comparison']})
-
-                if i[0] == 'Disparity':
-                    if int(i[1]['disparity_term']) == 0:
-                        print('disparity_term:', i[1]['disparity_term'])
-                        continue
-
-                    if i[1]['chart_term'][-1] == 'm':
-                        if (int(i[1]['disparity_term']) * int(i[1]['chart_term'][:-1])) > mMax:
-                            mMax = int(i[1]['disparity_term']) * \
-                                int(i[1]['chart_term'][:-1])
-
-                    if i[1]['chart_term'][-1] == 'h':
-                        if (int(i[1]['disparity_term']) * int(i[1]['chart_term'][:-1])) > hMax:
-                            hMax = (int(i[1]['disparity_term'])
-                                    * int(i[1]['chart_term'][:-1]))
-
-                    options.append({'option': 'Disparity', 'chart_term': i[1]['chart_term'], 'disparity_term': i[1]['disparity_term'], 'low_disparity': int(
-                        i[1]['low_disparity']), 'high_disparity': int(i[1]['high_disparity'])})
-
-                if i[0] == 'Trend':
-                    if int(i[1]['trend_term']) == 0 or int(i[1]['MASP']) == 0:
-                        print('trend_term:',
-                              i[1]['trend_term'], 'MASP:', i[1]['MASP'])
-                        continue
-
-                    if i[1]['chart_term'][-1] == 'm' and ((int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1])) > mMax:
-                        mMax = (
-                            (int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1]))
-
-                    if i[1]['chart_term'][-1] == 'h' and ((int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1])) > hMax:
-                        hMax = (
-                            (int(i[1]['trend_term']) + 2 + int(i[1]['MASP'])) * int(i[1]['chart_term'][:-1]))
-
-                    options.append({'option': 'Trend', 'chart_term': i[1]['chart_term'], 'trend_term': i[1]['trend_term'],
-                                   'trend_type': i[1]['trend_type'], 'trend_reverse': i[1]['trend_reverse'], "MASP": i[1]['MASP']})
-
-                if i[0] == 'MACD':
-                    if int(i[1]['short_disparity']) == 0 or int(i[1]['long_disparity']) == 0:
-                        print('short_disparity:', i[1]['short_disparity'],
-                              'long_disparity:', i[1]['long_disparity'])
-                        continue
-
-                    if i[1]['chart_term'][-1] == 'm' and ((int(i[1]['long_disparity']) * 2 + int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])) > mMax:
-                        mMax = (int(i[1]['long_disparity']) * 2 +
-                                int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])
-
-                    if i[1]['chart_term'][-1] == 'h' and ((int(i[1]['long_disparity']) * 2 + int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])) > hMax:
-                        hMax = (int(i[1]['long_disparity']) * 2 +
-                                int(i[1]['signal'])) * int(i[1]['chart_term'][:-1])
-
-                    options.append({'option': 'MACD', 'chart_term': i[1]['chart_term'], 'short_disparity': i[1]['short_disparity'],
-                                   'long_disparity': i[1]['long_disparity'], 'signal': i[1]['signal'], 'up_down': i[1]['up_down']})
-
+        use_option_list, options, max_minute, max_hour = await optionStandardization.option_standardization(item)
         # 검색 코인 receive
-        coins = await recommend.recommendCoin(options, mMax, hMax)
-
-        if coins == 444:
-            return coins
-
-        return {"coins": coins, "optionList": useOptionList}
+        coins = await recommend.recommendCoin(options, max_minute, max_hour)
+        if coins == 444: return coins
+        return {"coins": coins, "optionList": use_option_list}
 
     async def possessoionCoinInfo(self):
         try:
@@ -346,7 +201,6 @@ class BitThumbPrivate():
             return 333
 
 # Setting Page
-
     async def getSearchOptionList(self):
         value = await self.mysql.Select(selectSearchOptionSql)
         optionList = []
@@ -390,418 +244,14 @@ class BitThumbPrivate():
         ])
 
 # Auto But and Selling
-    async def autoTrading(self):
-        uri = "wss://pubwss.bithumb.com/pub/ws"
-        # coinNames = self.coinNameList()
-        possessionCoin = self.mysql.Select(getMyCoinListSql)
-        coinNames = []
-        for i in possessionCoin:
-            # coinName = str(i[0]).replace('total_',"")
-            coinNames.append(i[0].upper()+"_KRW")
-
-        async with websockets.connect(uri, ping_interval=None) as websocket:
-            subscribe_fmt = {
-                "type": "ticker",
-                "symbols": coinNames,
-                "tickTypes": ["30M"]
-            }
-            subscribe_data = json.dumps(subscribe_fmt)
-            await websocket.send(subscribe_data)
-            while True:
-                schedule.run_pending()
-                data = await websocket.recv()
-                data = json.loads(data)
-                data = data.get('content')
-                if type(data) == dict:
-                    print(data['symbol'], data['closePrice'])
-                    for possessionCoinInfo in possessionCoin:
-                        if data['symbol'] == possessionCoinInfo[0]+"_KRW":
-                            # 부호 반대가 정상
-                            if (float(data['closePrice']) - float(possessionCoinInfo[2])) / 100 > 7:
-                                print("plus", possessionCoinInfo)
-                                self.sell(possessionCoinInfo[0], float(
-                                    possessionCoinInfo[1]))
-                                await self.autoTrading()
-                            elif (float(data['closePrice']) - float(possessionCoinInfo[2])) / 100 < -3:
-                                print("minus", possessionCoinInfo)
-                                self.sell(possessionCoinInfo[0], float(
-                                    possessionCoinInfo[1]))
-                                await self.autoTrading()
-
     async def buy(self, coin, price, unit):  # 매수
-        print(coin, price, unit, '333333333333333333333333333333333')
-        buyLog = self.bithumb.buy_limit_order(
-            coin, price, unit)  # params 1: 종목, 2: 가격, 3: 갯수
+        print('buy ::::::: ',coin, price, unit)
+        print('----------------------------------------------------------------')
+        buyLog = self.bithumb.buy_limit_order(coin, price, unit)  # params 1: 종목, 2: 가격, 3: 갯수
         time.sleep(0.1)
         print(buyLog)
         returnLog = list(buyLog)
-
         return returnLog
-
-# ===============================================================================================================trading option
-
-    # async def insertTradingOPtion(self, item):
-    #     try:
-    #         print(item.name)
-    #         trading_option = models.tradingOption()
-    #         trading_account_option = models.tradingAccountOtion()
-    #         trading_buy_option = models.tradingBuyOption()
-    #         trading_sell_option = models.tradingSellOption()
-
-    #         for i in item:
-    #             print(item.name, i[0])
-    #             if i[0] == 'account':
-    #                 trading_account_option.name = item.name
-    #                 trading_account_option.price_count = i[1]['price_count']
-    #                 trading_account_option.loss_cut_under_percent = i[1]['loss_cut_under_percent']
-    #                 trading_account_option.loss = i[1]['loss']
-    #                 trading_account_option.loss_cut_under_call_price_sell_all = i[
-    #                     1]['loss_cut_under_call_price_sell_all']
-    #                 trading_account_option.loss_cut_under_coin_specific_percent = opName = i[
-    #                     1]['loss_cut_under_coin_specific_percent']
-    #                 trading_account_option.loss_cut_under_call_price_specific_coin = i[
-    #                     1]['loss_cut_under_call_price_specific_coin']
-    #                 trading_account_option.loss_cut_over_percent = i[1]['loss_cut_over_percent']
-    #                 trading_account_option.gain = i[1]['gain']
-    #                 trading_account_option.loss_cut_over_call_price_sell_all = i[
-    #                     1]['loss_cut_over_call_price_sell_all']
-    #                 trading_account_option.loss_cut_over_coin_specific_percent = i[
-    #                     1]['loss_cut_over_coin_specific_percent']
-    #                 trading_account_option.loss_cut_over_call_price_specific_coin = i[
-    #                     1]['loss_cut_over_call_price_specific_coin']
-    #                 trading_account_option.buy_cancle_time = i[1]['buy_cancle_time']
-    #                 trading_account_option.sell_cancle_time = i[1]['sell_cancle_time']
-
-    #                 db.add(trading_account_option)
-
-    #             if i[0] == 'buy':
-    #                 trading_buy_option.name = item.name
-    #                 trading_buy_option.percent_to_buy_method = i[1]['percent_to_buy_method']
-    #                 trading_buy_option.price_to_buy_method = i[1]['price_to_buy_method']
-    #                 trading_buy_option.callmoney_to_buy_method = i[1]['callmoney_to_buy_method']
-    #                 trading_buy_option.checkbox = i[1]['checkbox']
-    #                 db.add(trading_buy_option)
-
-    #             if i[0] == 'sell':
-    #                 trading_sell_option.name = item.name
-    #                 trading_sell_option.upper_percent_to_price_condition = i[
-    #                     1]['upper_percent_to_price_condition']
-    #                 trading_sell_option.down_percent_to_price_condition = i[
-    #                     1]['down_percent_to_price_condition']
-    #                 trading_sell_option.disparity_for_upper_case = i[1]['disparity_for_upper_case']
-    #                 trading_sell_option.upper_percent_to_disparity_condition = i[
-    #                     1]['upper_percent_to_disparity_condition']
-    #                 trading_sell_option.disparity_for_down_case = i[1]['disparity_for_down_case']
-    #                 trading_sell_option.down_percent_to_disparity_condition = i[
-    #                     1]['down_percent_to_disparity_condition']
-    #                 trading_sell_option.call_money_to_sell_method = i[1]['call_money_to_sell_method']
-    #                 trading_sell_option.percent_to_split_sell = i[1]['percent_to_split_sell']
-    #                 trading_sell_option.shot_MACD_value = i[1]['shot_MACD_value']
-    #                 trading_sell_option.long_MACD_value = i[1]['long_MACD_value']
-    #                 trading_sell_option.MACD_signal_value = i[1]['MACD_signal_value']
-
-    #                 trading_sell_option.trailing_start_percent = i[1]['trailing_start_percent']
-    #                 trading_sell_option.trailing_stop_percent = i[1]['trailing_stop_percent']
-    #                 trading_sell_option.trailing_order_call_price = i[1]['trailing_order_call_price']
-
-    #                 db.add(trading_sell_option)
-
-    #         trading_option.name = item.name
-    #         trading_option.insert_time = datetime.datetime.now()
-    #         trading_option.update_time = "-"
-    #         trading_option.used = 0
-    #         print(item.name)
-
-    #         db.add(trading_option)
-
-    #         try:
-    #             db.commit()
-    #             return 'Insert sucess'
-
-    #         except Exception as e:
-    #             db.rollback()
-    #             print("db.rollback()", e)
-    #             self.mysql.Insert(insertLog, [e])
-    #             return 444
-
-    #     except Exception as e:
-    #         print(e)
-    #         return 444
-
-    # async def tradingOptionList(self):
-    #     try:
-    #         optionL = db.query(models.tradingOption).all()
-    #         options = []
-
-    #         for option in optionL:
-    #             options.append(
-    #                 {'Name': option.name, 'Create_date': option.insert_time[:19], 'Update_date': option.update_time[:19], 'used': option.used})
-    #             print(options)
-
-    #         return options
-    #     except Exception as e:
-    #         print("tradingOptionListError :::: ", e)
-    #         self.mysql.Insert(insertLog, [e])
-    #         db.rollback()
-    #         return 444
-
-    # async def tradingOptionDetail(self, item):
-    #     try:
-    #         print(item)
-    #         now1 = datetime.datetime.now()
-
-    #         optionL = db.query(models.tradingOption).filter(
-    #             models.tradingOption.name == item.name).first()
-
-    #         accountL = db.query(models.tradingAccountOtion).filter(
-    #             models.tradingAccountOtion.name == item.name).first()
-    #         buyL = db.query(models.tradingBuyOption).filter(
-    #             models.tradingBuyOption.name == item.name).first()
-    #         sellL = db.query(models.tradingSellOption).filter(
-    #             models.tradingSellOption.name == item.name).first()
-
-    #         now2 = datetime.datetime.now()
-    #         print(now2-now1)
-
-    #         return {optionL.name: {'account': {"price_count": accountL.price_count, "loss_cut_under_percent": accountL.loss_cut_under_percent, "loss_cut_under_call_price_sell_all": accountL.loss_cut_under_call_price_sell_all, "loss_cut_under_coin_specific_percent": accountL.loss_cut_under_coin_specific_percent, "loss_cut_under_call_price_specific_coin": accountL.loss_cut_under_call_price_specific_coin, "loss_cut_over_percent": accountL.loss_cut_over_percent, "loss_cut_over_call_price_sell_all": accountL.loss_cut_over_call_price_sell_all, "loss_cut_over_coin_specific_percent": accountL.loss_cut_over_coin_specific_percent, "loss_cut_over_call_price_specific_coin": accountL.loss_cut_over_call_price_specific_coin, "buy_cancle_time": accountL.buy_cancle_time, "sell_cancle_time": accountL.sell_cancle_time, "loss": accountL.loss, "gain": accountL.gain},
-    #                                "buy": {"percent_to_buy_method": buyL.percent_to_buy_method, "price_to_buy_method": buyL.price_to_buy_method, "callmoney_to_buy_method": buyL.callmoney_to_buy_method, "checkbox": buyL.checkbox},
-    #                                "sell": {"upper_percent_to_price_condition": sellL.upper_percent_to_price_condition, "down_percent_to_price_condition": sellL.down_percent_to_price_condition, "disparity_for_upper_case": sellL.disparity_for_upper_case, "upper_percent_to_disparity_condition": sellL.upper_percent_to_disparity_condition, "disparity_for_down_case": sellL.disparity_for_down_case, "down_percent_to_disparity_condition": sellL.down_percent_to_disparity_condition, "call_money_to_sell_method": sellL.call_money_to_sell_method, "percent_to_split_sell": sellL.percent_to_split_sell, "shot_MACD_value": sellL.shot_MACD_value, "long_MACD_value": sellL.long_MACD_value, "MACD_signal_value": sellL.MACD_signal_value, "trailing_start_percent": sellL.trailing_start_percent, "trailing_stop_percent": sellL.trailing_stop_percent, "trailing_order_call_price": sellL.trailing_order_call_price}
-    #                                }}
-    #     except Exception as e:
-    #         print("tradingOptionListError :::: ", e)
-    #         self.mysql.Insert(insertLog, [e])
-    #         db.rollback()
-    #         return 444
-
-    # async def updateTradingOption(self, item):
-    #     try:
-    #         print(item.name)
-
-    #         for i in item:
-    #             if i[0] == 'account':
-    #                 price_count = i[1]['price_count']
-    #                 loss_cut_under_percent = i[1]['loss_cut_under_percent']
-    #                 loss = i[1]['loss']
-    #                 loss_cut_under_call_price_sell_all = i[1]['loss_cut_under_call_price_sell_all']
-    #                 loss_cut_under_coin_specific_percent = opName = i[
-    #                     1]['loss_cut_under_coin_specific_percent']
-    #                 loss_cut_under_call_price_specific_coin = i[1]['loss_cut_under_call_price_specific_coin']
-    #                 loss_cut_over_percent = i[1]['loss_cut_over_percent']
-    #                 gain = i[1]['gain']
-    #                 loss_cut_over_call_price_sell_all = i[1]['loss_cut_over_call_price_sell_all']
-    #                 loss_cut_over_coin_specific_percent = i[1]['loss_cut_over_coin_specific_percent']
-    #                 loss_cut_over_call_price_specific_coin = i[1]['loss_cut_over_call_price_specific_coin']
-    #                 buy_cancle_time = i[1]['buy_cancle_time']
-    #                 sell_cancle_time = i[1]['sell_cancle_time']
-
-    #             if i[0] == 'buy':
-    #                 percent_to_buy_method = i[1]['percent_to_buy_method']
-    #                 price_to_buy_method = i[1]['price_to_buy_method']
-    #                 callmoney_to_buy_method = i[1]['callmoney_to_buy_method']
-    #                 checkbox = i[1]['checkbox']
-
-    #             if i[0] == 'sell':
-    #                 upper_percent_to_price_condition = i[1]['upper_percent_to_price_condition']
-    #                 down_percent_to_price_condition = i[1]['down_percent_to_price_condition']
-    #                 disparity_for_upper_case = i[1]['disparity_for_upper_case']
-    #                 upper_percent_to_disparity_condition = i[1]['upper_percent_to_disparity_condition']
-    #                 disparity_for_down_case = i[1]['disparity_for_down_case']
-    #                 down_percent_to_disparity_condition = i[1]['down_percent_to_disparity_condition']
-    #                 call_money_to_sell_method = i[1]['call_money_to_sell_method']
-    #                 percent_to_split_sell = i[1]['percent_to_split_sell']
-    #                 shot_MACD_value = i[1]['shot_MACD_value']
-    #                 long_MACD_value = i[1]['long_MACD_value']
-    #                 MACD_signal_value = i[1]['MACD_signal_value']
-    #                 trailing_start_percent = i[1]['trailing_start_percent']
-    #                 trailing_stop_percent = i[1]['trailing_stop_percent']
-    #                 trailing_order_call_price = i[1]['trailing_order_call_price']
-
-    #         optionL = db.query(models.tradingOption).filter(
-    #             models.tradingOption.name == item.name).first()
-
-    #         accountL = db.query(models.tradingAccountOtion).filter(
-    #             models.tradingAccountOtion.name == item.name).first()
-    #         buyL = db.query(models.tradingBuyOption).filter(
-    #             models.tradingBuyOption.name == item.name).first()
-    #         sellL = db.query(models.tradingSellOption).filter(
-    #             models.tradingSellOption.name == item.name).first()
-
-    #         accountL.price_count = price_count
-    #         accountL.loss_cut_under_percent = loss_cut_under_percent
-    #         accountL.loss = loss
-    #         accountL.loss_cut_under_call_price_sell_all = loss_cut_under_call_price_sell_all
-    #         accountL.loss_cut_under_coin_specific_percent = loss_cut_under_coin_specific_percent
-    #         accountL.loss_cut_under_call_price_specific_coin = loss_cut_under_call_price_specific_coin
-    #         accountL.loss_cut_over_percent = loss_cut_over_percent
-    #         accountL.gain = gain
-    #         accountL.loss_cut_over_call_price_sell_all = loss_cut_over_call_price_sell_all
-    #         accountL.loss_cut_over_coin_specific_percent = loss_cut_over_coin_specific_percent
-    #         accountL.loss_cut_over_call_price_specific_coin = loss_cut_over_call_price_specific_coin
-    #         accountL.buy_cancle_time = buy_cancle_time
-    #         accountL.sell_cancle_time = sell_cancle_time
-
-    #         buyL.percent_to_buy_method = percent_to_buy_method
-    #         buyL.price_to_buy_method = price_to_buy_method
-    #         buyL.callmoney_to_buy_method = callmoney_to_buy_method
-    #         buyL.checkbox = checkbox
-
-    #         sellL.upper_percent_to_price_condition = upper_percent_to_price_condition
-    #         sellL.down_percent_to_price_condition = down_percent_to_price_condition
-    #         sellL.disparity_for_upper_case = disparity_for_upper_case
-    #         sellL.upper_percent_to_disparity_condition = upper_percent_to_disparity_condition
-    #         sellL.disparity_for_down_case = disparity_for_down_case
-    #         sellL.down_percent_to_disparity_condition = down_percent_to_disparity_condition
-    #         sellL.call_money_to_sell_method = call_money_to_sell_method
-    #         sellL.percent_to_split_sell = percent_to_split_sell
-    #         sellL.shot_MACD_value = shot_MACD_value
-    #         sellL.long_MACD_value = long_MACD_value
-    #         sellL.MACD_signal_value = MACD_signal_value
-    #         sellL.trailing_start_percent = trailing_start_percent
-    #         sellL.trailing_stop_percent = trailing_stop_percent
-    #         sellL.trailing_order_call_price = trailing_order_call_price
-
-    #         optionL.update_time = datetime.datetime.now()
-
-    #         try:
-    #             db.commit()
-    #             print('commit')
-    #         except Exception as e:
-    #             print("tradingOptionListError :::: ", e)
-    #             self.mysql.Insert(insertLog, [e])
-    #             db.rollback()
-    #             return 444
-
-    #         return 'Insert sucess'
-    #     except Exception as e:
-    #         print("tradingOptionListError :::: ", e)
-    #         self.mysql.Insert(insertLog, [e])
-    #         db.rollback()
-    #         return 444
-
-    # async def deleteTradingOption(self, item):
-    #     try:
-    #         db.query(models.tradingOption).filter(
-    #             models.tradingOption.name == item.name).delete()
-
-    #         db.query(models.tradingAccountOtion).filter(
-    #             models.tradingAccountOtion.name == item.name).delete()
-    #         db.query(models.tradingBuyOption).filter(
-    #             models.tradingBuyOption.name == item.name).delete()
-    #         db.query(models.tradingSellOption).filter(
-    #             models.tradingSellOption.name == item.name).delete()
-    #         try:
-    #             db.commit()
-    #         except Exception as e:
-    #             print(e)
-    #             db.rollback()
-
-    #         return 'delete sucess'
-
-    #     except Exception as e:
-    #         print("tradingOptionListError :::: ", e)
-    #         self.mysql.Insert(insertLog, [e])
-    #         db.rollback()
-    #         return 444
-
-    # async def useTradingOption(self, item):
-    #     print(item)
-    #     useOption = db.query(models.tradingOption).filter(
-    #         models.tradingOption.name == item.name).first()
-    #     optionL = db.query(models.tradingOption).filter(
-    #         models.tradingOption.used == 1).all()
-    #     for option in optionL:
-    #         option.used = 0
-    #     useOption.used = 1
-    #     useOption.Update_date = datetime.datetime.now()
-    #     try:
-    #         db.commit()
-    #     except:
-    #         db.rollback()
-
-
-    # async def getSearchPriceList(self):
-    #     try:
-    #         returnValue = []
-    #         searchList = await self.mysql.Select(selectSearchPriceList)
-    #         for coin in searchList:
-    #             returnValue.append({'name': coin[1], 'catch_price': coin[2]})
-    #         return returnValue
-    #     except Exception as e:
-    #         print("getSearchPriceList :::: ", e)
-    #         self.mysql.Insert(insertLog, [e])
-    #         return 444
-
-    # async def getNowUseCondition(self):
-    #     try:
-    #         searchCondition = await self.mysql.Select(findUseSearchCondition)
-    #         tradingCondition = await self.mysql.Select(findUseTradingCondition)
-    #         searchOption = await self.mysql.Select(useSearchOptionStatus(searchCondition[0][1]))
-    #         tradingOption = await self.mysql.Select(useTradingOptionStatus(tradingCondition[0][0]))
-    #         searchOptionReturnValue = changer.SEARCH_CONDITION(searchOption)
-    #         tradingOptionReturnValue = changer.TRADING_CONDITION(tradingOption)
-    #         return {"searchOption": searchOptionReturnValue, "tradingOption": tradingOptionReturnValue}
-    #     except Exception as e:
-    #         print("tradingOptionListError :::: ", e)
-    #         self.mysql.Insert(insertLog, [e])
-    #         return 444
-
-    # async def getTradingHis(self):
-    #     try:
-    #         returnValue = []
-    #         tradingHis = await self.mysql.Select(getTradingHisSql())
-
-    #         if (tradingHis != None):
-    #             for his in tradingHis:
-    #                 returnValue.append(changer.TRADING_LIST(his))
-    #         return returnValue
-    #     except:
-    #         return 444
-
-    # async def nowAutoStatusCheck(self):
-        # try:
-        #     status = await self.mysql.Select(autoStatusCheck)
-        #     return {"now_status": status[0][0]}
-        # except Exception as e:
-        #     print("tradingOptionListError :::: ", e)
-        #     self.mysql.Insert(insertLog, [e])
-        #     return 444
-
-    # async def controlAutoTrading(self, flag):
-    #     try:
-    #         if (flag == 1):
-    #             await self.mysql.Update(updateAutoStatus, [flag, str(datetime.datetime.now().replace())])
-    #             subprocess.run(
-    #                 ['/bin/python3', '/data/4season/bitcoin_trading_back/autoBuy.py'])
-    #         elif (flag == 0):
-    #             orderList = db.query(models.orderCoin).all()
-    #             for order in orderList:
-    #                 Possession = db.query(models.possessionCoin).filter(
-    #                     models.possessionCoin.coin == order.coin).first()
-    #                 if order.status == 1:
-    #                     order_desc = ['bid', order.coin, order.order_id, 'KRW']
-    #                 elif order.status == 3 or order.status == 5:
-    #                     order_desc = ['ask', order.coin, order.order_id, 'KRW']
-
-    #                 cancel = self.bithumb.cancel_order(order_desc)
-    #                 if cancel == True:
-    #                     if order.status == 1:
-    #                         db.delete(Possession)
-    #                     elif order.status == 3 or order.status == 5:
-    #                         Possession.status = 4
-
-    #                     db.delete(order)
-    #                     Possession.status = 0
-    #                 try:
-    #                     db.commit()
-    #                 except:
-    #                     db.rollback()
-
-    #             await self.mysql.Update(updateAutoStatus, [flag, "-"])
-    #         return 200
-    #     except Exception as e:
-    #         print("tradingOptionListError :::: ", e)
-    #         self.mysql.Insert(insertLog, [e])
-    #         return 444
 
     async def todayAccount(self):
         try:
@@ -837,15 +287,5 @@ class BitThumbPrivate():
                 json.dump(coin_list, make_file, ensure_ascii=False, indent="\t")
             return coin_list
         except Exception as e:
-            print("Error :::: ",e)
+            print("Error :::: ", e)
             return
-
-    # async def getATOrderList(self):
-    #     return_value = []
-    #     raw_data = await self.mysql.Select(getATOrderList)
-    #     if len(raw_data) == 0:
-    #         return return_value
-    #     else:
-    #         for o_list in raw_data:
-    #             return_value.append(changer.ATOrderList(o_list))
-    #     return return_value

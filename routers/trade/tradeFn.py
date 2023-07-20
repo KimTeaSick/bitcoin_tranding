@@ -4,7 +4,8 @@ from BitThumbPrivate import BitThumbPrivate
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from returnValue import changer
-from sql import *
+from lib import insertLog
+from sqld import *
 import subprocess
 import datetime
 import models 
@@ -26,7 +27,6 @@ class TradeFn():
             trading_account_option = models.tradingAccountOtion()
             trading_buy_option = models.tradingBuyOption()
             trading_sell_option = models.tradingSellOption()
-
             for i in item:
                 print(item.name, i[0])
                 if i[0] == 'account':
@@ -100,7 +100,7 @@ class TradeFn():
             except Exception as e:
                 db.rollback()
                 print("db.rollback()", e)
-                self.bit.mysql.Insert(insertLog, [e])
+                insertLog.log(e)
                 return 444
 
         except Exception as e:
@@ -118,7 +118,7 @@ class TradeFn():
           return options
       except Exception as e:
           print("tradingOptionListError :::: ", e)
-          self.bit.mysql.Insert(insertLog, [e])
+          insertLog.log(e)
           db.rollback()
           return 444
       
@@ -143,7 +143,7 @@ class TradeFn():
                                 }}
       except Exception as e:
           print("tradingOptionListError :::: ", e)
-          self.bit.mysql.Insert(insertLog, [e])
+          insertLog.log(e)
           db.rollback()
           return 444
       
@@ -231,13 +231,13 @@ class TradeFn():
               print('commit')
           except Exception as e:
               print("tradingOptionListError :::: ", e)
-              self.bit.mysql.Insert(insertLog, [e])
+              insertLog.log(e)
               db.rollback()
               return 444
           return 'Insert sucess'
       except Exception as e:
           print("tradingOptionListError :::: ", e)
-          self.bit.mysql.Insert(insertLog, [e])
+          insertLog.log(e)
           db.rollback()
           return 444
       
@@ -259,7 +259,7 @@ class TradeFn():
           return 'delete sucess'
       except Exception as e:
           print("tradingOptionListError :::: ", e)
-          self.bit.mysql.Insert(insertLog, [e])
+          insertLog.log(e)
           db.rollback()
           return 444
       
@@ -287,7 +287,7 @@ class TradeFn():
           return returnValue
       except Exception as e:
           print("getSearchPriceList :::: ", e)
-          self.bit.mysql.Insert(insertLog, [e])
+          insertLog.log(e)
           return 444  
       
   async def getNowUseCondition(self):
@@ -301,7 +301,7 @@ class TradeFn():
           return {"searchOption": searchOptionReturnValue, "tradingOption": tradingOptionReturnValue}
       except Exception as e:
           print("tradingOptionListError :::: ", e)
-          self.bit.mysql.Insert(insertLog, [e])
+          insertLog.log(e)
           return 444  
       
   async def getTradingHis(self):
@@ -320,7 +320,7 @@ class TradeFn():
         return {"now_status": status[0][0]}
     except Exception as e:
         print("tradingOptionListError :::: ", e)
-        self.mysql.Insert(insertLog, [e])
+        insertLog.log(e)
         return 444
       
   async def getATOrderList(self):
@@ -367,5 +367,4 @@ class TradeFn():
             return 200
         except Exception as e:
             print("tradingOptionListError :::: ", e)
-            self.bit.mysql.Insert(insertLog, [e])
             return 444

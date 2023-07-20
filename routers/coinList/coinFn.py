@@ -2,7 +2,7 @@ import sys
 sys.path.append("/Users/josephkim/Desktop/bitcoin_trading_back")
 from BitThumbPrivate import BitThumbPrivate
 import pandas as pd
-from sql import *
+from sqld import *
 import requests
 import json
 

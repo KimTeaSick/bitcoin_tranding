@@ -1,17 +1,12 @@
 from dotenv import load_dotenv
 import mysql.connector
-import asyncio
-import os 
-from sql import *
+from sqld import *
 
 load_dotenv()
 
 PORT = 3306
-# HOST = "192.168.10.202"
 HOST = "nc-db-1.cyu1ow4eutwz.ap-northeast-2.rds.amazonaws.com"
 DATABASE = "nc_bit_trading"
-# USERNAME = "ipxnms"
-# PASSWORD = "$kim99bsd00"
 USERNAME = "admin"
 PASSWORD = "$kim99bsd00"
 
@@ -26,7 +21,7 @@ class MySql():
                 port = PORT
             )
         except mysql.connector.Error as e:
-            print('Database Error: ', e) 
+            print('Database Error: ', e)
             self.Insert(insertLog,[e])
 
 

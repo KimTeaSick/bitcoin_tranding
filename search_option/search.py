@@ -3,7 +3,7 @@ sys.path.append("/Users/josephkim/Desktop/bitcoin_trading_back")
 
 from BitThumbPrivate import BitThumbPrivate
 from dbConnection import *
-from sql import *
+from sqld import *
 import pandas as pd
 import numpy as np
 from datetime import datetime 

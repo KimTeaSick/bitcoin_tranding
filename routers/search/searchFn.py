@@ -4,9 +4,10 @@ sys.path.append("/Users/josephkim/Desktop/bitcoin_trading_back")
 from BitThumbPrivate import BitThumbPrivate
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from sql import *
+from lib import insertLog
 import datetime
 import models 
+
 
 try:
     db = SessionLocal()
@@ -93,7 +94,7 @@ class SearchFn():
           db.add(search_option)
           try:
             db.commit()
-            return 'Insert sucess'
+            return 'Insert success'
           except Exception as e:
             db.rollback()
             print("db.rollback()", e)
@@ -116,7 +117,7 @@ class SearchFn():
       return options
     except Exception as e:
       print("optionList Error :::: ", e)
-      self.bit.mysql.Insert(insertLog, [e])
+      insertLog.log(e)
       db.rollback()
       return 444
     
@@ -149,9 +150,10 @@ class SearchFn():
                                 "MACD": {"chart_term": mac.chart_term, "short_disparity": mac.short_disparity, "long_disparity": mac.long_disparity, "up_down": mac.up_down, "flag": mac.flag, "signal": mac.signal}}}
       except Exception as e:
           print("optionList Error :::: ", e)
-          self.bit.mysql.Insert(insertLog, [e])
+          insertLog.log(e)
           db.rollback()
           return 444
+      
   async def updateOption(self, item):
       opName = ''
       for i in item:
@@ -239,11 +241,11 @@ class SearchFn():
       try:
           db.commit()
           print('commit')
-      except:
-          self.bit.mysql.Insert(insertLog, [e])
+      except Exception as e:
+          insertLog.log(e)
           db.rollback()
           print('rollback')
-      return 'Insert sucess'
+      return 'Insert success'
   async def deleteOption(self, item):
       try:
           optionL = db.query(models.searchOption).filter(
@@ -265,12 +267,13 @@ class SearchFn():
           try:
               db.commit()
           except Exception as e:
+              insertLog.log(e)
               print(e)
-              self.bit.mysql.Insert(insertLog, [e])
               db.rollback()
-          return 'delete sucess'
+          return 'delete success'
       except Exception as e:
           print(e)
+          
   async def useOption(self, item):
       try:
           print("useOption :::::", item)
@@ -288,6 +291,7 @@ class SearchFn():
           print("success :::::")
           return 200
       except Exception as e:
+          insertLog.log(e)
           print("fail :::::", e)
           db.rollback()
           return 444
