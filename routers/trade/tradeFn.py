@@ -294,8 +294,12 @@ class TradeFn():
       try:
           searchCondition = await self.bit.mysql.Select(findUseSearchCondition)
           tradingCondition = await self.bit.mysql.Select(findUseTradingCondition)
-          searchOption = await self.bit.mysql.Select(useSearchOptionStatus(searchCondition[0][1]))
-          tradingOption = await self.bit.mysql.Select(useTradingOptionStatus(tradingCondition[0][0]))
+          print("searchCondition ::: ::: ", searchCondition[0][0])
+          print("tradingCondition ::: ::: ", tradingCondition[0][1])
+          searchOption = await self.bit.mysql.Select(useSearchOptionStatus(str(searchCondition[0][0])))
+          tradingOption = await self.bit.mysql.Select(useTradingOptionStatus(tradingCondition[0][1]))
+          print("searchCondition ::: ::: ", searchOption)
+          print("tradingCondition ::: ::: ", tradingOption)
           searchOptionReturnValue = changer.SEARCH_CONDITION(searchOption)
           tradingOptionReturnValue = changer.TRADING_CONDITION(tradingOption)
           return {"searchOption": searchOptionReturnValue, "tradingOption": tradingOptionReturnValue}

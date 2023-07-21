@@ -35,6 +35,7 @@ async def getOptionList():
 @searchRouter.post('/optionDetail')
 async def selectOptionDetail(item: getOptionDetail):
     try:
+        print("item",item)
         response = await search.optionDetail(item)
         insertLog.log("검색 옵션 상세 조회 기능 사용")
         return response

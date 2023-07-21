@@ -4,9 +4,7 @@ from database import Base
 
 class coinList(Base):
     __tablename__ = "nc_r_coin_list_t"
-
     idx = Column(Integer, primary_key=True, index=True)
-
     coin_name = Column(String(100))
     warning = Column(String(100))
     delflag = Column(Integer)
@@ -14,7 +12,6 @@ class coinList(Base):
 
 class coinCurrentCandlePrice(Base):
     __tablename__ = "nc_p_coin_current_candle_price_t"
-
     coin_name = Column(String(100), primary_key=True)
     STime = Column(Integer)
     Open = Column(String(100))
@@ -28,15 +25,8 @@ class coinCurrentCandlePrice(Base):
 
 class searchOption(Base):
     __tablename__ = "nc_b_search_option_t"
-    idx = Column(Integer)
-    name = Column(String(100), primary_key=True)
-
-    Price = Column(String(100))
-    Transaction_amount = Column(String(100))
-    MASP = Column(String(100))
-    Disparity = Column(String(100))
-    Trend = Column(String(100))
-    MACD = Column(String(100))
+    idx = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100))
     Create_date = Column(String(100))
     Update_date = Column(String(100))
     used = Column(Integer)
@@ -47,7 +37,6 @@ class PriceOption(Base):
     idx = Column(Integer, primary_key=True, index=True)
     low_price = Column(Integer)
     high_price = Column(Integer)
-    name = Column(String(100))
     flag = Column(Integer)
 
 
@@ -57,7 +46,6 @@ class TransactionAmountOption(Base):
     chart_term = Column(String(100))
     low_transaction_amount = Column(Integer)
     high_transaction_amount = Column(Integer)
-    name = Column(String(100))
     flag = Column(Integer)
 
 
@@ -68,9 +56,7 @@ class MASPOption(Base):
     first_disparity = Column(Integer)
     second_disparity = Column(Integer)
     comparison = Column(String(100))
-    name = Column(String(100))
     flag = Column(Integer)
-
 
 class DisparityOption(Base):
     __tablename__ = "nc_c_disparity_t"
@@ -79,7 +65,6 @@ class DisparityOption(Base):
     disparity_term = Column(String(100))
     low_disparity = Column(Integer)
     high_disparity = Column(Integer)
-    name = Column(String(100))
     flag = Column(Integer)
 
 
@@ -91,7 +76,6 @@ class TrendOption(Base):
     trend_term = Column(Integer)
     trend_reverse = Column(Integer)
     trend_type = Column(String(100))
-    name = Column(String(100))
     flag = Column(Integer)
 
 
@@ -103,7 +87,6 @@ class MACDOption(Base):
     long_disparity = Column(Integer)
     up_down = Column(String(100))
     signal = Column(Integer)
-    name = Column(String(100))
     flag = Column(Integer)
 
 # candle performance ============================================================================================================

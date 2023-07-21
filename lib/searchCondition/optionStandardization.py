@@ -10,8 +10,6 @@ async def option_standardization(item):
   options = []
   max_minute = 0
   max_hour = 0
-  # print("getRecommendCoin item ::::::: ", item)
-  # 사용 옵션 확인 및 변환
   for condition in item:
     if condition[1]['flag'] != 0:
       use_option_list.append(condition[0])

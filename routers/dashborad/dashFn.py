@@ -24,7 +24,7 @@ class DashBoardFn():
           coinValue = float(coinInfo['closing_price'])
           returnList.append(
             changer.POSSESSION_COIN_LIST(coin, coinValue))
-        print("returnListreturnList", returnList)
+        # print("returnListreturnList", returnList)
         return returnList
     except Exception as e:
       print("possessoionCoinInfo Error :::: ", e)

@@ -11,9 +11,10 @@ class insertOption(BaseModel):
     MACD: dict
 
 class getOptionDetail(BaseModel):
-    option: str
+    option: int
 
 class updateOption(BaseModel):
+    idx: int
     Name: str
     Price: dict
     TransactionAmount: dict

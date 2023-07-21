@@ -15,7 +15,6 @@ dashRouter = APIRouter(
 
 @dashRouter.get("/getPossessoionCoinInfo")
 async def getPossessoionCoinInfo():
-    print("분리 성공 :::::::: ")
     response = await dash.possessoionCoinInfo()
     return response
 

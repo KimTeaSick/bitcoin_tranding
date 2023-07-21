@@ -63,7 +63,7 @@ findUseSearchCondition = 'SELECT * FROM nc_b_search_option_t WHERE used = 1'
 
 findUseTradingCondition = 'SELECT * FROM nc_b_trading_option_t WHERE used = 1'
 
-def useSearchOptionStatus(name):
+def useSearchOptionStatus(idx):
   return '''
   select 
   op.name,
@@ -91,13 +91,13 @@ def useSearchOptionStatus(name):
   macd.signal,
   macd.up_down
   from nc_b_search_option_t op
-  left join nc_c_pr_price_t p on p.name = op.name and p.flag = 1
-  left join nc_c_pr_transaction_amount_t ta on ta.name = op.name and ta.flag = 1
-  left join nc_c_masp_t masp on masp.name = op.name and masp.flag = 1
-  left join nc_c_trend_t t on t.name = op.name and t.flag = 1
-  left join nc_c_disparity_t d on d.name = op.name and d.flag = 1
-  left join nc_c_macd_t macd on macd.name = op.name and macd.flag = 1
-  where op.name like ''' + "'" + name + "'"
+  left join nc_c_pr_price_t p on p.idx = op.idx and p.flag = 1
+  left join nc_c_pr_transaction_amount_t ta on ta.idx = op.idx and ta.flag = 1
+  left join nc_c_masp_t masp on masp.idx = op.idx and masp.flag = 1
+  left join nc_c_trend_t t on t.idx = op.idx and t.flag = 1
+  left join nc_c_disparity_t d on d.idx = op.idx and d.flag = 1
+  left join nc_c_macd_t macd on macd.idx = op.idx and macd.flag = 1
+  where op.idx = ''' + "'" + idx + "'"
 
 def useTradingOptionStatus(name):
   return '''
