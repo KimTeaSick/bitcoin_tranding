@@ -176,6 +176,7 @@ class BitThumbPrivate():
 # Dash Page
     async def getRecommendCoin(self, item):
         use_option_list, options, max_minute, max_hour = await optionStandardization.option_standardization(item)
+        print("--------------------------------------------------------------------------------------------------")
         # 검색 코인 receive
         coins = await recommend.recommendCoin(options, max_minute, max_hour)
         if coins == 444: return coins

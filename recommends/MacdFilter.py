@@ -1,15 +1,16 @@
 import pandas as pd
 import numpy as np
-import time
 import requests
+import datetime
+import time
 
 # macd 조건, 현재시간, 데이터 가져와 조건에 맞는지 탐색
 def MacdRecommend(nowstamp, coinList, dfList, chart_term, short_disparity, long_disparity, signal,  up_down):
     print('-----------------------------------------------------------------------------------------------------------')
     print('macd start ::::::: ')
-    print('before condition pass coins ::::::: ', len(coinList))
     print('paramater ::::::: ', nowstamp, chart_term, short_disparity, long_disparity, signal,  up_down)
-
+    print('before condition pass coins ::::::: ', len(coinList))
+    fn_start = datetime.datetime.now()
     Macd_list = []
     Macd_value = []
 
@@ -59,7 +60,8 @@ def MacdRecommend(nowstamp, coinList, dfList, chart_term, short_disparity, long_
 
         except Exception as e:
             print(e)
-            
+    fn_end = datetime.datetime.now()
+    print('macd spend time ::::::: ', fn_end - fn_start)
     print('macd end ::::::: ', len(Macd_list))
     print('-----------------------------------------------------------------------------------------------------------')
 

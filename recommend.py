@@ -31,11 +31,11 @@ async def recommendCoin(options, minute_Max, hour_Max):
         
         now1 = datetime.datetime.now()
         nowstamp = int(int(now1.timestamp()) /60) * 60 #+ (60*540)
-        print('now ::::::: ',datetime.datetime.utcfromtimestamp(nowstamp))
-        print('-----------------------------------------------------------------------------------------------------------')
-        print('minute_Max ::::::: ', minute_Max)
 
+        print('now ::: ::: ',datetime.datetime.utcfromtimestamp(nowstamp))
+        print('-----------------------------------------------------------------------------------------------------------')
         # 분단위
+        print('minute_Max ::::::: ', minute_Max)
         minute_now_stamp = nowstamp - (minute_Max * 60)
         df_minute_source = db.query(models.coinPrice1M).filter(models.coinPrice1M.S_time >= minute_now_stamp).all()
         df_minute_list = []
@@ -47,20 +47,16 @@ async def recommendCoin(options, minute_Max, hour_Max):
             df_minute_list.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':(dfs.Close), 'Volume':dfs.Volume, 'Transaction_amount':dfs.Transaction_amount})
 
         print("df_minute_list ::::::: ", len(df_minute_list))
-        print('-----------------------------------------------------------------------------------------------------------')
-        #시간 단위
 
+        print('-----------------------------------------------------------------------------------------------------------')
+
+        #시간 단위
+        print('hour_Max ::::::: ', hour_Max)
         hour_now_stamp = nowstamp - (hour_Max * 3600)
         df_hour_source = db.query(models.coin1HPrice).filter(models.coin1HPrice.STime >= hour_now_stamp).all()
         df_hour_list = []
-        #df_hour_source = db.query(models.coinPrice1H).filter(models.coinPrice1H.S_time >= hour_now_stamp).all()
-        #for dfhl in df_hour_source:
-            #print(dfhl.S_time)
-        print(nowstamp)
-        print('-----------------------------------------------------------------------------------------------------------')
         print("df_hour_source start ::::::: ")
         for dfs in df_hour_source:
-            #df_hour_list.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':dfs.S_time, 'time':dfs.time, 'Close':dfs.Close, 'Volume':dfs.Volume, 'Transaction_amount':dfs.Transaction_amount})
             df_hour_list.append({'idx':dfs.idx, 'coin_name':dfs.coin_name,'S_time':int(dfs.STime), 'time':dfs.time, 'Close':float(dfs.Close), 'Volume':float(dfs.Volume), 'Transaction_amount':float(dfs.Close) * float(dfs.Volume)})
         print("df_hour_list ::::::: ", len(df_hour_list))
         print('-----------------------------------------------------------------------------------------------------------')
@@ -97,6 +93,7 @@ async def recommendCoin(options, minute_Max, hour_Max):
             if option['option'] == 'Price':
                 price_list, priceValue = priceFilter.priceRecommend(nowstamp, coin_name_list, df_minute_list, option['low_price'], option['high_price'])
                 coin_name_list = set(coin_name_list) & set(price_list)
+                print("coin_name_list = set(coin_name_list) & set(price_list)", coin_name_list)
 
             # 거래대금 가격 범위 옵션
             if option['option'] == 'TransactionAmount':
@@ -108,6 +105,7 @@ async def recommendCoin(options, minute_Max, hour_Max):
                 if term[-1] == 'h':
                     Transaction_list, transactionAmountValue = transactionAmountFilter.transactioAmountRecommend(nowstamp, coin_name_list, df_hour_list,  option['chart_term'], option['low_transaction_amount'], option['high_transaction_amount'])
                     coin_name_list = set(coin_name_list) & set(Transaction_list)
+            print("Transaction_list = set(coin_name_list) & set(price_list)", coin_name_list)
 
             # 이동평균 옵션 
             if option['option'] == 'MASP':
@@ -202,16 +200,13 @@ async def recommendCoin(options, minute_Max, hour_Max):
             if coin.coin_name in Disparity_list:
                 name = coin.coin_name[:-4]
                 coinDisparityValue = list(filter(lambda item : item['coin_name'] == coin.coin_name, DisparityValue))
-
                 newDict = data[name]
                 newDict['disparity'] = coinDisparityValue[0]['disparity']
-
                 Disparity_dict.append({name:newDict})
 
             if coin.coin_name in Trend_list:
                 name = coin.coin_name[:-4]
                 coinTrendValue = list(filter(lambda item : item['coin_name'] == coin.coin_name, TrendValue))
-
                 newDict = data[name]
                 newDict['first_value'] = coinTrendValue[0]['first_value']
                 newDict['last_value'] = coinTrendValue[0]['last_value']

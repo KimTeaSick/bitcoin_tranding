@@ -333,8 +333,8 @@ class coinPrice1H(Base):
 
 class tradingOption(Base):
     __tablename__ = "nc_b_trading_option_t"
-
-    name = Column(String(100), primary_key=True)
+    idx = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(100))
     insert_time = Column(String(100))
     update_time = Column(String(100))
     used = Column(Integer)
@@ -343,8 +343,9 @@ class tradingOption(Base):
 class tradingAccountOtion(Base):
     __tablename__ = "nc_c_account_option_t"
 
-    name = Column(String(100), primary_key=True)
+    idx = Column(Integer, primary_key=True)
 
+    name = Column(String(100))
     price_count = Column(Integer)
     loss_cut_under_percent = Column(Integer)
     loss = Column(Integer)
@@ -365,7 +366,9 @@ class tradingAccountOtion(Base):
 class tradingBuyOption(Base):
     __tablename__ = "nc_c_buy_option_t"
 
-    name = Column(String(100), primary_key=True)
+    idx = Column(Integer, primary_key=True)
+
+    name = Column(String(100))
 
     percent_to_buy_method = Column(Integer)
     price_to_buy_method = Column(Integer)
@@ -376,7 +379,9 @@ class tradingBuyOption(Base):
 class tradingSellOption(Base):
     __tablename__ = "nc_c_sell_option_t"
 
-    name = Column(String(100), primary_key=True)
+    idx = Column(Integer, primary_key=True)
+
+    name = Column(String(100))
 
     upper_percent_to_price_condition = Column(Integer)
     down_percent_to_price_condition = Column(Integer)

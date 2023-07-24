@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import mysql.connector
 from sqld import *
+import os
 
 load_dotenv()
 

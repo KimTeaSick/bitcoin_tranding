@@ -1,6 +1,10 @@
+from dotenv import load_dotenv
+import os
+load_dotenv()
+IS_DEV = os.environ.get('IS_DEV')
+pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
-sys.path.append("/Users/josephkim/Desktop/bitcoin_trading_back")
-
+sys.path.append(pwd) 
 from fastapi import APIRouter
 from .parameter import *
 from .searchFn import SearchFn

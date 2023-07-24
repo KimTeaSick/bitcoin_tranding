@@ -1,6 +1,10 @@
-import sys 
-sys.path.append("/Users/josephkim/Desktop/bitcoin_trading_back")
-
+from dotenv import load_dotenv
+import os
+load_dotenv()
+IS_DEV = os.environ.get('IS_DEV')
+pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
+import sys
+sys.path.append(pwd) 
 from BitThumbPrivate import BitThumbPrivate
 from sqlalchemy.orm import Session
 from database import SessionLocal
@@ -147,7 +151,6 @@ class SearchFn():
           return 444
       
       ###
-  
 
   async def updateOption(self, item):
       opName = ''
@@ -244,7 +247,7 @@ class SearchFn():
           db.rollback()
           print('rollback')
       return 'Insert success'
-  
+
   async def deleteOption(self, item):
       try:
           optionL = db.query(models.searchOption).filter(
@@ -272,7 +275,7 @@ class SearchFn():
           return 'delete success'
       except Exception as e:
           print(e)
-          
+
   async def useOption(self, item):
       try:
         useOption = db.query(models.searchOption).filter(

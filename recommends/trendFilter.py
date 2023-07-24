@@ -6,8 +6,9 @@ import datetime
 def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, trend_type, trend_reverse):
     print('-----------------------------------------------------------------------------------------------------------')
     print('trend start ::::::: ')
+    print('trend paramater ::::::: ', datetime.datetime.utcfromtimestamp(nowstamp), len(dfList), chart_term, MASP, trend_term, trend_type, trend_reverse)
     print('before condition pass coins ::::::: ', len(coinList))
-    print('paramater ::::::: ',datetime.datetime.utcfromtimestamp(nowstamp), len(dfList),chart_term, MASP, trend_term, trend_type, trend_reverse)
+    fn_start = datetime.datetime.now()
     Trend_list = []
     Trend_value = []
 
@@ -133,7 +134,9 @@ def trendRecommend(nowstamp, coinList, dfList, chart_term, MASP, trend_term, tre
                     z = 0
       except Exception as e:
         print(e)
-
+    
+    fn_end = datetime.datetime.now()
+    print('trend spend time ::::::: ', fn_end - fn_start)
     print('trend end ::::::: ', len(Trend_list))
     print('-----------------------------------------------------------------------------------------------------------')
     return Trend_list, Trend_value

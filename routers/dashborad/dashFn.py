@@ -1,7 +1,12 @@
-from datetime import datetime 
+from dotenv import load_dotenv
+import os
+load_dotenv()
+IS_DEV = os.environ.get('IS_DEV')
+pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
-sys.path.append("/Users/josephkim/Desktop/bitcoin_trading_back") 
+sys.path.append(pwd) 
 
+from datetime import datetime 
 from BitThumbPrivate import BitThumbPrivate
 from returnValue import changer
 from sql.dashBoardSql import *
@@ -10,6 +15,20 @@ import time
 class DashBoardFn():
   def __init__(self):
     self.bit = BitThumbPrivate()
+
+  async def rate_check(self, item):
+    try:
+      res = 0
+      if item.days == 0 : 
+        rate = await self.bit.nowRate()
+        res = rate['rate']
+        return res
+      total_rate = await self.bit.mysql.Select(total_rate_sql(str(item.days)))
+      for rate in total_rate:
+        res += float(rate[0])
+      return round(res, 3)
+    except Exception as e:
+      print('Error ::: ::: ', e)
   
   async def possessoionCoinInfo(self):
     try:

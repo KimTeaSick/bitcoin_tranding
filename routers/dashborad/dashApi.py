@@ -1,6 +1,11 @@
 import datetime
+from dotenv import load_dotenv
+import os
+load_dotenv()
+IS_DEV = os.environ.get('IS_DEV')
+pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
-sys.path.append("/Users/josephkim/Desktop/bitcoin_trading_back") 
+sys.path.append(pwd) 
 
 from fastapi import APIRouter
 from .dashFn import DashBoardFn
@@ -27,10 +32,16 @@ async def getRecommendPrice(item: getRecommendOption):
     insertLog.log("검색 기능 사용")
     return response
 
-@dashRouter.get('/dash/accountInfo/')
+@dashRouter.get('/accountInfo/')
 async def getAccountInfo(date1, date2):
     try:
         response = await dash.dashProperty([str(date1), str(date2)])
         return response
     except:
         return 404
+    
+@dashRouter.post('/rateCheck')
+async def test(item: rateCheckBody):
+    res = await dash.rate_check(item)
+    print("res", res)
+    return res

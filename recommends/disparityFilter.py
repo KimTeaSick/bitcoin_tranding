@@ -1,18 +1,20 @@
 import pandas as pd
 import numpy as np
+import datetime
 
 # 이격도 조건, 현재시간, 데이터 가져와 조건에 맞는지 탐색
 def disparityRecommend(nowstamp, coinList, dfList, chart_term, disparity_term, low_disparity, high_disparity):
     print('-----------------------------------------------------------------------------------------------------------')
     print('disparity start ::::::: ')
+    print('disparity parameter ::::::: ', nowstamp, len(coinList), len(dfList), chart_term, disparity_term, low_disparity, high_disparity)
     print('before condition pass coins ::::::: ', len(coinList))
+    fn_start = datetime.datetime.now()
 
     Disparity_list = []
     Disparity_value = []
 
     # 기준시간 찾기
     times = int(chart_term[:-1])
-
     time = nowstamp - (int(times) * int(disparity_term) * 60) if chart_term[-1] == 'm' else nowstamp - (int(times) * int(disparity_term) * 3600)
 
     # dataframe 생성 및 기준 시간 이후 데이터로 자르기
@@ -55,6 +57,8 @@ def disparityRecommend(nowstamp, coinList, dfList, chart_term, disparity_term, l
                 Disparity_list.append(coin)
                 Disparity_value.append({'coin_name': coin, 'disparity': disP})
 
+    fn_end = datetime.datetime.now()
+    print('disparity spend time ::::::: ', fn_end - fn_start)
     print('disparity end ::::::: ', len(Disparity_list))
     print('-----------------------------------------------------------------------------------------------------------')
     return Disparity_list, Disparity_value

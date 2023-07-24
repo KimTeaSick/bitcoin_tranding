@@ -8,3 +8,6 @@ class getRecommendOption(BaseModel):
   Trend: dict
   Disparity: dict
   MACD: dict
+
+class rateCheckBody(BaseModel):
+  days: int

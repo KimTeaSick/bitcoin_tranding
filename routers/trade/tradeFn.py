@@ -1,5 +1,10 @@
-import sys 
-sys.path.append("/Users/josephkim/Desktop/bitcoin_trading_back")
+from dotenv import load_dotenv
+import os
+load_dotenv()
+IS_DEV = os.environ.get('IS_DEV')
+pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
+import sys
+sys.path.append(pwd) 
 from BitThumbPrivate import BitThumbPrivate
 from sqlalchemy.orm import Session
 from database import SessionLocal
@@ -27,6 +32,16 @@ class TradeFn():
             trading_account_option = models.tradingAccountOtion()
             trading_buy_option = models.tradingBuyOption()
             trading_sell_option = models.tradingSellOption()
+
+            trading_option.name = item.name
+            trading_option.insert_time = datetime.datetime.now()
+            trading_option.update_time = "-"
+            trading_option.used = 0
+            print(item.name)
+            print(trading_option.idx)
+            db.flush()
+            db.add(trading_option)
+
             for i in item:
                 print(item.name, i[0])
                 if i[0] == 'account':
@@ -82,16 +97,7 @@ class TradeFn():
                     trading_sell_option.trailing_start_percent = i[1]['trailing_start_percent']
                     trading_sell_option.trailing_stop_percent = i[1]['trailing_stop_percent']
                     trading_sell_option.trailing_order_call_price = i[1]['trailing_order_call_price']
-
                     db.add(trading_sell_option)
-
-            trading_option.name = item.name
-            trading_option.insert_time = datetime.datetime.now()
-            trading_option.update_time = "-"
-            trading_option.used = 0
-            print(item.name)
-
-            db.add(trading_option)
 
             try:
                 db.commit()

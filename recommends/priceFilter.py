@@ -1,10 +1,12 @@
 import pandas as pd
+import datetime
 
 # 가격 정보, 가격 조건 받아 조건에 맞는 코인 리턴
 def priceRecommend(nowstamp, coinList, dfList, lowPrice, highPrice):
     print('-----------------------------------------------------------------------------------------------------------')
     print('price start ::::::: ')
-
+    fn_start = datetime.datetime.now()
+    
     price_list = []
     price_value = []
     print(len(coinList), len(dfList), lowPrice, highPrice)
@@ -21,7 +23,8 @@ def priceRecommend(nowstamp, coinList, dfList, lowPrice, highPrice):
         if len(matching_coin_name_df) != 0 and matching_coin_name_df.iloc[-1]['Close'] > float(lowPrice) and matching_coin_name_df.iloc[-1]['Close'] < float(highPrice):
             price_list.append(coin)
             price_value.append({'coin_name':coin, 'price': matching_coin_name_df.iloc[-1]['Close']})
-
+    fn_end = datetime.datetime.now()
+    print('price spend time ::::::: ', fn_end - fn_start)
     print('price end ::::::: ',len(price_list))
     print('-----------------------------------------------------------------------------------------------------------')
     return price_list, price_value

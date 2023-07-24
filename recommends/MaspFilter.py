@@ -1,11 +1,14 @@
 import pandas as pd
 import numpy as np
+import datetime
 
 # 이평선 옵션, 현재시간, dataframe 전달 받아 조건에 맞는 코인 return
 def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, second_disparity, comparison):
         print('-----------------------------------------------------------------------------------------------------------')
         print('masp start ::::::: ')
+        print('masp parameter ::::::: ', nowstamp, len(coinList), len(dfList), chart_term, first_disparity, second_disparity, comparison)
         print('before condition pass coins ::::::: ', len(coinList))
+        fn_start = datetime.datetime.now()
         Masp_list = []
         Masp_value = []
 
@@ -67,7 +70,8 @@ def MaspRecommend(nowstamp, coinList, dfList, chart_term, first_disparity, secon
 
             #except Exception as e:
                 #print(e, coin, 'Masp error')
-
+        fn_end = datetime.datetime.now()
+        print('masp spend time ::::::: ', fn_end - fn_start)
         print('masp end ::::::: ', len(Masp_list))
         print('-----------------------------------------------------------------------------------------------------------')
 

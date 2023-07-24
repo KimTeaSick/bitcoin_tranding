@@ -5,8 +5,11 @@ import models
 import datetime
 from pybithumb import Bithumb
 
-secretKey = "ee7741a2e52957613c020ded3c91751c"
-connenctKey = "ef3d9e8fb9b15ca740150fed18cdaaae"
+secretKey = "07c1879d34d18036405f1c4ae20d3023"
+connenctKey = "9ae8ae53e7e0939722284added991d55"
+
+# secretKey = "ee7741a2e52957613c020ded3c91751c"
+# connenctKey = "ef3d9e8fb9b15ca740150fed18cdaaae"
 
 bithumb = Bithumb(connenctKey, secretKey)
 
@@ -38,14 +41,11 @@ for order in orderList:
         if orderStatus['data']['order_status'] == 'Completed':
             had_coin = db.query(models.possessionCoin).filter(
                 models.possessionCoin.coin == order.coin).first()
-
             orderSum = {'unit': 0, 'total': 0, 'fee': 0}
-
             for cont in orderStatus['data']['contract']:
                 orderSum['unit'] += float(cont['units'])
                 orderSum['total'] += float(cont['total'])
                 orderSum['fee'] += float(cont['fee'])
-
             had_coin.unit = float(
                 had_coin.unit) + orderSum['unit']
             had_coin.price = float(
@@ -54,14 +54,11 @@ for order in orderList:
                 had_coin.total) + orderSum['total']
             had_coin.fee = float(had_coin.fee) + \
                 orderSum['fee']
-
             had_coin.status = 0
             had_coin.transaction_time = datetime.datetime.now()
             had_coin.trailingstop_flag = 0
             had_coin.max = had_coin.price
-
             db.delete(order)
-
             transactionLog = models.possessionLog()
             transactionLog.coin = order.coin
             transactionLog.unit = orderSum['unit']
@@ -118,12 +115,15 @@ for order in orderList:
     # 매도 확인
     if order.status == 3 or order.status == 5:
         isOrder = []
-
         order_desc = ['ask', order.coin, order.order_id, 'KRW']
+        print("order_desc ::: ::: ", order_desc)
         orderStatus = bithumb.get_order_completed(order_desc)
         Possession = db.query(models.possessionCoin).filter(
             models.possessionCoin.coin == order.coin).first()
+        print("orderStatus ::: ::: ", orderStatus)
+        if orderStatus == None : continue
 
+        print("---------------------------------------------------------------------------------")
         if orderStatus['data']['order_status'] == 'Completed':
             orderSum = {'unit': 0, 'total': 0, 'fee': 0}
 
@@ -139,8 +139,7 @@ for order in orderList:
             db.delete(order)
 
             for cont in orderStatus['data']['contract']:
-                print(
-                    'asdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasdasd')
+                print('cont', cont)
 
             transactionLog = models.possessionLog()
             transactionLog.coin = order.coin

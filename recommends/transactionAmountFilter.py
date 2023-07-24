@@ -1,10 +1,13 @@
 import pandas as pd
+import datetime
 
 # 거래대금 데이터, 범위 받아 조건에 맞는 코인 리턴 (수집기 수정후 수집기데이터 사용으로 수정예정)
 def transactioAmountRecommend(nowstamp, coinList, dfList, chart_term, lowTransactionAmount, highTransactionAmount):
     print('-----------------------------------------------------------------------------------------------------------')
     print('transactio amount start ::::::: ')
+    print('transactio amount parameter ::::::: ', nowstamp, len(coinList), len(dfList), chart_term, lowTransactionAmount, highTransactionAmount)
     print('before condition pass coins ::::::: ', len(coinList))
+    fn_start = datetime.datetime.now()
 
     transactionAmount_list = []
     transactionAmount_value = []
@@ -23,6 +26,8 @@ def transactioAmountRecommend(nowstamp, coinList, dfList, chart_term, lowTransac
         else:
             pass
 
+    fn_end = datetime.datetime.now()
+    print('transactio spend time ::::::: ', fn_end - fn_start)
     print('transactio amount end ::::::: ', len(transactionAmount_list))
     print('-----------------------------------------------------------------------------------------------------------')
     return transactionAmount_list, transactionAmount_value
