@@ -173,9 +173,9 @@ def start():
     useTradingOption = db.query(models.tradingOption).filter(
         models.tradingOption.used == 1).first()
     accountOp = db.query(models.tradingAccountOtion).filter(
-        models.tradingAccountOtion.name == useTradingOption.name).first()
+        models.tradingAccountOtion.idx == useTradingOption.idx).first()
     sellOption = db.query(models.tradingSellOption).filter(
-        models.tradingSellOption.name == useTradingOption.name).first()
+        models.tradingSellOption.idx == useTradingOption.idx).first()
 
     autoStatus = db.query(models.autoTradingStatus).filter(
         models.autoTradingStatus.status == 1).first()

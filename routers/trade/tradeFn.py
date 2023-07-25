@@ -38,14 +38,13 @@ class TradeFn():
             trading_option.update_time = "-"
             trading_option.used = 0
             print(item.name)
-            print(trading_option.idx)
-            db.flush()
             db.add(trading_option)
+            db.flush()
+            print(trading_option.idx)
 
             for i in item:
-                print(item.name, i[0])
                 if i[0] == 'account':
-                    trading_account_option.name = item.name
+                    trading_account_option.idx = trading_option.idx
                     trading_account_option.price_count = i[1]['price_count']
                     trading_account_option.loss_cut_under_percent = i[1]['loss_cut_under_percent']
                     trading_account_option.loss = i[1]['loss']
@@ -69,7 +68,7 @@ class TradeFn():
                     db.add(trading_account_option)
 
                 if i[0] == 'buy':
-                    trading_buy_option.name = item.name
+                    trading_buy_option.idx = trading_option.idx
                     trading_buy_option.percent_to_buy_method = i[1]['percent_to_buy_method']
                     trading_buy_option.price_to_buy_method = i[1]['price_to_buy_method']
                     trading_buy_option.callmoney_to_buy_method = i[1]['callmoney_to_buy_method']
@@ -77,7 +76,7 @@ class TradeFn():
                     db.add(trading_buy_option)
 
                 if i[0] == 'sell':
-                    trading_sell_option.name = item.name
+                    trading_sell_option.idx = trading_option.idx
                     trading_sell_option.upper_percent_to_price_condition = i[
                         1]['upper_percent_to_price_condition']
                     trading_sell_option.down_percent_to_price_condition = i[
@@ -119,7 +118,7 @@ class TradeFn():
           options = []
           for option in optionL:
               options.append(
-                  {'Name': option.name, 'Create_date': option.insert_time[:19], 'Update_date': option.update_time[:19], 'used': option.used})
+                  {'idx': option.idx, 'Name': option.name, 'Create_date': option.insert_time[:19], 'Update_date': option.update_time[:19], 'used': option.used})
               print(options)
           return options
       except Exception as e:
@@ -133,16 +132,17 @@ class TradeFn():
           print(item)
           now1 = datetime.datetime.now()
           optionL = db.query(models.tradingOption).filter(
-              models.tradingOption.name == item.name).first()
+              models.tradingOption.idx == item.idx).first()
           accountL = db.query(models.tradingAccountOtion).filter(
-              models.tradingAccountOtion.name == item.name).first()
+              models.tradingAccountOtion.idx == item.idx).first()
           buyL = db.query(models.tradingBuyOption).filter(
-              models.tradingBuyOption.name == item.name).first()
+              models.tradingBuyOption.idx == item.idx).first()
           sellL = db.query(models.tradingSellOption).filter(
-              models.tradingSellOption.name == item.name).first()
+              models.tradingSellOption.idx == item.idx).first()
           now2 = datetime.datetime.now()
           print(now2-now1)
           return {optionL.name: {
+                                'idx':optionL.idx,
                                 'account': {"price_count": accountL.price_count, "loss_cut_under_percent": accountL.loss_cut_under_percent, "loss_cut_under_call_price_sell_all": accountL.loss_cut_under_call_price_sell_all, "loss_cut_under_coin_specific_percent": accountL.loss_cut_under_coin_specific_percent, "loss_cut_under_call_price_specific_coin": accountL.loss_cut_under_call_price_specific_coin, "loss_cut_over_percent": accountL.loss_cut_over_percent, "loss_cut_over_call_price_sell_all": accountL.loss_cut_over_call_price_sell_all, "loss_cut_over_coin_specific_percent": accountL.loss_cut_over_coin_specific_percent, "loss_cut_over_call_price_specific_coin": accountL.loss_cut_over_call_price_specific_coin, "buy_cancle_time": accountL.buy_cancle_time, "sell_cancle_time": accountL.sell_cancle_time, "loss": accountL.loss, "gain": accountL.gain},
                                 "buy": {"percent_to_buy_method": buyL.percent_to_buy_method, "price_to_buy_method": buyL.price_to_buy_method, "callmoney_to_buy_method": buyL.callmoney_to_buy_method, "checkbox": buyL.checkbox},
                                 "sell": {"upper_percent_to_price_condition": sellL.upper_percent_to_price_condition, "down_percent_to_price_condition": sellL.down_percent_to_price_condition, "disparity_for_upper_case": sellL.disparity_for_upper_case, "upper_percent_to_disparity_condition": sellL.upper_percent_to_disparity_condition, "disparity_for_down_case": sellL.disparity_for_down_case, "down_percent_to_disparity_condition": sellL.down_percent_to_disparity_condition, "call_money_to_sell_method": sellL.call_money_to_sell_method, "percent_to_split_sell": sellL.percent_to_split_sell, "shot_MACD_value": sellL.shot_MACD_value, "long_MACD_value": sellL.long_MACD_value, "MACD_signal_value": sellL.MACD_signal_value, "trailing_start_percent": sellL.trailing_start_percent, "trailing_stop_percent": sellL.trailing_stop_percent, "trailing_order_call_price": sellL.trailing_order_call_price}
@@ -155,7 +155,7 @@ class TradeFn():
       
   async def updateTradingOption(self, item):
       try:
-          print(item.name)
+          print("item.idx ::: ::: ", item.idx)
           for i in item:
               if i[0] == 'account':
                   price_count = i[1]['price_count']
@@ -192,14 +192,16 @@ class TradeFn():
                   trailing_start_percent = i[1]['trailing_start_percent']
                   trailing_stop_percent = i[1]['trailing_stop_percent']
                   trailing_order_call_price = i[1]['trailing_order_call_price']
+
           optionL = db.query(models.tradingOption).filter(
-              models.tradingOption.name == item.name).first()
+              models.tradingOption.idx == item.idx).first()
           accountL = db.query(models.tradingAccountOtion).filter(
-              models.tradingAccountOtion.name == item.name).first()
+              models.tradingAccountOtion.idx == item.idx).first()
           buyL = db.query(models.tradingBuyOption).filter(
-              models.tradingBuyOption.name == item.name).first()
+              models.tradingBuyOption.idx == item.idx).first()
           sellL = db.query(models.tradingSellOption).filter(
-              models.tradingSellOption.name == item.name).first()
+              models.tradingSellOption.idx == item.idx).first()
+          
           accountL.price_count = price_count
           accountL.loss_cut_under_percent = loss_cut_under_percent
           accountL.loss = loss
@@ -232,6 +234,7 @@ class TradeFn():
           sellL.trailing_stop_percent = trailing_stop_percent
           sellL.trailing_order_call_price = trailing_order_call_price
           optionL.update_time = datetime.datetime.now()
+
           try:
               db.commit()
               print('commit')
@@ -250,13 +253,13 @@ class TradeFn():
   async def deleteTradingOption(self, item):
       try:
           db.query(models.tradingOption).filter(
-              models.tradingOption.name == item.name).delete()
+              models.tradingOption.idx == item.idx).delete()
           db.query(models.tradingAccountOtion).filter(
-              models.tradingAccountOtion.name == item.name).delete()
+              models.tradingAccountOtion.idx == item.idx).delete()
           db.query(models.tradingBuyOption).filter(
-              models.tradingBuyOption.name == item.name).delete()
+              models.tradingBuyOption.idx == item.idx).delete()
           db.query(models.tradingSellOption).filter(
-              models.tradingSellOption.name == item.name).delete()
+              models.tradingSellOption.idx == item.idx).delete()
           try:
               db.commit()
           except Exception as e:
@@ -272,7 +275,7 @@ class TradeFn():
   async def useTradingOption(self, item):
       print(item)
       useOption = db.query(models.tradingOption).filter(
-          models.tradingOption.name == item.name).first()
+          models.tradingOption.idx == item.idx).first()
       optionL = db.query(models.tradingOption).filter(
           models.tradingOption.used == 1).all()
       for option in optionL:
@@ -300,12 +303,10 @@ class TradeFn():
       try:
           searchCondition = await self.bit.mysql.Select(findUseSearchCondition)
           tradingCondition = await self.bit.mysql.Select(findUseTradingCondition)
-          print("searchCondition ::: ::: ", searchCondition[0][0])
-          print("tradingCondition ::: ::: ", tradingCondition[0][1])
+          print("tradingCondition",tradingCondition)
           searchOption = await self.bit.mysql.Select(useSearchOptionStatus(str(searchCondition[0][0])))
-          tradingOption = await self.bit.mysql.Select(useTradingOptionStatus(tradingCondition[0][1]))
-          print("searchCondition ::: ::: ", searchOption)
-          print("tradingCondition ::: ::: ", tradingOption)
+          tradingOption = await self.bit.mysql.Select(useTradingOptionStatus(str(tradingCondition[0][0])))
+          print("tradingOption",tradingOption)
           searchOptionReturnValue = changer.SEARCH_CONDITION(searchOption)
           tradingOptionReturnValue = changer.TRADING_CONDITION(tradingOption)
           return {"searchOption": searchOptionReturnValue, "tradingOption": tradingOptionReturnValue}

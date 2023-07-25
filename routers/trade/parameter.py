@@ -6,16 +6,16 @@ class tradingOption(BaseModel):
     account: dict
     buy: dict
     sell: dict
+    idx: int
 
 class getTradingOptionDetail(BaseModel):
-    name: str
+    idx: int
 
 class deleteTradingOption(BaseModel):
-    name: str
+    idx: int
 
 class useTradingOption(BaseModel):
-    name: str
+    idx: int
 
-    
 class controlAT(BaseModel):
     flag: int

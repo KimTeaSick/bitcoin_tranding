@@ -99,7 +99,7 @@ def useSearchOptionStatus(idx):
   left join nc_c_macd_t macd on macd.idx = op.idx and macd.flag = 1
   where op.idx = ''' + "'" + idx + "'"
 
-def useTradingOptionStatus(name):
+def useTradingOptionStatus(idx):
   return '''
   select 
   op.name,
@@ -132,10 +132,10 @@ def useTradingOptionStatus(name):
   s.trailing_stop_percent,
   s.trailing_order_call_price
   from nc_b_trading_option_t op
-  left join nc_c_account_option_t ac on op.name = ac.name
-  left join nc_c_buy_option_t b on op.name = b.name
-  left join nc_c_sell_option_t s on op.name = s.name
-  where op.name like ''' + "'" + name + "'"
+  left join nc_c_account_option_t ac on op.idx = ac.idx
+  left join nc_c_buy_option_t b on op.idx = b.idx
+  left join nc_c_sell_option_t s on op.idx = s.idx
+  where op.idx like ''' + "'" + idx + "'"
 
 def getTradingHisSql():
   return "SELECT * FROM nc_p_possession_coin_his_t WHERE transaction_time >= (SELECT start_date FROM nc_b_now_auto_status_t) order by idx desc"

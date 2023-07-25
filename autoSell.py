@@ -34,10 +34,10 @@ useTradingOption = db.query(models.tradingOption).filter(
     models.tradingOption.used == 1).first()
 
 accountOtion = db.query(models.tradingAccountOtion).filter(
-    models.tradingAccountOtion.name == useTradingOption.name).first()
+    models.tradingAccountOtion.idx == useTradingOption.idx).first()
 
 sellOption = db.query(models.tradingSellOption).filter(
-    models.tradingSellOption.name == useTradingOption.name).first()
+    models.tradingSellOption.idx == useTradingOption.idx).first()
 
 autoStatus = db.query(models.autoTradingStatus).filter(
     models.autoTradingStatus.status == 1).first()
@@ -111,12 +111,12 @@ except Exception as e:
 
 print(percent, 'gggggggggggggggggggggggggggggggggggggggggggggggggggg')
 print(accountOtion.loss_cut_under_percent)
-'''
 # 매도 취소 재매도
 for sell in resale:
     sell_list.append({'coin': sell['coin'], 'reason': 'resale', 'unit': sell['unit'], 'close': sell['nowprice'],
                        'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
 
+'''
 # 로스컷 or autosell
 if float(percent) >= float(accountOtion.loss_cut_over_percent):
     print('로스컷 오버')
@@ -124,15 +124,15 @@ if float(percent) >= float(accountOtion.loss_cut_over_percent):
         if sell['percent'] >= accountOtion.loss_cut_over_coin_specific_percent and accountOtion.gain == 2:
             sell_list.append({'coin': sell['coin'], 'reason': 'loss cut over', 'unit': sell['unit'], 'close': sell['nowprice'],
                               'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_over_call_price_specific_coin})
-
         if accountOtion.gain == 1:
             sell_list.append({'coin': sell['coin'], 'reason': 'loss cut over', 'unit': sell['unit'], 'close': sell['nowprice'],
                               'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_over_call_price_sell_all})
-
         print('로스컷 오버 판매 완료')
 
 
 elif float(percent) <= -float(accountOtion.loss_cut_under_percent):
+'''
+if float(percent) <= -float(accountOtion.loss_cut_under_percent):
     print('로스컷 언더')
     for sell in isSell:
         if sell['percent'] <= accountOtion.loss_cut_under_coin_specific_percent and accountOtion.loss == 2:
@@ -144,7 +144,7 @@ elif float(percent) <= -float(accountOtion.loss_cut_under_percent):
                               'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_under_call_price_sell_all})
 
         print('로스컷 언더 판매')
-'''
+
 # 로스컷 아닐 때 판매 조건
 # else:
 if True:  # 기준가격 미만 조건만 남김 0712

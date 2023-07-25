@@ -44,4 +44,4 @@ async def getAccountInfo(date1, date2):
 async def test(item: rateCheckBody):
     res = await dash.rate_check(item)
     print("res", res)
-    return res
+    return {'rate': res[0], 'account_balance': res[1]}

@@ -52,9 +52,9 @@ for coin in possessionCoins:
 
 # 매수 조건
 accountOtion = db.query(models.tradingAccountOtion).filter(
-    models.tradingAccountOtion.name == useTradingOption.name).first()
+    models.tradingAccountOtion.idx == useTradingOption.idx).first()
 buyOtion = db.query(models.tradingBuyOption).filter(
-    models.tradingBuyOption.name == useTradingOption.name).first()
+    models.tradingBuyOption.idx == useTradingOption.idx).first()
 
 # 보유 코인 지정 갯수 초과시 종료
 if coinCount > accountOtion.price_count:

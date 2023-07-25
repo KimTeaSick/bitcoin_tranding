@@ -344,8 +344,6 @@ class tradingAccountOtion(Base):
     __tablename__ = "nc_c_account_option_t"
 
     idx = Column(Integer, primary_key=True)
-
-    name = Column(String(100))
     price_count = Column(Integer)
     loss_cut_under_percent = Column(Integer)
     loss = Column(Integer)
@@ -367,9 +365,6 @@ class tradingBuyOption(Base):
     __tablename__ = "nc_c_buy_option_t"
 
     idx = Column(Integer, primary_key=True)
-
-    name = Column(String(100))
-
     percent_to_buy_method = Column(Integer)
     price_to_buy_method = Column(Integer)
     callmoney_to_buy_method = Column(Integer)
@@ -380,9 +375,6 @@ class tradingSellOption(Base):
     __tablename__ = "nc_c_sell_option_t"
 
     idx = Column(Integer, primary_key=True)
-
-    name = Column(String(100))
-
     upper_percent_to_price_condition = Column(Integer)
     down_percent_to_price_condition = Column(Integer)
     disparity_for_upper_case = Column(Integer)

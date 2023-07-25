@@ -19,14 +19,11 @@ class DashBoardFn():
   async def rate_check(self, item):
     try:
       res = 0
-      if item.days == 0 : 
-        rate = await self.bit.nowRate()
-        res = rate['rate']
-        return res
       total_rate = await self.bit.mysql.Select(total_rate_sql(str(item.days)))
       for rate in total_rate:
         res += float(rate[0])
-      return round(res, 3)
+      print(total_rate[-1][-1])
+      return round(res, 3), total_rate[-1][-1]
     except Exception as e:
       print('Error ::: ::: ', e)
   
