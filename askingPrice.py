@@ -9,18 +9,20 @@ def ASK_PRICE(coin, asking, trading_type):
     ask_price_list = raw_ask_price_list['bids'] if trading_type == 'buy' else raw_ask_price_list['asks']
     for price in ask_price_list:
         ask_prices.append(price['price'])
-    price = ask_prices[0] if trading_type == 'buy' else ask_prices[len(ask_prices) - 1]
+    
+    price = ask_prices[0]
 
     C_VALUE = askingPrice(price, int(asking[1]))
 
     if asking[0] == '-':
-        return float(price) - C_VALUE
+        return round(float(price) - C_VALUE, 4)
     elif asking[0] == '+':
-        return float(price) + C_VALUE
+        return round(float(price) + C_VALUE, 4)
 
 # 호가 계산 함수
 def askingPrice(price, asking=1):
     result: float = 0.0
+    
     if price < 1:
         result = 0.0001
     elif price >= 1 and price < 10:
@@ -43,4 +45,5 @@ def askingPrice(price, asking=1):
         result = 500
     elif price >= 1000000:
         result = 1000
-    return result * asking
+
+    return round(result * asking, 4)

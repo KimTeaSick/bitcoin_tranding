@@ -7,6 +7,10 @@ import requests
 import askingPrice
 import json
 from pybithumb import Bithumb
+from sell.lossOver import LossOverSell
+from sell.lossUnder import LossUnderSell
+from sell.priceDrop import PriceDropSell
+from sell.reSale import ReSaleSell
 import time
 import pandas as pd
 import numpy as np
@@ -33,8 +37,8 @@ possession_coins = db.query(models.possessionCoin).all()
 useTradingOption = db.query(models.tradingOption).filter(
     models.tradingOption.used == 1).first()
 
-accountOtion = db.query(models.tradingAccountOtion).filter(
-    models.tradingAccountOtion.idx == useTradingOption.idx).first()
+accountOtion = db.query(models.tradingAccountOption).filter(
+    models.tradingAccountOption.idx == useTradingOption.idx).first()
 
 sellOption = db.query(models.tradingSellOption).filter(
     models.tradingSellOption.idx == useTradingOption.idx).first()
@@ -69,39 +73,34 @@ print(sellOption.disparity_for_upper_case, sellOption.disparity_for_down_case)
 max += 10
 print(max)
 
-possession: float = 0.0
-nowWallet = 0.0
+possession: float = 0.0 # 보유 종목 총합 매수 단가
+nowWallet = 0.0 # 보유 종목 총합 현재가
 isSell = [] # 매도 리스트
 resale = [] # 재 매도 리스트
+sell_list = []
 
 # 총 구매 금액 계산 0, 보유중, 1: 매수 중, 2: 분할 매수, 3: 첫 번째 매도 중, 4: 매도 취소, 5: 매도 중 , 6: 매도 완료
-for coins in possession_coins:
-    possession += float(coins.total)
-    
-    response = json.loads(requests.get(
-        bithumbApi + coins.coin+'_KRW', headers=headers).text)
-    
-    nowPrice = float(response['data']['closing_price']) * float(coins.unit)
+for coin in possession_coins:
+    possession += float(coin.total)
+    response = json.loads(requests.get(bithumbApi + coin.coin+'_KRW', headers=headers).text)
+    nowPrice = float(response['data']['closing_price']) * float(coin.unit)
 
     ask = askingPrice.askingPrice(float(response['data']['closing_price']))
 
-    if coins.status == 4:
-        if float(coins.total) != 0.0 or float(nowPrice) != 0.0:
-            resale.append({'coin': coins.coin, 'nowprice': response['data']['closing_price'], 'unit': coins.unit, 'buyPrice': coins.price, 'percent': (
-                nowPrice / float(coins.total)) * 100 - 100, 'ask': ask, 'macd_chart': coins.macd_chart, 'disparity_chart': coins.disparity_chart})
-
-    else:
-        if float(coins.total) != 0.0 or float(nowPrice) != 0.0:
-            isSell.append({'coin': coins.coin, 'nowprice': response['data']['closing_price'], 'unit': coins.unit, 'buyPrice': coins.price, 'percent': (
-                nowPrice / float(coins.total)) * 100 - 100, 'ask': ask, 'macd_chart': coins.macd_chart, 'disparity_chart': coins.disparity_chart})
+    if float(coin.total) != 0.0 or float(nowPrice) != 0.0:
+        if coin.status == 4:
+            resale.append({'coin': coin.coin, 'nowprice': response['data']['closing_price'], 'unit': coin.unit, 'buyPrice': coin.price, 'percent': (
+                nowPrice / float(coin.total)) * 100 - 100, 'ask': ask, 'macd_chart': coin.macd_chart, 'disparity_chart': coin.disparity_chart})
+        else:
+            isSell.append({'coin': coin.coin, 'nowprice': response['data']['closing_price'], 'unit': coin.unit, 'buyPrice': coin.price, 'percent': (
+                nowPrice / float(coin.total)) * 100 - 100, 'ask': ask, 'macd_chart': coin.macd_chart, 'disparity_chart': coin.disparity_chart})
 
     nowWallet += nowPrice
 
-print(possession, '구매가')
-print(nowWallet, '현재가')
-print(isSell)
-
-sell_list = []
+print('구매가', possession)
+print('현재가', nowWallet)
+print('isSell', isSell)
+print("---------------------------------------------------------------------------------------------------------")
 
 try:
     percent = (nowWallet / possession) * 100 - 100
@@ -109,18 +108,29 @@ except Exception as e:
     print(e)
     percent = 0
 
-print(percent, 'gggggggggggggggggggggggggggggggggggggggggggggggggggg')
-print(accountOtion.loss_cut_under_percent)
+print("percent", percent)
+print("loss cut under percent", accountOtion.loss_cut_under_percent)
+
+print("---------------------------------------------------------------------------------------------------------")
+print("resale start ::: ::: ")
 # 매도 취소 재매도
 for sell in resale:
-    sell_list.append({'coin': sell['coin'], 'reason': 'resale', 'unit': sell['unit'], 'close': sell['nowprice'],
-                       'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
+    re_sale_coin = ReSaleSell(sell, sellOption)
+    sell_list.append(re_sale_coin)
+
+print("resale list ::: ::: ", sell_list)
+print("resale end ::: ::: ")
+print("---------------------------------------------------------------------------------------------------------")
 
 '''
 # 로스컷 or autosell
 if float(percent) >= float(accountOtion.loss_cut_over_percent):
     print('로스컷 오버')
     for sell in isSell:
+        loss_over_coin = LossOverSell(percent, accountOtion, isSell)
+        print("loss over coin ::: ::: ", loss_over_coin)
+        if loss_over_coin == None: pass
+
         if sell['percent'] >= accountOtion.loss_cut_over_coin_specific_percent and accountOtion.gain == 2:
             sell_list.append({'coin': sell['coin'], 'reason': 'loss cut over', 'unit': sell['unit'], 'close': sell['nowprice'],
                               'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_over_call_price_specific_coin})
@@ -132,18 +142,25 @@ if float(percent) >= float(accountOtion.loss_cut_over_percent):
 
 elif float(percent) <= -float(accountOtion.loss_cut_under_percent):
 '''
+print("---------------------------------------------------------------------------------------------------------")
+
 if float(percent) <= -float(accountOtion.loss_cut_under_percent):
-    print('로스컷 언더')
     for sell in isSell:
+        
+        loss_under_coin = LossUnderSell(sell, accountOtion)
+        print("loss under coin", loss_under_coin)
+        if loss_under_coin == None: pass
+
         if sell['percent'] <= accountOtion.loss_cut_under_coin_specific_percent and accountOtion.loss == 2:
             sell_list.append({'coin': sell['coin'], 'reason': 'loss cut under', 'unit': sell['unit'], 'close': sell['nowprice'],
-                              'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_under_call_price_specific_coin})
-
+                            'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_under_call_price_specific_coin})
         if accountOtion.loss == 1:
             sell_list.append({'coin': sell['coin'], 'reason': 'loss cut under', 'unit': sell['unit'], 'close': sell['nowprice'],
-                              'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_under_call_price_sell_all})
+                            'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_under_call_price_sell_all})
+    print('loss under sell list ::: ::: ', sell_list)
+    print('로스컷 언더 판매')
 
-        print('로스컷 언더 판매')
+print("---------------------------------------------------------------------------------------------------------")
 
 # 로스컷 아닐 때 판매 조건
 # else:
@@ -163,11 +180,15 @@ if True:  # 기준가격 미만 조건만 남김 0712
 
         # 매도조건 1. 가격기준 / 하락
         # elif sell['percent'] <= (- sellOption.down_percent_to_price_condition):
-        if sell['percent'] <= (- sellOption.down_percent_to_price_condition):
-            print((- sellOption.down_percent_to_price_condition))
-            sell_list.append({'coin': sell['coin'], 'reason': 'price under', 'unit': sell['unit'], 'close': sell['nowprice'],
-                              'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
-            continue
+
+        price_drop_coin = PriceDropSell(sell, sellOption)
+        sell_list.append(price_drop_coin)
+        # if sell['percent'] <= (- sellOption.down_percent_to_price_condition):
+        #     print((- sellOption.down_percent_to_price_condition))
+        #     sell_list.append({'coin': sell['coin'], 'reason': 'price under', 'unit': sell['unit'], 'close': sell['nowprice'],
+        #                     'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
+        #     continue
+
         '''
         nowstamp = int(int(now1.timestamp()) / 60) * 60  # + (60*540)
         print(nowstamp, '============================================================')
@@ -256,38 +277,29 @@ with open("./sellLog", "a") as file:
 for sell_order in sell_list:
     try:
         if sell_order['reason'] == 'resale':
-            print(sell_order)
+            print("re sell_order ::: ::: ", sell_order)
             coin = sell_order['coin']
-            # askP = float(sell_order['close']) + (int(sell_order['askprice']) * sell_order['ask'])
-
-            if int(sellOption.call_money_to_sell_method) >= 0:
-                ask = f'+{sellOption.call_money_to_sell_method}'
-            else:
-                ask = str(sellOption.call_money_to_sell_method)
-
-            askP = askingPrice.ASK_PRICE(
+            ask = f'+{sellOption.call_money_to_sell_method}' if int(sellOption.call_money_to_sell_method) >= 0 else str(sellOption.call_money_to_sell_method)
+            sell_price = askingPrice.ASK_PRICE(
                 f"{sell_order['coin']}_KRW", ask, 'sell')
-
-            orderids = bithumb.sell_limit_order(
-                sell_order['coin'], float(askP), float(sell_order['unit']), "KRW")
+            
+            orderids = bithumb.sell_market_order(sell_order['coin'], float(sell_order['unit']), "KRW")
             
             print(f'{coin} 매도주문')
             print("------------------------------------------------------------------")
             print(orderids)
-
             order_coin = models.orderCoin()
             order_coin.coin = sell_order['coin']
             order_coin.status = 5
             order_coin.transaction_time = datetime.datetime.now()
             order_coin.order_id = orderids[2]
-            order_coin.cancel_time = (datetime.datetime.now(
-            ) + datetime.timedelta(seconds=accountOtion.buy_cancle_time))
+            order_coin.cancel_time = (datetime.datetime.now() + datetime.timedelta(seconds=accountOtion.buy_cancle_time))
             order_coin.sell_reason = sell_order['reason']
             db.add(order_coin)
             db.commit()
 
         else:
-            print(sell_order)
+            print("first sell_order ::: ::: ", sell_order)
             coin = sell_order['coin']
             # askP = float(sell_order['close']) + (int(sell_order['askprice']) * sell_order['ask'])
 
@@ -295,12 +307,14 @@ for sell_order in sell_list:
                 ask = f'+{sellOption.call_money_to_sell_method}'
             else:
                 ask = str(sellOption.call_money_to_sell_method)
+
             askP = askingPrice.ASK_PRICE(
                 f"{sell_order['coin']}_KRW", ask, 'sell')
-
-            orderids = bithumb.sell_limit_order(
-                sell_order['coin'], float(askP), float(sell_order['unit']), "KRW")
             
+            orderids = bithumb.sell_limit_order(
+                sell_order['coin'], round(float(askP), 1), float(sell_order['unit']), "KRW")
+            
+            print(sell_order['coin'], round(float(askP), 1), float(sell_order['unit']), "KRW")
             print(f'{coin} 매도주문')
             print("------------------------------------------------------------------")
             print(orderids)
@@ -316,5 +330,5 @@ for sell_order in sell_list:
             db.commit()
 
     except Exception as e:
-        print(e, 'sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss')
+        print("sell Error ::: ::: ", e)
         pass

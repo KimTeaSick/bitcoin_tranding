@@ -1,9 +1,14 @@
-from BitThumbPrivate import BitThumbPrivate
+from dotenv import load_dotenv
+import os
+load_dotenv()
+IS_DEV = os.environ.get('IS_DEV')
+pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
-sys.path.append("../")
+sys.path.append(pwd) 
+from BitThumbPrivate import BitThumbPrivate
+
 
 bit = BitThumbPrivate()
-
 
 def ASK_PRICE(coin, asking, trading_type):
     ask_prices = []
@@ -16,14 +21,14 @@ def ASK_PRICE(coin, asking, trading_type):
     C_VALUE = askingPrice(price, int(asking[1]))
 
     if asking[0] == '-':
-        return float(price) - C_VALUE
+        return round(float(price) - C_VALUE, 4)
     elif asking[0] == '+':
-        return float(price) + C_VALUE
+        return round(float(price) + C_VALUE, 4)
 
-
-# 호가 계산 함수 
-def askingPrice(price, asking):
-    result:float = 0.0
+# 호가 계산 함수
+def askingPrice(price, asking=1):
+    result: float = 0.0
+    
     if price < 1:
         result = 0.0001
     elif price >= 1 and price < 10:
@@ -46,4 +51,5 @@ def askingPrice(price, asking):
         result = 500
     elif price >= 1000000:
         result = 1000
-    return result * asking
+
+    return round(result * asking, 4)

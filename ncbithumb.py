@@ -5,6 +5,7 @@ from routers.coinList import coinApi
 from routers.tradeHis import tradeHisApi
 from routers.search import searchApi
 from routers.trade import tradeApi
+from routers.test import testApi
 from search_option import search
 from lib.pagiNation import PagiNation
 from BitThumbPrivate import *
@@ -111,6 +112,7 @@ app.include_router(coinApi.coinRouter)
 app.include_router(tradeHisApi.tradeRouter)
 app.include_router(searchApi.searchRouter)
 app.include_router(tradeApi.tradeRouter)
+app.include_router(testApi.testRouter)
 
 if __name__ == "__main__":
     config = uvicorn.Config("ncbithumb:app", port=8888, log_level="info", host="0.0.0.0")

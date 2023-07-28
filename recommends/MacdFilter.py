@@ -10,6 +10,7 @@ def MacdRecommend(nowstamp, coinList, dfList, chart_term, short_disparity, long_
     print('macd start ::::::: ')
     print('paramater ::::::: ', nowstamp, chart_term, short_disparity, long_disparity, signal,  up_down)
     print('before condition pass coins ::::::: ', len(coinList))
+
     fn_start = datetime.datetime.now()
     Macd_list = []
     Macd_value = []
@@ -29,37 +30,30 @@ def MacdRecommend(nowstamp, coinList, dfList, chart_term, short_disparity, long_
             df = df[(len(df) % times):]
             df.reset_index(drop=True, inplace=True)
             df.rename(columns={0:'time', 1:"시가", 2:"종가", 3:"고가", 4:"저가", 5:"거래량"}, inplace=True)
-
             df=df[['time', "시가", "종가", "고가", "저가", "거래량"]].astype("float")
-
             df.sort_values("time", inplace=True)
             df=df[['time', "시가", "종가", "고가", "저가", "거래량"]].astype("float")
             df.reset_index(drop=True, inplace=True)
             df["date"]=df["time"].apply(lambda x:time.strftime('%Y-%m-%d %H:%M', time.localtime(x/1000)))
-
             # 리스트를 times개씩 묶기
             df = df.groupby(np.arange(len(df)) // int(chart_term[:-1])).mean(numeric_only=True)
+            close_price = df['종가']
+            short_ema = close_price.ewm(span=int(short_disparity), adjust=False).mean()
+            long_ema = close_price.ewm(span=int(long_disparity), adjust=False).mean()
+            macd_line = short_ema - long_ema
+            signal_line = macd_line.ewm(span=int(signal), adjust=False).mean()
 
-            df["MACD_short"]=df["종가"].ewm(span=int(short_disparity)).mean()
-            df["MACD_long"]=df["종가"].ewm(span=int(long_disparity)).mean()
-            df["MACD"]=df.apply(lambda x: (x["MACD_short"]-x["MACD_long"]), axis=1)
-            df["MACD_signal"]=df["MACD"].ewm(span=int(signal)).mean()  
-            df["MACD_oscillator"]=df.apply(lambda x:(x["MACD"]-x["MACD_signal"]), axis=1)
-            df["MACD_sign"]=df.apply(lambda x: ("매수" if x["MACD"]>x["MACD_signal"] else "매도"), axis=1)
-
-            # 상승, 하락 비교
             if len(df) != 0 and up_down == 'up':
-                if float(df.iloc[-2]["MACD_oscillator"]) >= 0:
+                if float(signal_line.iloc[-1]) > float(macd_line.iloc[-1]):
                     Macd_list.append(coin)
-                    Macd_value.append({'coin_name':coin, 'macd_short': df.iloc[-2]["MACD_short"], 'macd_long':df.iloc[-2]["MACD_long"], 'macd':df.iloc[-2]["MACD"], 'macd_signal':df.iloc[-2]["MACD_signal"]})
-
+                    Macd_value.append({'coin_name':coin, 'macd_short': short_ema.iloc[-2], 'macd_long':long_ema.iloc[-2], 'macd':macd_line.iloc[-2], 'macd_signal':signal_line.iloc[-2]})
             if len(df) != 0 and up_down == 'down':
-                if float(df.iloc[-2]["MACD_oscillator"]) <= 0:
+                if float(signal_line.iloc[-1]) > float(macd_line.iloc[-1]):
                     Macd_list.append(coin)
-                    Macd_value.append({'coin_name':coin, 'macd_short': df.iloc[-2]["MACD_short"], 'macd_long':df.iloc[-2]["MACD_long"], 'macd':df.iloc[-2]["MACD"], 'macd_signal':df.iloc[-2]["MACD_signal"]})
+                    Macd_value.append({'coin_name':coin, 'macd_short': short_ema.iloc[-2], 'macd_long':long_ema.iloc[-2], 'macd':macd_line.iloc[-2], 'macd_signal':signal_line.iloc[-2]})
 
         except Exception as e:
-            print(e)
+            print("MACD Error ::: ::: ", e)
     fn_end = datetime.datetime.now()
     print('macd spend time ::::::: ', fn_end - fn_start)
     print('macd end ::::::: ', len(Macd_list))

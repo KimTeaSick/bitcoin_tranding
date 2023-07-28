@@ -340,7 +340,7 @@ class tradingOption(Base):
     used = Column(Integer)
 
 
-class tradingAccountOtion(Base):
+class tradingAccountOption(Base):
     __tablename__ = "nc_c_account_option_t"
 
     idx = Column(Integer, primary_key=True)

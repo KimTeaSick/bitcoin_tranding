@@ -6,6 +6,7 @@ import datetime
 import asyncio
 import askingPrice
 from pybithumb import Bithumb
+from buy.optionStandardization import OptionStandardization
 import requests
 import time
 import json
@@ -51,110 +52,45 @@ for coin in possessionCoins:
     hadCoin.append(coin.coin)
 
 # 매수 조건
-accountOtion = db.query(models.tradingAccountOtion).filter(
-    models.tradingAccountOtion.idx == useTradingOption.idx).first()
-buyOtion = db.query(models.tradingBuyOption).filter(
+accountOption = db.query(models.tradingAccountOption).filter(
+    models.tradingAccountOption.idx == useTradingOption.idx).first()
+buyOption = db.query(models.tradingBuyOption).filter(
     models.tradingBuyOption.idx == useTradingOption.idx).first()
 
 # 보유 코인 지정 갯수 초과시 종료
-if coinCount > accountOtion.price_count:
+if coinCount > accountOption.price_count:
     print('exit')
-    print(accountOtion.price_count, 'maximum')
+    print(accountOption.price_count, 'maximum')
     print(coinCount, 'have')
     exit()
 
 
 # 검색 조건
-priceOtion = db.query(models.PriceOption).filter(
+priceOption = db.query(models.PriceOption).filter(
     models.PriceOption.idx == useRecommendOPtion.idx).first()
 
 transactionAmountOption = db.query(models.TransactionAmountOption).filter(
     models.TransactionAmountOption.idx == useRecommendOPtion.idx).first()
 
-maspOtion = db.query(models.MASPOption).filter(
+maspOption = db.query(models.MASPOption).filter(
     models.MASPOption.idx == useRecommendOPtion.idx).first()
 
 trendOption = db.query(models.TrendOption).filter(
     models.TrendOption.idx == useRecommendOPtion.idx).first()
 
-disparityOtion = db.query(models.DisparityOption).filter(
+disparityOption = db.query(models.DisparityOption).filter(
     models.DisparityOption.idx == useRecommendOPtion.idx).first()
 
 macdOption = db.query(models.MACDOption).filter(
     models.MACDOption.idx == useRecommendOPtion.idx).first()
 
 # 검색
-mMax: int = 0
-hMax: int = 0
-options: list = []
-
 # 검색에 필요한 정보 설정
-if priceOtion.flag == 1:
-    if priceOtion.high_price != 0:
-        if 5 > mMax:
-            mMax = 5
-        options.append({'option': 'Price', 'low_price': priceOtion.low_price,
-                        'high_price': priceOtion.high_price})
+option_result = OptionStandardization( priceOption, transactionAmountOption, maspOption, trendOption, disparityOption, macdOption)
+options: list = option_result[0]
+mMax: int = option_result[1]
+hMax:int  = option_result[2]
 
-if transactionAmountOption.flag == 1:
-    if transactionAmountOption.high_transaction_amount != 0:
-        if transactionAmountOption.chart_term[-1] == 'm' and int(transactionAmountOption.chart_term[:-1]) > mMax:
-            mMax = int(transactionAmountOption.chart_term[:-1])
-        if transactionAmountOption.chart_term[-1] == 'h' and int(transactionAmountOption.chart_term[:-1]) > hMax:
-            hMax = int(transactionAmountOption.chart_term[:-1])
-
-    options.append({'option': 'TransactionAmount', 'chart_term': transactionAmountOption.chart_term, 'low_transaction_amount':
-                    transactionAmountOption.low_transaction_amount, 'high_transaction_amount': transactionAmountOption.high_transaction_amount})
-
-if maspOtion.flag == 1:
-    if maspOtion.first_disparity != 0 and maspOtion.second_disparity != 0:
-        print('first_disparity: ', maspOtion.first_disparity,
-                'second_disparity: ', maspOtion.second_disparity)
-        if maspOtion.chart_term[-1] == 'm' and (maspOtion.first_disparity * int(maspOtion.chart_term[:-1])) > mMax:
-            mMax = maspOtion.first_disparity * int(maspOtion.chart_term[:-1])
-        if maspOtion.chart_term[-1] == 'm' and (maspOtion.second_disparity * int(maspOtion.chart_term[:-1])) > mMax:
-            mMax = maspOtion.second_disparity * int(maspOtion.chart_term[:-1])
-        if maspOtion.chart_term[-1] == 'h' and (maspOtion.first_disparity * int(maspOtion.chart_term[:-1])) > hMax:
-            hMax = (maspOtion.first_disparity) * int(maspOtion.chart_term[:-1])
-        if maspOtion.chart_term[-1] == 'h' and (maspOtion.second_disparity * int(maspOtion.chart_term[:-1])) > hMax:
-            hMax = (maspOtion.second_disparity) * \
-                int(maspOtion.chart_term[:-1])
-
-        options.append({'option': 'MASP', 'chart_term': maspOtion.chart_term, 'first_disparity': maspOtion.first_disparity,
-                        'second_disparity': maspOtion.second_disparity, 'comparison': maspOtion.comparison})
-
-if disparityOtion.flag == 1:
-    if disparityOtion.chart_term != 0:
-        if disparityOtion.chart_term[-1] == 'm' and (disparityOtion.disparity_term * int(disparityOtion.chart_term[:-1])) > mMax:
-            mMax = (disparityOtion.disparity_term *
-                    int(disparityOtion.chart_term[:-1]))
-        if disparityOtion.chart_term[-1] == 'h' and (disparityOtion.disparity_term * int(disparityOtion.chart_term[:-1])) > hMax:
-            hMax = (disparityOtion.disparity_term *
-                    int(disparityOtion.chart_term[:-1]))
-        options.append({'option': 'Disparity', 'chart_term': disparityOtion.chart_term, 'disparity_term': disparityOtion.disparity_term,
-                        'low_disparity': disparityOtion.low_disparity, 'high_disparity': disparityOtion.high_disparity})
-
-if trendOption.flag == 1:
-    if trendOption.trend_term != 0 and trendOption.MASP != 0:
-        if trendOption.chart_term[-1] == 'm' and ((trendOption.trend_term + 2 + trendOption.MASP) * int(trendOption.chart_term[:-1])) > mMax:
-            mMax = ((trendOption.trend_term + 2 + trendOption.MASP)
-                    * int(trendOption.chart_term[:-1]))
-        if trendOption.chart_term[-1] == 'h' and int((int(trendOption.trend_term) + 2 + int(trendOption.MASP)) * int(trendOption.chart_term[:-1])) > hMax:
-            hMax = ((trendOption.trend_term + 2 + trendOption.MASP)
-                    * int(trendOption.chart_term[:-1]))
-        options.append({'option': 'Trend', 'chart_term': trendOption.chart_term, 'trend_term': trendOption.trend_term,
-                        'trend_type': trendOption.trend_type, 'trend_reverse': trendOption.trend_reverse, "MASP": trendOption.MASP})
-
-if macdOption.flag == 1:
-    if macdOption.short_disparity != 0 and macdOption.long_disparity != 0:
-        if macdOption.chart_term[-1] == 'm' and ((macdOption.long_disparity * 2 + macdOption.signal) * int(macdOption.chart_term[:-1])) > mMax:
-            mMax = (macdOption.long_disparity * 2 + macdOption.signal) * \
-                int(macdOption.chart_term[:-1])
-        if macdOption.chart_term[-1] == 'h' and ((macdOption.long_disparity * 2 + macdOption.signal) * int(macdOption.chart_term[:-1])) > hMax:
-            hMax = (macdOption.long_disparity * 2 + macdOption.signal) * \
-                int(macdOption.chart_term[:-1])
-        options.append({'option': 'MACD', 'chart_term': macdOption.chart_term, 'short_disparity': macdOption.short_disparity,
-                        'long_disparity': macdOption.long_disparity, 'signal': macdOption.signal, 'up_down': macdOption.up_down})
 
 print(options)
 print(f'mMax: {mMax}, hMax: {hMax}')
@@ -190,13 +126,14 @@ print('-------------------------------------------------------------------------
 moneyPerCoin: float = 0
 
 # 코인당 거래할 금액 계산
-if buyOtion.checkbox == 1:
-    moneyPerCoin = buyOtion.price_to_buy_method * 10000
-elif buyOtion.checkbox == 2:
-    moneyPerCoin = (money * buyOtion.percent_to_buy_method) / 100
+if buyOption.checkbox == 1:
+    moneyPerCoin = buyOption.price_to_buy_method * 10000
+    
+elif buyOption.checkbox == 2:
+    moneyPerCoin = (money * buyOption.percent_to_buy_method) / 100
 
 print(
-    f'moneyPerCoin: {moneyPerCoin}, money: {money}, percent: {buyOtion.percent_to_buy_method}')
+    f'moneyPerCoin: {moneyPerCoin}, money: {money}, percent: {buyOption.percent_to_buy_method}')
 
 orders = ''
 orderList = []
@@ -204,7 +141,7 @@ print(money)
 for coin in sortedCoins:
     try:
         # 구매 안하는 사유
-        if coinCount >= int(accountOtion.price_count):
+        if coinCount >= int(accountOption.price_count):
             print('coin count')
             coin['fail_reason'] = 'coin count'
             continue
@@ -219,7 +156,7 @@ for coin in sortedCoins:
             coin['fail_reason'] = 'possession coin'
             continue
 
-        print(coinCount, accountOtion.price_count, coin['name'])
+        print(coinCount, accountOption.price_count, coin['name'])
 
         orders = ''
 
@@ -227,14 +164,14 @@ for coin in sortedCoins:
 
         # 지정 호가 계산
         # ask = askingPrice.askingPrice(int(float(coin['price'])))
-        # coin_ask_price = float(coin['price']) + (buyOtion.callmoney_to_buy_method * ask)
+        # coin_ask_price = float(coin['price']) + (buyOption.callmoney_to_buy_method * ask)
         # coin_ask_price = (round(coin_ask_price,4))
         splitBuy = moneyPerCoin * 1
 
-        if buyOtion.callmoney_to_buy_method > 0:
-            ask = f'+{buyOtion.callmoney_to_buy_method}'
+        if buyOption.callmoney_to_buy_method > 0:
+            ask = f'+{buyOption.callmoney_to_buy_method}'
         else:
-            ask = str(buyOtion.callmoney_to_buy_method)
+            ask = str(buyOption.callmoney_to_buy_method)
 
         coin_ask_price = askingPrice.ASK_PRICE(f"{coin['name']}_KRW", ask, 'buy')
         print('coin_ask_price ::::::: ', coin_ask_price)
@@ -244,7 +181,7 @@ for coin in sortedCoins:
 
         # 주문
         order = bithumb.buy_limit_order(
-            coin['name'], float(coin_ask_price), round(splitUnit, 4), 'KRW')
+            coin['name'], round(float(coin_ask_price), 2), round(splitUnit, 4), 'KRW')
         print(order)
 
         order_id = order[2]
@@ -275,7 +212,7 @@ for ordercheck in orderList:
     order_coin.transaction_time = datetime.datetime.now()
     order_coin.order_id = ordercheck['orders']
     order_coin.cancel_time = (datetime.datetime.now(
-    ) + datetime.timedelta(seconds=accountOtion.buy_cancle_time))
+    ) + datetime.timedelta(seconds=accountOption.buy_cancle_time))
     db.add(order_coin)
 
     # 보유코인 추가
@@ -289,9 +226,9 @@ for ordercheck in orderList:
     possession_coin.transaction_time = datetime.datetime.now()
     possession_coin.order_id = ordercheck['orders']
     possession_coin.cancel_time = (datetime.datetime.now(
-    ) + datetime.timedelta(seconds=accountOtion.buy_cancle_time))
+    ) + datetime.timedelta(seconds=accountOption.buy_cancle_time))
     possession_coin.macd_chart = macdOption.chart_term
-    possession_coin.disparity_chart = disparityOtion.chart_term
+    possession_coin.disparity_chart = disparityOption.chart_term
     possession_coin.optionName = useRecommendOPtion.name
     possession_coin.trailingstop_flag = 0
     possession_coin.max = possession_coin.price

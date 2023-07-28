@@ -14,23 +14,22 @@ try:
     db: Session
 finally:
     db.close()
-
+ 
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
 connenctKey = "9ae8ae53e7e0939722284added991d55"
 
 bithumb = Bithumb(connenctKey, secretKey)
 
-sensingPercent = 0
-trailingPercent = 0
 
+trailingPercent = 0
+sensingPercent = 0
+accountOption = 0
 askOption = 0
 
-coinNames = []
 possessionCoin = {}
-accountOption = 0
+coinNames = []
 
 minute = str(datetime.datetime.now().strftime('%M'))
-
 
 def on_open(ws):
     print('WebSocket connection opened')
@@ -78,16 +77,15 @@ def on_message(ws, message):
 
                     else:
                         print(symbol, possessionCoin[symbol], price, '매도')
-                        # askP = price + (askOption * askingPrice.askingPrice(price))
+                        print(askOption, 'askOption :::::::::::::::::::::: ')
+                        
                         askP = askingPrice.ASK_PRICE(
                             f'{symbol}_KRW', askOption, 'sell')
-
-                        print(symbol[:-4], float(askP), possessionCoin[symbol]
-                                ['unit'], "KRW", askingPrice.askingPrice(price))
 
                         # 매도 주문
                         orderids = bithumb.sell_limit_order(
                             symbol[:-4], round(float(askP), 4), possessionCoin[symbol]['unit'], "KRW")
+                        
                         print(orderids)
 
                         # 주문 테이블 저장
@@ -95,8 +93,7 @@ def on_message(ws, message):
                         order_coin.coin = symbol[:-4]
                         order_coin.transaction_time = datetime.datetime.now()
                         order_coin.order_id = orderids[2]
-                        order_coin.cancel_time = str(
-                            datetime.datetime.now() + datetime.timedelta(seconds=accountOption))
+                        order_coin.cancel_time = str(datetime.datetime.now() + datetime.timedelta(seconds=accountOption))
                         order_coin.sell_reason = 'trailing stop'
 
                         if status.status == 4:
@@ -170,13 +167,13 @@ def start():
     global accountOption
 
     coinList = db.query(models.possessionCoin).all()
+    
     useTradingOption = db.query(models.tradingOption).filter(
         models.tradingOption.used == 1).first()
     accountOp = db.query(models.tradingAccountOtion).filter(
         models.tradingAccountOtion.idx == useTradingOption.idx).first()
     sellOption = db.query(models.tradingSellOption).filter(
         models.tradingSellOption.idx == useTradingOption.idx).first()
-
     autoStatus = db.query(models.autoTradingStatus).filter(
         models.autoTradingStatus.status == 1).first()
 
@@ -218,5 +215,6 @@ def start():
                                 on_error=on_error)
 
     ws.run_forever()
+
 
 start()
