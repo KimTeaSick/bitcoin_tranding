@@ -54,30 +54,27 @@ def on_message(ws, message):
         symbol = data['content']['list'][0]['symbol']
         price = float(data['content']['list'][0]['contPrice'])
 
-        print(data)
-
+        print("on_message data ::: ::: ", data)
         # 트레일링 스탑 시작
         if possessionCoin[symbol]['sensingPrice'] < price and possessionCoin[symbol]['trailingStop'] == 0:
             possessionCoin[symbol]['trailingStop'] = 1
-
         # 고가 비교
         if possessionCoin[symbol]['max'] < price:
             possessionCoin[symbol]['max'] = price
             possessionCoin[symbol]['trailingPrice'] = round(
                 (price - ((trailingPercent / 100) * price)), 4)
-
         if possessionCoin[symbol]['trailingStop'] == 1:
             if possessionCoin[symbol]['trailingPrice'] > price:
                 try:
                     status = db.query(models.possessionCoin).filter(
                         models.possessionCoin.coin == symbol[:-4]).first()
                     if status.status == 3 or status.status == 5:
-                        print(price)
+                        print("매도 중 가격 ::: ::: ", price)
                         pass
 
                     else:
-                        print(symbol, possessionCoin[symbol], price, '매도')
-                        print(askOption, 'askOption :::::::::::::::::::::: ')
+                        print(symbol, possessionCoin[symbol], price, '매도 ::: ::: ')
+                        print('ask option ::: ::: ', askOption)
                         
                         askP = askingPrice.ASK_PRICE(
                             f'{symbol}_KRW', askOption, 'sell')
@@ -86,7 +83,7 @@ def on_message(ws, message):
                         orderids = bithumb.sell_limit_order(
                             symbol[:-4], round(float(askP), 4), possessionCoin[symbol]['unit'], "KRW")
                         
-                        print(orderids)
+                        print("order id ::: ::: ",orderids)
 
                         # 주문 테이블 저장
                         order_coin = models.orderCoin()
