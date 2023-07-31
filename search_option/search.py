@@ -78,6 +78,7 @@ async def search():
     return_value.append({coin:{'disparity': disparity[0][coin]['disparity'], 'close':price[0][coin]['Close']}})
   end = datetime.now()
   print("time :::: ", end - start)
+  
   return result
 
 # asyncio.run(search())

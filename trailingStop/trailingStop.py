@@ -15,8 +15,8 @@ try:
 finally:
     db.close()
  
-secretKey = "07c1879d34d18036405f1c4ae20d3023"
-connenctKey = "9ae8ae53e7e0939722284added991d55"
+secretKey = "c59e7f376201984d26224428649e42c7"
+connenctKey = "e2fee448690937ae2e8cd6dada5a183e"
 
 bithumb = Bithumb(connenctKey, secretKey)
 
@@ -167,8 +167,8 @@ def start():
     
     useTradingOption = db.query(models.tradingOption).filter(
         models.tradingOption.used == 1).first()
-    accountOp = db.query(models.tradingAccountOtion).filter(
-        models.tradingAccountOtion.idx == useTradingOption.idx).first()
+    accountOp = db.query(models.tradingAccountOption).filter(
+        models.tradingAccountOption.idx == useTradingOption.idx).first()
     sellOption = db.query(models.tradingSellOption).filter(
         models.tradingSellOption.idx == useTradingOption.idx).first()
     autoStatus = db.query(models.autoTradingStatus).filter(

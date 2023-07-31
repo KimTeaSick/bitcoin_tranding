@@ -26,7 +26,7 @@ useTradingOption = db.query(models.tradingOption).filter(models.tradingOption.us
 coinCount = len(possessionCoins)
 
 # 매수 조건
-accountOtion = db.query(models.tradingAccountOtion).filter(models.tradingAccountOtion.name == useTradingOption.name).first()
+accountOtion = db.query(models.tradingAccountOption).filter(models.tradingAccountOption.name == useTradingOption.name).first()
 buyOtion = db.query(models.tradingBuyOption).filter(models.tradingBuyOption.name == useTradingOption.name).first()
 
 async def priceSearch():

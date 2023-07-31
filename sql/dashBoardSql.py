@@ -1,4 +1,4 @@
-getMyCoinListSql = 'SELECT * FROM nc_r_possession_coin_t'
+def getMyCoinListSql(idx): return f'SELECT * FROM nc_r_possession_coin_t WHERE user_idx = {idx}'
 
 def todayOrderListSql(dateStart, dateEnd):
   return 'SELECT * FROM nc_p_possession_coin_his_t  WHERE transaction_time > ' + dateStart + ' AND transaction_time < ' + dateEnd 

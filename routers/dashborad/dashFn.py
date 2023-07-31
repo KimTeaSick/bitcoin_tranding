@@ -27,9 +27,9 @@ class DashBoardFn():
     except Exception as e:
       print('Error ::: ::: ', e)
   
-  async def possessoionCoinInfo(self):
+  async def possessoionCoinInfo(self, idx):
     try:
-      possessionCoin = await self.bit.mysql.Select(getMyCoinListSql) #
+      possessionCoin = await self.bit.mysql.Select(getMyCoinListSql(idx)) #
       time.sleep(1)
       if len(possessionCoin) == 0:
         return 203

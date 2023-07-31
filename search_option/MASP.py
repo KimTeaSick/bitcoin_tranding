@@ -16,6 +16,7 @@ def MASP_condition(coin_list, first, comparison, second):
     return_coin = []
     close_data = []
     date_data = []
+
     for coin in coin_list:
       item = {"id": str(coin).replace("_KRW", ""), "term": "1h"}
       row_candle_data = bit.calndel_for_search(item)

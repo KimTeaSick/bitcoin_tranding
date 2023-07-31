@@ -29,7 +29,7 @@ class TradeFn():
         try:
             print(item.name)
             trading_option = models.tradingOption()
-            trading_account_option = models.tradingAccountOtion()
+            trading_account_option = models.tradingAccountOption()
             trading_buy_option = models.tradingBuyOption()
             trading_sell_option = models.tradingSellOption()
 
@@ -133,8 +133,8 @@ class TradeFn():
           now1 = datetime.datetime.now()
           optionL = db.query(models.tradingOption).filter(
               models.tradingOption.idx == item.idx).first()
-          accountL = db.query(models.tradingAccountOtion).filter(
-              models.tradingAccountOtion.idx == item.idx).first()
+          accountL = db.query(models.tradingAccountOption).filter(
+              models.tradingAccountOption.idx == item.idx).first()
           buyL = db.query(models.tradingBuyOption).filter(
               models.tradingBuyOption.idx == item.idx).first()
           sellL = db.query(models.tradingSellOption).filter(
@@ -195,8 +195,8 @@ class TradeFn():
 
           optionL = db.query(models.tradingOption).filter(
               models.tradingOption.idx == item.idx).first()
-          accountL = db.query(models.tradingAccountOtion).filter(
-              models.tradingAccountOtion.idx == item.idx).first()
+          accountL = db.query(models.tradingAccountOption).filter(
+              models.tradingAccountOption.idx == item.idx).first()
           buyL = db.query(models.tradingBuyOption).filter(
               models.tradingBuyOption.idx == item.idx).first()
           sellL = db.query(models.tradingSellOption).filter(
@@ -254,8 +254,8 @@ class TradeFn():
       try:
           db.query(models.tradingOption).filter(
               models.tradingOption.idx == item.idx).delete()
-          db.query(models.tradingAccountOtion).filter(
-              models.tradingAccountOtion.idx == item.idx).delete()
+          db.query(models.tradingAccountOption).filter(
+              models.tradingAccountOption.idx == item.idx).delete()
           db.query(models.tradingBuyOption).filter(
               models.tradingBuyOption.idx == item.idx).delete()
           db.query(models.tradingSellOption).filter(
@@ -323,6 +323,7 @@ class TradeFn():
           return returnValue
       except:
           return 444  
+  
   async def nowAutoStatusCheck(self):
     try:
         status = await self.bit.mysql.Select(autoStatusCheck)

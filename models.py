@@ -1,14 +1,12 @@
 from sqlalchemy import Boolean, Column, Integer, String, Float
 from database import Base
 
-
 class coinList(Base):
     __tablename__ = "nc_r_coin_list_t"
     idx = Column(Integer, primary_key=True, index=True)
     coin_name = Column(String(100))
     warning = Column(String(100))
     delflag = Column(Integer)
-
 
 class coinCurrentCandlePrice(Base):
     __tablename__ = "nc_p_coin_current_candle_price_t"

@@ -20,8 +20,8 @@ now1 = datetime.datetime.now()
 # api url
 bithumbApi = 'https://api.bithumb.com/public/ticker/'
 
-secretKey = "07c1879d34d18036405f1c4ae20d3023"
-connenctKey = "9ae8ae53e7e0939722284added991d55"
+secretKey = "c59e7f376201984d26224428649e42c7"
+connenctKey = "e2fee448690937ae2e8cd6dada5a183e"
 bithumb = Bithumb(connenctKey, secretKey)
 
 headers = {"accept": "application/json"}

@@ -11,3 +11,6 @@ class getRecommendOption(BaseModel):
 
 class rateCheckBody(BaseModel):
   days: int
+
+class getPcoinInfoBody(BaseModel):
+  idx: int

@@ -18,9 +18,9 @@ dashRouter = APIRouter(
     tags=["dash"]
 )
 
-@dashRouter.get("/getPossessoionCoinInfo")
-async def getPossessoionCoinInfo():
-    response = await dash.possessoionCoinInfo()
+@dashRouter.post("/getPossessoionCoinInfo")
+async def getPossessoionCoinInfo(item:getPcoinInfoBody):
+    response = await dash.possessoionCoinInfo(item.idx)
     return response
 
 @dashRouter.post("/getRecommendCoin")
