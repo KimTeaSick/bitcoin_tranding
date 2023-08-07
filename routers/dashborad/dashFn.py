@@ -29,6 +29,7 @@ class DashBoardFn():
   
   async def possessoionCoinInfo(self, idx):
     try:
+      print("possessoionCoinInfo idx ::: ::: ", idx)
       possessionCoin = await self.bit.mysql.Select(getMyCoinListSql(idx)) #
       time.sleep(1)
       if len(possessionCoin) == 0:
@@ -37,10 +38,11 @@ class DashBoardFn():
         returnList = []
         for coin in possessionCoin:
           coinInfo = self.bit.getBitCoinList(coin[0])['data']
+          print("coinInfo ::: ::: ", coinInfo)
           coinValue = float(coinInfo['closing_price'])
           returnList.append(
             changer.POSSESSION_COIN_LIST(coin, coinValue))
-        # print("returnListreturnList", returnList)
+        print("returnListreturnList", returnList)
         return returnList
     except Exception as e:
       print("possessoionCoinInfo Error :::: ", e)

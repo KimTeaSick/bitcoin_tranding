@@ -141,7 +141,7 @@ def getTradingHisSql():
   return "SELECT * FROM nc_p_possession_coin_his_t WHERE transaction_time >= (SELECT start_date FROM nc_b_now_auto_status_t) order by idx desc"
 
 autoStatusCheck = "SELECT status FROM nc_b_now_auto_status_t"
-updateAutoStatus = "UPDATE nc_b_now_auto_status_t SET status = %s, start_date = %s WHERE idx = 1"
+updateAutoStatus = "UPDATE nc_b_now_auto_status_t SET status = %s, start_date = %s WHERE user_idx = 1"
 
 insertLog = "INSERT INTO nc_f_log_t (content, insert_date) VALUES (%s, now())" 
 

@@ -446,7 +446,7 @@ class orderCoin(Base):
 class autoTradingStatus(Base):
     __tablename__ = 'nc_b_now_auto_status_t'
 
-    idx = Column(Integer, primary_key=True)
+    user_idx = Column(Integer, primary_key=True)
 
     status = Column(Integer)
     start_date = Column(String(100))

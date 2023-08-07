@@ -27,7 +27,6 @@ class searchOption(Base):
     name = Column(String(100))
     Create_date = Column(String(100))
     Update_date = Column(String(100))
-    used = Column(Integer)
 
 
 class PriceOption(Base):
@@ -335,7 +334,6 @@ class tradingOption(Base):
     name = Column(String(100))
     insert_time = Column(String(100))
     update_time = Column(String(100))
-    used = Column(Integer)
 
 
 class tradingAccountOption(Base):
@@ -408,7 +406,7 @@ class possessionCoin(Base):
     optionName = Column(String(100))
     trailingstop_flag = Column(Integer)
     max = Column(String(100))
-
+    user_idx = Column(Integer)
 
 class possessionLog(Base):
     __tablename__ = 'nc_p_possession_coin_his_t'
@@ -426,7 +424,7 @@ class possessionLog(Base):
     type = Column(String(100))
     order_id = Column(String(100))
     sell_reason = Column(String(100))
-
+    user_idx = Column(Integer)
 
 class orderCoin(Base):
     __tablename__ = 'nc_r_order_coin_t'
@@ -439,12 +437,28 @@ class orderCoin(Base):
     order_id = Column(String(100))
     cancel_time = Column(String(100))
     sell_reason = Column(String(100))
+    user_idx = Column(Integer)
 
 
 class autoTradingStatus(Base):
     __tablename__ = 'nc_b_now_auto_status_t'
 
-    idx = Column(Integer, primary_key=True)
+    user_idx = Column(Integer, primary_key=True)
 
     status = Column(Integer)
     start_date = Column(String(100))
+
+class USER_T(Base):
+  __tablename__ = "nc_b_user_t"
+  idx = Column(Integer, primary_key=True, index=True, autoincrement=True)
+  active = Column(Integer)
+  name = Column(String(100))
+  email = Column(String(100))
+  password = Column(String(100))
+  salt = Column(String(100))
+  public_key = Column(String(100), default=None, nullable=True)
+  secret_key = Column(String(100), default=None, nullable=True)
+  search_option = Column(Integer, default=None, nullable=True)
+  trading_option = Column(Integer, default=None, nullable=True)
+  jwt_token = Column(String(100), default=None, nullable=True)
+  refresh_token = Column(String(100), default=None, nullable=True)

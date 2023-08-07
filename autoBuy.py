@@ -11,9 +11,14 @@ import requests
 import time
 import json
 
-# 빗썸 api 키
-secretKey = "c59e7f376201984d26224428649e42c7"
-connenctKey = "e2fee448690937ae2e8cd6dada5a183e"
+# 빗썸 api 키 오
+# secretKey = "c59e7f376201984d26224428649e42c7"
+# connenctKey = "e2fee448690937ae2e8cd6dada5a183e"
+
+# 빗썸 api 키 신
+secretKey = "07c1879d34d18036405f1c4ae20d3023"
+connenctKey = "9ae8ae53e7e0939722284added991d55"
+
 bithumb = Bithumb(connenctKey, secretKey)
 
 
@@ -31,221 +36,226 @@ async def recommendCoins(options, mMax, hMax):
     coins = await recommend.recommendCoin(options, mMax, hMax)
     return coins
 
+active_users = db.query(models.USER_T).filter(models.USER_T.active == 1).all()
+for active_user in active_users:
 # 사용 db 가져오기
-possessionCoins = db.query(models.possessionCoin).all()
-useRecommendOPtion = db.query(models.searchOption).filter(
-    models.searchOption.used == 1).first()
-useTradingOption = db.query(models.tradingOption).filter(
-    models.tradingOption.used == 1).first()
-autoStatus = db.query(models.autoTradingStatus).filter(
-    models.autoTradingStatus.status == 1).first()
+    possession_coins = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == active_user.idx).all()
 
-if autoStatus == None:
-    print('exit')
-    print('자동매매 정지')
-    exit()
+    useRecommendOPtion = db.query(models.searchOption).filter(
+        models.searchOption.idx == active_user.search_option).first()
+    useTradingOption = db.query(models.tradingOption).filter(
+        models.tradingOption.idx == active_user.trading_option).first()
+    autoStatus = db.query(models.autoTradingStatus).filter(
+        models.autoTradingStatus.status == 1).first()
+    userIdx = 2
 
-# 보유코인 갯수
-coinCount = len(possessionCoins)
-hadCoin = []
-for coin in possessionCoins:
-    hadCoin.append(coin.coin)
+    if active_user.active == 0:
+        print('exit')
+        print('자동매매 정지')
+        exit()
 
-# 매수 조건
-accountOption = db.query(models.tradingAccountOption).filter(
-    models.tradingAccountOption.idx == useTradingOption.idx).first()
-buyOption = db.query(models.tradingBuyOption).filter(
-    models.tradingBuyOption.idx == useTradingOption.idx).first()
+    # 보유코인 갯수
+    coinCount = len(possession_coins)
+    hadCoin = []
+    for coin in possession_coins:
+        hadCoin.append(coin.coin)
 
-# 보유 코인 지정 갯수 초과시 종료
-if coinCount > accountOption.price_count:
-    print('exit')
-    print(accountOption.price_count, 'maximum')
-    print(coinCount, 'have')
-    exit()
+    # 매수 조건
+    accountOption = db.query(models.tradingAccountOption).filter(
+        models.tradingAccountOption.idx == useTradingOption.idx).first()
+    buyOption = db.query(models.tradingBuyOption).filter(
+        models.tradingBuyOption.idx == useTradingOption.idx).first()
 
-
-# 검색 조건
-priceOption = db.query(models.PriceOption).filter(
-    models.PriceOption.idx == useRecommendOPtion.idx).first()
-
-transactionAmountOption = db.query(models.TransactionAmountOption).filter(
-    models.TransactionAmountOption.idx == useRecommendOPtion.idx).first()
-
-maspOption = db.query(models.MASPOption).filter(
-    models.MASPOption.idx == useRecommendOPtion.idx).first()
-
-trendOption = db.query(models.TrendOption).filter(
-    models.TrendOption.idx == useRecommendOPtion.idx).first()
-
-disparityOption = db.query(models.DisparityOption).filter(
-    models.DisparityOption.idx == useRecommendOPtion.idx).first()
-
-macdOption = db.query(models.MACDOption).filter(
-    models.MACDOption.idx == useRecommendOPtion.idx).first()
-
-# 검색
-# 검색에 필요한 정보 설정
-option_result = OptionStandardization( priceOption, transactionAmountOption, maspOption, trendOption, disparityOption, macdOption)
-options: list = option_result[0]
-mMax: int = option_result[1]
-hMax:int  = option_result[2]
+    # 보유 코인 지정 갯수 초과시 종료
+    if coinCount > accountOption.price_count:
+        print('exit')
+        print(accountOption.price_count, 'maximum')
+        print(coinCount, 'have')
+        exit()
 
 
-print(options)
-print(f'mMax: {mMax}, hMax: {hMax}')
+    # 검색 조건
+    priceOption = db.query(models.PriceOption).filter(
+        models.PriceOption.idx == useRecommendOPtion.idx).first()
 
-db.query(models.recommendList).delete()
+    transactionAmountOption = db.query(models.TransactionAmountOption).filter(
+        models.TransactionAmountOption.idx == useRecommendOPtion.idx).first()
 
-# 검색 함수 실행
-coins = asyncio.run(recommendCoins(options, mMax, hMax))
-print('검색 완료 ::::::: ')
-print('-----------------------------------------------------------------------------------------------------------------')
+    maspOption = db.query(models.MASPOption).filter(
+        models.MASPOption.idx == useRecommendOPtion.idx).first()
 
-# 코인 disparity 순으로 정렬 / 검색된 코인 insert
-sortedByDisparity = []
-for coin in coins['recommends']:
-    print("asdasdasdas", useRecommendOPtion.name)
-    coinName = list(coin.keys())[0]
-    sortedByDisparity.append(
-        {'name': coinName, 'disparity': coin[coinName]['disparity'], 'price': coin[coinName]['closing_price']})
+    trendOption = db.query(models.TrendOption).filter(
+        models.TrendOption.idx == useRecommendOPtion.idx).first()
 
-    RCCoin = models.recommendList()
-    RCCoin.coin_name = coinName
-    RCCoin.catch_price = coin[coinName]['closing_price']
-    RCCoin.option_name = useRecommendOPtion.name
-    db.add(RCCoin)
+    disparityOption = db.query(models.DisparityOption).filter(
+        models.DisparityOption.idx == useRecommendOPtion.idx).first()
 
-sortedCoins = sorted(sortedByDisparity, key=lambda x: x['disparity'])
-print(sortedCoins)
+    macdOption = db.query(models.MACDOption).filter(
+        models.MACDOption.idx == useRecommendOPtion.idx).first()
 
-# 거래 가능 금액 가져오기
-money = bithumb.get_balance('BTC')[2]
-print('deposit ::::::: ',money)
-print('-----------------------------------------------------------------------------------------------------------------')
-moneyPerCoin: float = 0
+    # 검색
+    # 검색에 필요한 정보 설정
+    option_result = OptionStandardization( priceOption, transactionAmountOption, maspOption, trendOption, disparityOption, macdOption)
+    options: list = option_result[0]
+    mMax: int = option_result[1]
+    hMax:int  = option_result[2]
 
-# 코인당 거래할 금액 계산
-if buyOption.checkbox == 1:
-    moneyPerCoin = buyOption.price_to_buy_method * 10000
-    
-elif buyOption.checkbox == 2:
-    moneyPerCoin = (money * buyOption.percent_to_buy_method) / 100
 
-print(
-    f'moneyPerCoin: {moneyPerCoin}, money: {money}, percent: {buyOption.percent_to_buy_method}')
+    print(options)
+    print(f'mMax: {mMax}, hMax: {hMax}')
 
-orders = ''
-orderList = []
-print(money)
-for coin in sortedCoins:
+    db.query(models.recommendList).delete()
+
+    # 검색 함수 실행
+    coins = asyncio.run(recommendCoins(options, mMax, hMax))
+    print('검색 완료 ::::::: ')
+    print('-----------------------------------------------------------------------------------------------------------------')
+
+    # 코인 disparity 순으로 정렬 / 검색된 코인 insert
+    sortedByDisparity = []
+    for coin in coins['recommends']:
+        print("asdasdasdas", useRecommendOPtion.name)
+        coinName = list(coin.keys())[0]
+        sortedByDisparity.append(
+            {'name': coinName, 'disparity': coin[coinName]['disparity'], 'price': coin[coinName]['closing_price']})
+
+        RCCoin = models.recommendList()
+        RCCoin.coin_name = coinName
+        RCCoin.catch_price = coin[coinName]['closing_price']
+        RCCoin.option_name = useRecommendOPtion.name
+        db.add(RCCoin)
+
+    sortedCoins = sorted(sortedByDisparity, key=lambda x: x['disparity'])
+    print(sortedCoins)
+
+    # 거래 가능 금액 가져오기
+    money = bithumb.get_balance('BTC')[2]
+    print('deposit ::::::: ',money)
+    print('-----------------------------------------------------------------------------------------------------------------')
+    moneyPerCoin: float = 0
+
+    # 코인당 거래할 금액 계산
+    if buyOption.checkbox == 1:
+        moneyPerCoin = buyOption.price_to_buy_method * 10000
+
+    elif buyOption.checkbox == 2:
+        moneyPerCoin = (money * buyOption.percent_to_buy_method) / 100
+
+    print(
+        f'moneyPerCoin: {moneyPerCoin}, money: {money}, percent: {buyOption.percent_to_buy_method}')
+
+    orders = ''
+    orderList = []
+    print(money)
+    for coin in sortedCoins:
+        try:
+            # 구매 안하는 사유
+            if coinCount >= int(accountOption.price_count):
+                print('coin count')
+                coin['fail_reason'] = 'coin count'
+                continue
+
+            if moneyPerCoin > money:
+                print('money')
+                coin['fail_reason'] = 'money'
+                continue
+
+            if coin['name'] in hadCoin:
+                print('보유 코인')
+                coin['fail_reason'] = 'possession coin'
+                continue
+
+            print(coinCount, accountOption.price_count, coin['name'])
+
+            orders = ''
+
+            print(coin)
+
+            # 지정 호가 계산
+            # ask = askingPrice.askingPrice(int(float(coin['price'])))
+            # coin_ask_price = float(coin['price']) + (buyOption.callmoney_to_buy_method * ask)
+            # coin_ask_price = (round(coin_ask_price,4))
+            splitBuy = moneyPerCoin * 1
+
+            if buyOption.callmoney_to_buy_method > 0:
+                ask = f'+{buyOption.callmoney_to_buy_method}'
+            else:
+                ask = str(buyOption.callmoney_to_buy_method)
+
+            coin_ask_price = askingPrice.ASK_PRICE(f"{coin['name']}_KRW", ask, 'buy')
+            print('coin_ask_price ::::::: ', coin_ask_price)
+            print('-----------------------------------------------------------------------------------------------------------------')
+            splitUnit = splitBuy / (float(coin_ask_price))
+            print('coin order content ::: ::: ', coin['name'], round(float(coin_ask_price), 2), round(splitUnit, 4), 'KRW')
+            # 주문
+            order = bithumb.buy_limit_order(
+                coin['name'], round(float(coin_ask_price), 2), round(splitUnit, 4), 'KRW')
+            print("order ::: :::",order)
+
+            order_id = order[2]
+
+            # 주문 가능한 금액 계산, 보유코인 1개 추가
+            money -= moneyPerCoin
+            coinCount += 1
+            orderList.append({'coin': coin['name'], 'orders': order_id})
+            coin['orders'] = order_id
+
+        except Exception as e:
+            print(e)
+
+    print(orderList)
+    for ordercheck in orderList:
+        print(ordercheck['coin'])
+        # 보유코인, 주문 내역 테이블에 추가
+        orderID = ordercheck['orders'].split(',')[:-1]
+        unit = 0.0
+        total = 0.0
+        fee = 0.0
+
+        i = 0
+        # 주문 테이블 추가
+        order_coin = models.orderCoin()
+        order_coin.coin = ordercheck['coin']
+        order_coin.status = 1
+        order_coin.transaction_time = datetime.datetime.now()
+        order_coin.order_id = ordercheck['orders']
+        order_coin.cancel_time = (datetime.datetime.now(
+        ) + datetime.timedelta(seconds=accountOption.buy_cancle_time))
+        order_coin.user_idx = 1
+        db.add(order_coin)
+
+        # 보유코인 추가
+        possession_coin = models.possessionCoin()
+        possession_coin.coin = ordercheck['coin']
+        possession_coin.unit = 0.0
+        possession_coin.price = 0.0
+        possession_coin.total = 0.0
+        possession_coin.fee = 0.0
+        possession_coin.status = 1
+        possession_coin.transaction_time = datetime.datetime.now()
+        possession_coin.order_id = ordercheck['orders']
+        possession_coin.cancel_time = (datetime.datetime.now(
+        ) + datetime.timedelta(seconds=accountOption.buy_cancle_time))
+        possession_coin.macd_chart = macdOption.chart_term
+        possession_coin.disparity_chart = disparityOption.chart_term
+        possession_coin.optionName = useRecommendOPtion.name
+        possession_coin.trailingstop_flag = 0
+        possession_coin.max = possession_coin.price
+        possession_coin.user_idx = 1
+        db.add(possession_coin)
+
     try:
-        # 구매 안하는 사유
-        if coinCount >= int(accountOption.price_count):
-            print('coin count')
-            coin['fail_reason'] = 'coin count'
-            continue
-
-        if moneyPerCoin > money:
-            print('money')
-            coin['fail_reason'] = 'money'
-            continue
-
-        if coin['name'] in hadCoin:
-            print('보유 코인')
-            coin['fail_reason'] = 'possession coin'
-            continue
-
-        print(coinCount, accountOption.price_count, coin['name'])
-
-        orders = ''
-
-        print(coin)
-
-        # 지정 호가 계산
-        # ask = askingPrice.askingPrice(int(float(coin['price'])))
-        # coin_ask_price = float(coin['price']) + (buyOption.callmoney_to_buy_method * ask)
-        # coin_ask_price = (round(coin_ask_price,4))
-        splitBuy = moneyPerCoin * 1
-
-        if buyOption.callmoney_to_buy_method > 0:
-            ask = f'+{buyOption.callmoney_to_buy_method}'
-        else:
-            ask = str(buyOption.callmoney_to_buy_method)
-
-        coin_ask_price = askingPrice.ASK_PRICE(f"{coin['name']}_KRW", ask, 'buy')
-        print('coin_ask_price ::::::: ', coin_ask_price)
-        print('-----------------------------------------------------------------------------------------------------------------')
-
-        splitUnit = splitBuy / (float(coin_ask_price))
-
-        # 주문
-        order = bithumb.buy_limit_order(
-            coin['name'], round(float(coin_ask_price), 2), round(splitUnit, 4), 'KRW')
-        print(order)
-
-        order_id = order[2]
-
-        # 주문 가능한 금액 계산, 보유코인 1개 추가
-        money -= moneyPerCoin
-        coinCount += 1
-        orderList.append({'coin': coin['name'], 'orders': order_id})
-        coin['orders'] = order_id
-
+        db.commit()
     except Exception as e:
         print(e)
+        db.rollback()
 
-print(orderList)
-for ordercheck in orderList:
-    print(ordercheck['coin'])
-    # 보유코인, 주문 내역 테이블에 추가
-    orderID = ordercheck['orders'].split(',')[:-1]
-    unit = 0.0
-    total = 0.0
-    fee = 0.0
+    with open("./buyLog", "a") as file:
+        file.write(
+            f'{datetime.datetime.now()}------------------------------------------------------------------')
+        for buyCoin in sortedCoins:
+            file.write(str(buyCoin) + '\n')
+        file.close()
 
-    i = 0
-    # 주문 테이블 추가
-    order_coin = models.orderCoin()
-    order_coin.coin = ordercheck['coin']
-    order_coin.status = 1
-    order_coin.transaction_time = datetime.datetime.now()
-    order_coin.order_id = ordercheck['orders']
-    order_coin.cancel_time = (datetime.datetime.now(
-    ) + datetime.timedelta(seconds=accountOption.buy_cancle_time))
-    db.add(order_coin)
-
-    # 보유코인 추가
-    possession_coin = models.possessionCoin()
-    possession_coin.coin = ordercheck['coin']
-    possession_coin.unit = 0.0
-    possession_coin.price = 0.0
-    possession_coin.total = 0.0
-    possession_coin.fee = 0.0
-    possession_coin.status = 1
-    possession_coin.transaction_time = datetime.datetime.now()
-    possession_coin.order_id = ordercheck['orders']
-    possession_coin.cancel_time = (datetime.datetime.now(
-    ) + datetime.timedelta(seconds=accountOption.buy_cancle_time))
-    possession_coin.macd_chart = macdOption.chart_term
-    possession_coin.disparity_chart = disparityOption.chart_term
-    possession_coin.optionName = useRecommendOPtion.name
-    possession_coin.trailingstop_flag = 0
-    possession_coin.max = possession_coin.price
-    db.add(possession_coin)
-
-try:
-    db.commit()
-except Exception as e:
-    print(e)
-    db.rollback()
-
-with open("./buyLog", "a") as file:
-    file.write(
-        f'{datetime.datetime.now()}------------------------------------------------------------------')
-    for buyCoin in sortedCoins:
-        file.write(str(buyCoin) + '\n')
-    file.close()
-
-now2 = datetime.datetime.now()
-print(now2-now1)
+    now2 = datetime.datetime.now()
+    print(now2-now1)

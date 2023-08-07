@@ -15,8 +15,13 @@ try:
 finally:
     db.close()
  
-secretKey = "c59e7f376201984d26224428649e42c7"
-connenctKey = "e2fee448690937ae2e8cd6dada5a183e"
+# 빗썸 api 키 오
+# secretKey = "c59e7f376201984d26224428649e42c7"
+# connenctKey = "e2fee448690937ae2e8cd6dada5a183e"
+
+# 빗썸 api 키 신
+secretKey = "07c1879d34d18036405f1c4ae20d3023"
+connenctKey = "9ae8ae53e7e0939722284added991d55"
 
 bithumb = Bithumb(connenctKey, secretKey)
 
@@ -162,56 +167,52 @@ def start():
     global trailingPercent
     global askOption
     global accountOption
+    active_users = db.query(models.USER_T).filter(models.USER_T.active == 1).all()
+    for active_user in active_users:
+        coinList = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == active_user.idx).all()
+        useTradingOption = db.query(models.tradingOption).filter(
+            models.tradingOption.idx == active_user.trading_option).first()
+        accountOp = db.query(models.tradingAccountOption).filter(
+            models.tradingAccountOption.idx == useTradingOption.idx).first()
+        sellOption = db.query(models.tradingSellOption).filter(
+            models.tradingSellOption.idx == useTradingOption.idx).first()
+        autoStatus = db.query(models.autoTradingStatus).filter(
+            models.autoTradingStatus.status == 1).first()
+        accountOption = accountOp.sell_cancle_time
+        if autoStatus == None:
+            print('exit')
+            print('자동 매매 정지')
+            exit()
+        sensingPercent = int(sellOption.trailing_start_percent)
+        trailingPercent = int(sellOption.trailing_stop_percent)
+        askOption = sellOption.trailing_order_call_price
+        coinNames = []
+        possessionCoin = {}
 
-    coinList = db.query(models.possessionCoin).all()
-    
-    useTradingOption = db.query(models.tradingOption).filter(
-        models.tradingOption.used == 1).first()
-    accountOp = db.query(models.tradingAccountOption).filter(
-        models.tradingAccountOption.idx == useTradingOption.idx).first()
-    sellOption = db.query(models.tradingSellOption).filter(
-        models.tradingSellOption.idx == useTradingOption.idx).first()
-    autoStatus = db.query(models.autoTradingStatus).filter(
-        models.autoTradingStatus.status == 1).first()
+        for coin in coinList:
+            print("coin ::: ::: ", coin.coin)
+            if coin.status == 1:
+                continue
 
-    accountOption = accountOp.sell_cancle_time
+            coinNames.append(f'{coin.coin}_KRW')
+            trailingCoin = {'buyPrice': float(coin.price), 'sensingPrice': float(coin.price) + (float(coin.price) * (sensingPercent / 100)), 'trailingStop': coin.trailingstop_flag,
+                            'max': float(coin.max), 'trailingPrice': float(coin.max) - (float(coin.max) * (trailingPercent / 100)), 'unit': float(coin.unit)}
 
-    if autoStatus == None:
-        print('exit')
-        print('자동 매매 정지')
-        exit()
+            possessionCoin[f'{coin.coin}_KRW'] = trailingCoin
 
-    sensingPercent = int(sellOption.trailing_start_percent)
-    trailingPercent = int(sellOption.trailing_stop_percent)
-    askOption = sellOption.trailing_order_call_price
+        if len(coinList) == 0:
+            print('none coin')
+            exit()
 
-    coinNames = []
-    possessionCoin = {}
+        print(possessionCoin)
 
-    for coin in coinList:
-        if coin.status == 1:
-            continue
-
-        coinNames.append(f'{coin.coin}_KRW')
-        trailingCoin = {'buyPrice': float(coin.price), 'sensingPrice': float(coin.price) + (float(coin.price) * (sensingPercent / 100)), 'trailingStop': coin.trailingstop_flag,
-                        'max': float(coin.max), 'trailingPrice': float(coin.max) - (float(coin.max) * (trailingPercent / 100)), 'unit': float(coin.unit)}
-
-        possessionCoin[f'{coin.coin}_KRW'] = trailingCoin
-
-    if len(coinList) == 0:
-        print('none coin')
-        exit()
-
-    print(possessionCoin)
-
-    websocket_url = 'wss://pubwss.bithumb.com/pub/ws'
-    ws = websocket.WebSocketApp(websocket_url,
-                                on_open=on_open,
-                                on_message=on_message,
-                                on_close=on_close,
-                                on_error=on_error)
-
-    ws.run_forever()
+        websocket_url = 'wss://pubwss.bithumb.com/pub/ws'
+        ws = websocket.WebSocketApp(websocket_url,
+                                    on_open=on_open,
+                                    on_message=on_message,
+                                    on_close=on_close,
+                                    on_error=on_error)
+        ws.run_forever()
 
 
 start()

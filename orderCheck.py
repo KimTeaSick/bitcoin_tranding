@@ -6,12 +6,13 @@ from pybithumb import Bithumb
 from orderChecked.possessionExplore import possessionExplore
 from orderChecked.buyCheck import BUY_CHECK
 
+# 빗썸 api 키 오
+# secretKey = "c59e7f376201984d26224428649e42c7"
+# connenctKey = "e2fee448690937ae2e8cd6dada5a183e"
 
-secretKey = "c59e7f376201984d26224428649e42c7"
-connenctKey = "e2fee448690937ae2e8cd6dada5a183e"
-
-# secretKey = "ee7741a2e52957613c020ded3c91751c"
-# connenctKey = "ef3d9e8fb9b15ca740150fed18cdaaae"
+# 빗썸 api 키 신
+secretKey = "07c1879d34d18036405f1c4ae20d3023"
+connenctKey = "9ae8ae53e7e0939722284added991d55"
 
 bithumb = Bithumb(connenctKey, secretKey)
 
@@ -73,6 +74,7 @@ for order in orderList:
             transactionLog.conclusion_time = datetime.datetime.now()
             transactionLog.type = 'bid'
             transactionLog.order_id = order.order_id
+            transactionLog.user_idx = 1
             db.add(transactionLog)
 
         if orderStatus['data']['order_status'] == 'Pending':
@@ -150,6 +152,8 @@ for order in orderList:
             transactionLog.type = 'ask'
             transactionLog.order_id = order.order_id
             transactionLog.sell_reason = order.sell_reason
+            transactionLog.user_idx = 1
+
             db.add(transactionLog)
 
         if orderStatus['data']['order_status'] == 'Pending':

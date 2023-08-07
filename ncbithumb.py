@@ -20,12 +20,12 @@ import os
 
 app = FastAPI()
 
-origins = ["*"]
+origins = ["http://121.165.242.171:48604"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
     allow_credentials=True,
+    allow_origins=origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -34,6 +34,19 @@ bit = BitThumbPrivate()
 page = PagiNation()
 mongo = MongoDB()
 mysql = MySql()
+
+# @app.middleware("http")
+# async def middleware(request, call_next):
+#     try:
+#         print("request.headers.keys()", request.headers)
+#         print("request.headers.keys()", request.headers.keys())
+#         # if request.url.path == "/user/login": 
+#         #     response = await call_next(request)
+#         #     return response
+#         response = await call_next(request)
+#         return response
+#     except Exception as e:
+#         print(e)
 
 @app.get("/")
 def read_root():
