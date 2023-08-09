@@ -1,6 +1,6 @@
-from BitThumbPrivate import BitThumbPrivate
+ 
 
-bit = BitThumbPrivate()
+bit = bit
 
 
 def ASK_PRICE(coin, asking, trading_type):

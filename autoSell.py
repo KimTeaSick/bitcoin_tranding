@@ -45,7 +45,6 @@ print("active_users", active_users)
 for active_user in active_users:
     possession_coins = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == active_user.idx).all()
 
-    print("asdasdas", active_user.trading_option)
     useTradingOption = db.query(models.tradingOption).filter(
         models.tradingOption.idx == active_user.trading_option).first()
     

@@ -11,7 +11,8 @@ from database import SessionLocal
 from lib import insertLog
 import datetime
 import models 
-
+from routers.user.userApi import user
+ 
 
 try:
     db = SessionLocal()
@@ -20,9 +21,7 @@ finally:
     db.close()
 
 class SearchFn():
-  def __init__(self):
-    self.bit = BitThumbPrivate()
-
+  
   async def insertOption(self, item):
         try:
           price_option = models.PriceOption()
@@ -108,7 +107,7 @@ class SearchFn():
         else:
           option.Update_date = option.Update_date[0:19]
         options.append(
-          {'idx':option.idx ,'Name': option.name, 'Create_date': option.Create_date[0:19], 'Update_date': option.Update_date, 'used': option.used})
+          {'idx':option.idx ,'Name': option.name, 'Create_date': option.Create_date[0:19], 'Update_date': option.Update_date})
       return options
     except Exception as e:
       print("optionList Error :::: ", e)

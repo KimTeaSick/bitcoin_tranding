@@ -59,9 +59,11 @@ insertSearchCoinListSql = 'INSERT INTO nc_f_recommend_coin_t (coin_name, catch_p
 
 deleteSearchCoinListSql = 'DELETE from nc_f_recommend_coin_t'
 
-findUseSearchCondition = 'SELECT * FROM nc_b_search_option_t WHERE used = 1'
+def findUseSearchCondition(idx):
+   return f'SELECT search_option FROM nc_b_user_t WHERE idx = {idx}'
 
-findUseTradingCondition = 'SELECT * FROM nc_b_trading_option_t WHERE used = 1'
+def findUseTradingCondition(idx):
+   return f'SELECT trading_option FROM nc_b_user_t WHERE idx = {idx}'
 
 def useSearchOptionStatus(idx):
   return '''
@@ -137,8 +139,8 @@ def useTradingOptionStatus(idx):
   left join nc_c_sell_option_t s on op.idx = s.idx
   where op.idx like ''' + "'" + idx + "'"
 
-def getTradingHisSql():
-  return "SELECT * FROM nc_p_possession_coin_his_t WHERE transaction_time >= (SELECT start_date FROM nc_b_now_auto_status_t) order by idx desc"
+def getTradingHisSql(idx):
+  return f"SELECT * FROM nc_p_possession_coin_his_t WHERE transaction_time >= (SELECT start_date FROM nc_b_now_auto_status_t) and user_idx = {idx} order by idx desc"
 
 autoStatusCheck = "SELECT status FROM nc_b_now_auto_status_t"
 updateAutoStatus = "UPDATE nc_b_now_auto_status_t SET status = %s, start_date = %s WHERE user_idx = 1"

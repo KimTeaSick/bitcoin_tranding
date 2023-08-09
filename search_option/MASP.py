@@ -5,12 +5,15 @@ IS_DEV = os.environ.get('IS_DEV')
 pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
 sys.path.append(pwd) 
-from BitThumbPrivate import BitThumbPrivate
+# from BitThumbPrivate import BitThumbPrivate
 import pandas as pd
 import numpy as np
 from datetime import datetime 
+from routers.user.userApi import user
 
-bit = BitThumbPrivate()
+ 
+
+bit = bit
 
 def MASP_condition(coin_list, first, comparison, second):
     return_coin = []

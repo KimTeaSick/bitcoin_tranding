@@ -7,42 +7,47 @@ pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "
 import sys
 sys.path.append(pwd) 
 
-from fastapi import APIRouter
+from fastapi import APIRouter,Request
 from .dashFn import DashBoardFn
 from .parameter import *
 from lib import insertLog
 
 dash = DashBoardFn()
+
 dashRouter = APIRouter(
     prefix="/dash",
     tags=["dash"]
 )
 
 @dashRouter.get('/getPossessoionCoinInfo/')
-async def getPossessoionCoinInfo(idx):
+async def getPossessoionCoinInfo(idx, request: Request):
     print("idx ::: ::: ", idx)
-    response = await dash.possessoionCoinInfo(idx)
+    print("request.state.bit ::: ::: ", request.state.bit)
+    response = await dash.possessoionCoinInfo(idx, request.state.bit)
     return response
 
 @dashRouter.post("/getRecommendCoin")
-async def getRecommendPrice(item: getRecommendOption):
+async def getRecommendPrice(item: getRecommendOption, request: Request):
+    print("request.state.bit ::: ::: ", request.state.bit)
     now1 = datetime.datetime.now()
-    response = await dash.bit.getRecommendCoin(item)
+    response = await request.state.bit.getRecommendCoin(item)
     now2 = datetime.datetime.now()
     print(now2 - now1)
     insertLog.log("검색 기능 사용")
     return response
 
 @dashRouter.get('/accountInfo/')
-async def getAccountInfo(date1, date2):
+async def getAccountInfo(date1, date2, request: Request):
+    print("request.state.bit ::: ::: ", request.state.bit)
     try:
-        response = await dash.dashProperty([str(date1), str(date2)])
+        response = await dash.dashProperty([str(date1), str(date2)], request.state.bit)
         return response
     except:
         return 404
     
 @dashRouter.post('/rateCheck')
-async def test(item: rateCheckBody):
-    res = await dash.rate_check(item)
+async def test(item: rateCheckBody, request: Request):
+    print("request.state.bit ::: ::: ", request.state.bit)
+    res = await dash.rate_check(item, request.state.bit)
     print("res", res)
     return {'rate': res[0], 'account_balance': res[1]}

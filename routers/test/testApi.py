@@ -7,7 +7,7 @@ import sys
 sys.path.append(pwd) 
 from .parameter import *
 from .testFn import TestFn
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 testRouter = APIRouter(
   prefix="/test",
@@ -17,11 +17,11 @@ testRouter = APIRouter(
 test = TestFn()
 
 @testRouter.post("/cancleTrade")
-def cancleTradeApi(item: orderItem):
-  response = test.cancleTradeFn(item)
+def cancleTradeApi(item: orderItem, req:Request):
+  response = test.cancleTradeFn(item, req.state.bit)
   return response
 
 @testRouter.post("/signTrade")
-def signTradeApi(item: orderItem):
-  response = test.signTradeFn(item)
+def signTradeApi(item: orderItem, req:Request):
+  response = test.signTradeFn(item, req.state.bit)
   return response

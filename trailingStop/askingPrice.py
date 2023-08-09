@@ -3,12 +3,13 @@ import os
 load_dotenv()
 IS_DEV = os.environ.get('IS_DEV')
 pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
+
 import sys
 sys.path.append(pwd) 
-from BitThumbPrivate import BitThumbPrivate
-
-
-bit = BitThumbPrivate()
+# from BitThumbPrivate import BitThumbPrivate
+from routers.user.userApi import user
+from ..ncbithumb import bit
+bit = bit
 
 def ASK_PRICE(coin, asking, trading_type):
     ask_prices = []

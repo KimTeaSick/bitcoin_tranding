@@ -5,19 +5,17 @@ IS_DEV = os.environ.get('IS_DEV')
 pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
 sys.path.append(pwd) 
-from BitThumbPrivate import BitThumbPrivate
 import pandas as pd
 from sqld import *
 import requests
 import json
+ 
 
 class CoinFn():
-  def __init__(self):
-    self.bit = BitThumbPrivate()
 
-  async def getDisparityOption(self):
+  async def getDisparityOption(self, bit):
     try:
-      options = await self.bit.mysql.Select(getMASPoptionSql)
+      options = await bit.mysql.Select(getMASPoptionSql)
       options ={options[0][1]: {"idx": options[0][0], "name": options[0][1], "range": options[0][2], "color": options[0][3]},
                 options[1][1]: {"idx": options[1][0], "name": options[1][1], "range": options[1][2], "color": options[1][3]},
                 options[2][1]: {"idx": options[2][0], "name": options[2][1], "range": options[2][2], "color": options[2][3]}}
@@ -26,15 +24,15 @@ class CoinFn():
       print("Error :::::: ", e)
       return 444
     
-  async def updateDisparityOption(self, item):
+  async def updateDisparityOption(self, item, bit):
     try:
       for data in item:
-          await self.bit.mysql.Update(updateMASPoptionSql, [str(data[1]['range']), data[1]['color'], data[1]['name']])
+          await bit.mysql.Update(updateMASPoptionSql, [str(data[1]['range']), data[1]['color'], data[1]['name']])
       return 200
     except:
       return 303
     
-  def getAvgData(self, avgRange, coin, term):
+  def getAvgData(self, avgRange, coin, term, bit):
     try:
       trend = True
       pd.set_option('mode.chained_assignment',  None)

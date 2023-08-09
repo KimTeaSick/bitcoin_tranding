@@ -5,7 +5,7 @@ IS_DEV = os.environ.get('IS_DEV')
 pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
 sys.path.append(pwd) 
-from BitThumbPrivate import BitThumbPrivate
+# from BitThumbPrivate import BitThumbPrivate
 from dbConnection import *
 from sqld import *
 import pandas as pd
@@ -18,9 +18,10 @@ from .MASP import MASP_condition
 from .Trend import Trend_condition
 from .Disparity import Disparity_condition
 from .TransactionAmount import Transaction_amount_coondtion
+from routers.user.userApi import user
+ 
 
-
-bit = BitThumbPrivate()
+bit = bit
 mysql = MySql()
 
 async def raw_search(item):

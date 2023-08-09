@@ -1,5 +1,8 @@
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI
+from fastapi.security import OAuth2PasswordBearer
+from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi import FastAPI, Depends, Request
+from starlette.requests import Request
 from routers.dashborad import dashApi
 from routers.coinList import coinApi
 from routers.tradeHis import tradeHisApi
@@ -7,9 +10,11 @@ from routers.search import searchApi
 from routers.trade import tradeApi
 from routers.test import testApi
 from routers.user import userApi
-from search_option import search
+# from search_option import search
+# from BitThumbPrivate import *
 from lib.pagiNation import PagiNation
-from BitThumbPrivate import *
+from middleware.token_validator import token_validator
+from routers.user.userApi import user
 from mongoDB import MongoDB
 from dbConnection import *
 from parameter import *
@@ -30,103 +35,101 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-bit = BitThumbPrivate()
+# bit = user
 page = PagiNation()
 mongo = MongoDB()
 mysql = MySql()
 
-# @app.middleware("http")
-# async def middleware(request, call_next):
-#     try:
-#         print("request.headers.keys()", request.headers)
-#         print("request.headers.keys()", request.headers.keys())
-#         # if request.url.path == "/user/login": 
-#         #     response = await call_next(request)
-#         #     return response
-#         response = await call_next(request)
-#         return response
-#     except Exception as e:
-#         print(e)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+@app.middleware("http")
+async def middleware(request: Request, call_next):
+    global bit
+    bit = await token_validator(request)
+    request.state.bit = bit
+    print("middleware bit", bit)
+    response = await call_next(request)
+    return response
 
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
 @app.post("/getCandleChart")
-def getCandleStick(item: GetCandleStickBody):
+def getCandleStick(item: GetCandleStickBody, request: Request):
     print("getCandleChart item", item)
-    data = bit.getCandleStick(item)
+    data = request.state.bit.getCandleStick(item)
     return data
 
 @app.get("/checkAccount")
-def checkAccount():
-    balance = bit.checkAccount()
-    myCoinList = bit.getMyCoinList()
+def checkAccount(request: Request):
+    balance = request.state.bit.checkAccount()
+    myCoinList = request.state.bit.getMyCoinList()
     return (balance, myCoinList)
 
 @app.post("/sell")
-async def sell(item: BuyAndSell):
+async def sell(item: BuyAndSell, request: Request):
     print("item", item)
-    res = await bit.sell(item.coin, float(item.unit))
+    res = await request.state.bit.sell(item.coin, float(item.unit))
     return res
 
 @app.post("/buy")
-async def buy(item: BuyAndSell):
-    res = await bit.buy(item.coin, float(item.price), float(item.unit))
+async def buy(item: BuyAndSell, request: Request):
+    res = await request.state.bit.buy(item.coin, float(item.price), float(item.unit))
     return res
 
 @app.get("/myProperty")# 예수금 / 자산현황
-def myProperty():
-    return bit.myProperty()
+def myProperty(request: Request):
+    return request.state.bit.myProperty()
 
 @app.get('/setting/getSearchOptionList')
-async def getSearchOptionList():
-    response = await bit.getSearchOptionList()
+async def getSearchOptionList(request: Request):
+    response = await request.state.bit.getSearchOptionList()
     return response
 
 @app.post('/setting/registerSearchOption')
-def insertSearchOption(item: updateSearchOptionBody):
-    response = bit.insertSearchOption(item)
+def insertSearchOption(item: updateSearchOptionBody, request: Request):
+    response = request.state.bit.insertSearchOption(item)
     return response
 
 @app.post('/setting/updateSearchOption')
-async def updateSearchOption(item: updateSearchOptionBody):
-    response = await bit.updateSearchOption(item)
+async def updateSearchOption(item: updateSearchOptionBody, request: Request):
+    response = await request.state.bit.updateSearchOption(item)
     return response
 
 @app.get('/todayAccount')
-async def todayAccount():
-    response = await bit.todayAccount()
+async def todayAccount(request: Request):
+    response = await request.state.bit.todayAccount()
     return response
 
 @app.get("/nowRate")
-async def nowRate():
-    response = await bit.nowRate()
+async def nowRate(request: Request):
+    response = await request.state.bit.nowRate()
     return response
 
 @app.get("/coinlist.json")
-async def getCoinJsonFile():
-    response = await bit.getBithumbCoinList()
+async def getCoinJsonFile(request: Request):
+    response = await request.state.bit.getBithumbCoinList()
     dir_path = os.path.dirname(os.path.realpath(__file__))
     print("dir_path :::: ", dir_path)
     return response
 
-@app.post("/newRawSearch")
-async def newSearch(item: newSearchBody):
-    response = await search.raw_search(item)
-    return response
+# @app.post("/newRawSearch")
+# async def newSearch(item: newSearchBody):
+#     response = await search.raw_search(item)
+#     return response
 
-@app.post("/newSearch")
-async def newSearch():
-    response = await search.search()
-    return response
+# @app.post("/newSearch")
+# async def newSearch():
+#     response = await search.search()
+#     return response
 
+app.include_router(userApi.userRouter)
 app.include_router(dashApi.dashRouter)
 app.include_router(coinApi.coinRouter)
 app.include_router(tradeHisApi.tradeRouter)
 app.include_router(searchApi.searchRouter)
 app.include_router(tradeApi.tradeRouter)
-app.include_router(userApi.userRouter)
 app.include_router(testApi.testRouter)
 
 if __name__ == "__main__":

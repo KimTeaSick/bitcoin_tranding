@@ -5,11 +5,12 @@ IS_DEV = os.environ.get('IS_DEV')
 pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
 sys.path.append(pwd) 
-from BitThumbPrivate import BitThumbPrivate
+from routers.user.userApi import user
 import pandas as pd
 import numpy as np
+ 
 
-bit = BitThumbPrivate()
+bit = bit
 def Disparity_condition(coin_list, term, low_limit, high_limit):
     return_coin=[]
     return_value=[{}]

@@ -14,6 +14,8 @@ from sqld import *
 import subprocess
 import datetime
 import models 
+from routers.user.userApi import user
+ 
 
 try:
     db = SessionLocal()
@@ -22,9 +24,6 @@ finally:
     db.close()
 
 class TradeFn():
-  def __init__(self):
-    self.bit = BitThumbPrivate()
-
   async def insertTradingOPtion(self, item):
         try:
             print(item.name)
@@ -287,10 +286,10 @@ class TradeFn():
       except:
           db.rollback()
 
-  async def getSearchPriceList(self):
+  async def getSearchPriceList(self, bit):
       try:
           returnValue = []
-          searchList = await self.bit.mysql.Select(selectSearchPriceList)
+          searchList = await bit.mysql.Select(selectSearchPriceList)
           for coin in searchList:
               returnValue.append({'name': coin[1], 'catch_price': coin[2]})
           return returnValue
@@ -299,12 +298,12 @@ class TradeFn():
           insertLog.log(e)
           return 444  
       
-  async def getNowUseCondition(self):
+  async def getNowUseCondition(self, idx, bit):
       try:
-          searchCondition = await self.bit.mysql.Select(findUseSearchCondition)
-          tradingCondition = await self.bit.mysql.Select(findUseTradingCondition)
-          searchOption = await self.bit.mysql.Select(useSearchOptionStatus(str(searchCondition[0][0])))
-          tradingOption = await self.bit.mysql.Select(useTradingOptionStatus(str(tradingCondition[0][0])))
+          searchCondition = await bit.mysql.Select(findUseSearchCondition(idx))
+          tradingCondition = await bit.mysql.Select(findUseTradingCondition(idx))
+          searchOption = await bit.mysql.Select(useSearchOptionStatus(str(searchCondition[0][0])))
+          tradingOption = await bit.mysql.Select(useTradingOptionStatus(str(tradingCondition[0][0])))
           searchOptionReturnValue = changer.SEARCH_CONDITION(searchOption)
           tradingOptionReturnValue = changer.TRADING_CONDITION(tradingOption)
           return {"searchOption": searchOptionReturnValue, "tradingOption": tradingOptionReturnValue}
@@ -313,10 +312,10 @@ class TradeFn():
           insertLog.log(e)
           return 444  
       
-  async def getTradingHis(self):
+  async def getTradingHis(self, bit):
       try:
           returnValue = []
-          tradingHis = await self.bit.mysql.Select(getTradingHisSql())  
+          tradingHis = await bit.mysql.Select(getTradingHisSql())  
           if (tradingHis != None):
               for his in tradingHis:
                   returnValue.append(changer.TRADING_LIST(his))
@@ -324,18 +323,18 @@ class TradeFn():
       except:
           return 444  
   
-  async def nowAutoStatusCheck(self):
+  async def nowAutoStatusCheck(self, bit):
     try:
-        status = await self.bit.mysql.Select(autoStatusCheck)
+        status = await bit.mysql.Select(autoStatusCheck)
         return {"now_status": status[0][0]}
     except Exception as e:
         print("tradingOptionListError :::: ", e)
         insertLog.log(e)
         return 444
       
-  async def getATOrderList(self):
+  async def getATOrderList(self, bit):
     return_value = []
-    raw_data = await self.bit.mysql.Select(getATOrderList)
+    raw_data = await bit.mysql.Select(getATOrderList)
     if len(raw_data) == 0:
         return return_value
     else:
@@ -343,10 +342,10 @@ class TradeFn():
             return_value.append(changer.ATOrderList(o_list))
     return return_value
     
-  async def controlAutoTrading(self, flag):
+  async def controlAutoTrading(self, flag, bit):
         try:
             if (flag == 1):
-                await self.bit.mysql.Update(updateAutoStatus, [flag, str(datetime.datetime.now().replace())])
+                await bit.mysql.Update(updateAutoStatus, [flag, str(datetime.datetime.now().replace())])
                 subprocess.run(
                     ['/bin/python3', '/data/4season/bitcoin_trading_back/autoBuy.py'])
             elif (flag == 0):
@@ -359,7 +358,7 @@ class TradeFn():
                     elif order.status == 3 or order.status == 5:
                         order_desc = ['ask', order.coin, order.order_id, 'KRW']
 
-                    cancel = self.bit.bithumb.cancel_order(order_desc)
+                    cancel = bit.bithumb.cancel_order(order_desc)
                     if cancel == True:
                         if order.status == 1:
                             db.delete(Possession)
@@ -373,7 +372,7 @@ class TradeFn():
                     except:
                         db.rollback()
 
-                await self.bit.mysql.Update(updateAutoStatus, [flag, "-"])
+                await bit.mysql.Update(updateAutoStatus, [flag, "-"])
             return 200
         except Exception as e:
             print("tradingOptionListError :::: ", e)

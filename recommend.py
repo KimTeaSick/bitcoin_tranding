@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 import models
 import pandas as pd
 from sqlalchemy import create_engine, desc
-import numpy as np
 import asyncio
+import numpy as np
 from sqld import *
 from dbConnection import MySql
 # 조건 모듈

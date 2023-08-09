@@ -6,7 +6,7 @@ pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "
 import sys
 sys.path.append(pwd) 
 from lib.pagiNation import PagiNation
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from .parameter import *
 from .tradeHisFn import TradeHisFn
 
@@ -18,7 +18,7 @@ tradeRouter = APIRouter(
 tradeHis = TradeHisFn()
 
 @tradeRouter.post('/getOrderList')
-async def getOrderList(item: getOrderListBody):
-    pageCount = await tradeHis.orderListPageCount()
-    data = await tradeHis.getOrderList(item.page)
+async def getOrderList(item: getOrderListBody, req: Request):
+    pageCount = await tradeHis.orderListPageCount(req.state.bit)
+    data = await tradeHis.getOrderList(item.page, req.state.bit)
     return {"data": data, "page": pageCount}
