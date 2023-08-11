@@ -46,10 +46,18 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 async def middleware(request: Request, call_next):
     global bit
     bit = await token_validator(request)
-    request.state.bit = bit
-    print("middleware bit", bit)
-    response = await call_next(request)
-    return response
+    if bit != 1:
+        idx = bit[1]
+        bit = bit[0]
+        print("getCandleChart item idx", idx)
+        print("getCandleChart item bit", bit)
+        request.state.bit = bit
+        request.state.idx = idx
+        response = await call_next(request)
+        return response
+    else:
+        response = await call_next(request)
+        return response
 
 @app.get("/")
 def read_root():

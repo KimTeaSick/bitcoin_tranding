@@ -25,7 +25,6 @@ connenctKey = "9ae8ae53e7e0939722284added991d55"
 
 bithumb = Bithumb(connenctKey, secretKey)
 
-
 trailingPercent = 0
 sensingPercent = 0
 accountOption = 0
@@ -179,10 +178,12 @@ def start():
         autoStatus = db.query(models.autoTradingStatus).filter(
             models.autoTradingStatus.status == 1).first()
         accountOption = accountOp.sell_cancle_time
+
         if autoStatus == None:
             print('exit')
             print('자동 매매 정지')
             exit()
+
         sensingPercent = int(sellOption.trailing_start_percent)
         trailingPercent = int(sellOption.trailing_stop_percent)
         askOption = sellOption.trailing_order_call_price
@@ -191,21 +192,15 @@ def start():
 
         for coin in coinList:
             print("coin ::: ::: ", coin.coin)
-            if coin.status == 1:
-                continue
-
+            if coin.status == 1: continue
             coinNames.append(f'{coin.coin}_KRW')
             trailingCoin = {'buyPrice': float(coin.price), 'sensingPrice': float(coin.price) + (float(coin.price) * (sensingPercent / 100)), 'trailingStop': coin.trailingstop_flag,
                             'max': float(coin.max), 'trailingPrice': float(coin.max) - (float(coin.max) * (trailingPercent / 100)), 'unit': float(coin.unit)}
-
             possessionCoin[f'{coin.coin}_KRW'] = trailingCoin
-
         if len(coinList) == 0:
             print('none coin')
             exit()
-
         print(possessionCoin)
-
         websocket_url = 'wss://pubwss.bithumb.com/pub/ws'
         ws = websocket.WebSocketApp(websocket_url,
                                     on_open=on_open,

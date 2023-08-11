@@ -1,7 +1,9 @@
- 
+from BitThumbPrivate import BitThumbPrivate
 
-bit = bit
+secretKey = "07c1879d34d18036405f1c4ae20d3023"
+connenctKey = "9ae8ae53e7e0939722284added991d55"
 
+bit = BitThumbPrivate(connenctKey, secretKey)
 
 def ASK_PRICE(coin, asking, trading_type):
     ask_prices = []

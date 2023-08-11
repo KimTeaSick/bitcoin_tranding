@@ -29,7 +29,7 @@ class DashBoardFn():
     try:
       print("DashBoardFn bit ::: :::", bit)
       print("possessoionCoinInfo idx ::: ::: ", idx)
-      possessionCoin = await bit.mysql.Select(getMyCoinListSql(user.user_idx)) #
+      possessionCoin = await bit.mysql.Select(getMyCoinListSql(idx)) #
       time.sleep(1)
       if len(possessionCoin) == 0:
         return 203

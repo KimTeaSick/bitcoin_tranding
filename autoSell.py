@@ -30,7 +30,6 @@ bithumbApi = 'https://api.bithumb.com/public/ticker/'
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
 connenctKey = "9ae8ae53e7e0939722284added991d55"
 
-bithumb = Bithumb(connenctKey, secretKey)
 
 headers = {"accept": "application/json"}
 
@@ -43,6 +42,7 @@ finally:
 active_users = db.query(models.USER_T).filter(models.USER_T.active == 1).all()
 print("active_users", active_users)
 for active_user in active_users:
+    bithumb = Bithumb(active_user.public_key, active_user.secret_key)
     possession_coins = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == active_user.idx).all()
 
     useTradingOption = db.query(models.tradingOption).filter(
@@ -315,7 +315,7 @@ for active_user in active_users:
                 order_coin.order_id = orderids[2]
                 order_coin.cancel_time = (datetime.datetime.now() + datetime.timedelta(seconds=accountOtion.buy_cancle_time))
                 order_coin.sell_reason = sell_order['reason']
-                order_coin.user_idx = 1
+                order_coin.user_idx = active_user.idx
                 db.add(order_coin)
                 db.commit()
 
@@ -343,7 +343,7 @@ for active_user in active_users:
                 order_coin.cancel_time = (datetime.datetime.now(
                 ) + datetime.timedelta(seconds=accountOtion.buy_cancle_time))
                 order_coin.sell_reason = sell_order['reason']
-                order_coin.user_idx = 1
+                order_coin.user_idx = active_user.idx
                 db.add(order_coin)
                 db.commit()
 

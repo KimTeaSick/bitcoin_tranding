@@ -19,5 +19,6 @@ def possessionExplore(p_coin_list, bithumb, db):
         del_coin = db.query(models.possessionCoin).filter(
           models.possessionCoin.coin == p_coin.coin).first()
         print("del_coin ::: ::: ",del_coin)
+        if del_coin == None: pass
         db.delete(del_coin)
   db.commit()

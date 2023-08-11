@@ -117,14 +117,15 @@ class user_fn():
 
   def connect_bithumb_privit(self, token):
     try:
-      print("connect_bithumb_privit token", token)
       decode_token = jwt.decode(token, SECRET, algorithms="HS256", verify=True)
-      print("connect_bithumb_privit", decode_token)
-      print("connect_bithumb_privit idx", decode_token["idx"])
       user_info = db.query(models.USER_T).filter(models.USER_T.idx == decode_token["idx"]).first()
+      idx = decode_token["idx"]
+      print("user_info.public_key", user_info.public_key)
+      print("user_info.secret_key", user_info.secret_key)
+      
       bit = BitThumbPrivate(user_info.public_key, user_info.secret_key)
       print("connect_bithumb_privit", bit)
-      return bit
+      return bit, idx
     except Exception as e:
       print("connect_bithumb_privit Error", e)
       return

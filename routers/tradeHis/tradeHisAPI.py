@@ -19,6 +19,6 @@ tradeHis = TradeHisFn()
 
 @tradeRouter.post('/getOrderList')
 async def getOrderList(item: getOrderListBody, req: Request):
-    pageCount = await tradeHis.orderListPageCount(req.state.bit)
-    data = await tradeHis.getOrderList(item.page, req.state.bit)
+    pageCount = await tradeHis.orderListPageCount(req.state.idx, req.state.bit)
+    data = await tradeHis.getOrderList(req.state.idx, item.page, req.state.bit)
     return {"data": data, "page": pageCount}

@@ -19,9 +19,6 @@ import json
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
 connenctKey = "9ae8ae53e7e0939722284added991d55"
 
-bithumb = Bithumb(connenctKey, secretKey)
-
-
 now1 = datetime.datetime.now()
 try:
     db = SessionLocal()
@@ -38,9 +35,9 @@ async def recommendCoins(options, mMax, hMax):
 
 active_users = db.query(models.USER_T).filter(models.USER_T.active == 1).all()
 for active_user in active_users:
+    bithumb = Bithumb(active_user.public_key, active_user.secret_key)
 # 사용 db 가져오기
     possession_coins = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == active_user.idx).all()
-
     useRecommendOPtion = db.query(models.searchOption).filter(
         models.searchOption.idx == active_user.search_option).first()
     useTradingOption = db.query(models.tradingOption).filter(
@@ -185,7 +182,7 @@ for active_user in active_users:
             coin_ask_price = askingPrice.ASK_PRICE(f"{coin['name']}_KRW", ask, 'buy')
             print('coin_ask_price ::::::: ', coin_ask_price)
             print('-----------------------------------------------------------------------------------------------------------------')
-            splitUnit = splitBuy / (float(coin_ask_price))
+            splitUnit = round(splitBuy / (float(coin_ask_price)), 4)
             print('coin order content ::: ::: ', coin['name'], round(float(coin_ask_price), 2), round(splitUnit, 4), 'KRW')
             # 주문
             order = bithumb.buy_limit_order(
@@ -241,7 +238,7 @@ for active_user in active_users:
         possession_coin.optionName = useRecommendOPtion.name
         possession_coin.trailingstop_flag = 0
         possession_coin.max = possession_coin.price
-        possession_coin.user_idx = 1
+        possession_coin.user_idx = active_user.idx
         db.add(possession_coin)
 
     try:

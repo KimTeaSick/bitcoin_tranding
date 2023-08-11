@@ -7,7 +7,7 @@ refresh_expiration_time = 3
 
 def make_access_JWT_token(data):
   now = datetime.utcnow()
-  token_expiration_time = now + timedelta( minutes = access_expiration_time )
+  token_expiration_time = now + timedelta( days = access_expiration_time )
   data["exp"] = token_expiration_time
   token = jwt.encode( data, SECRET, algorithm="HS256" )
   return token
