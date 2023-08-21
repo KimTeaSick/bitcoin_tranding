@@ -11,10 +11,9 @@ from orderChecked.buyCheck import BUY_CHECK
 # connenctKey = "e2fee448690937ae2e8cd6dada5a183e"
 
 # 빗썸 api 키 신
-secretKey = "07c1879d34d18036405f1c4ae20d3023"
-connenctKey = "9ae8ae53e7e0939722284added991d55"
+# secretKey = "07c1879d34d18036405f1c4ae20d3023"
+# connenctKey = "9ae8ae53e7e0939722284added991d55"
 
-bithumb = Bithumb(connenctKey, secretKey)
 
 now1 = datetime.datetime.now()
 try:
@@ -26,14 +25,15 @@ finally:
 # autoStatus = db.query(models.autoTradingStatus).filter(
 #     models.autoTradingStatus.status == 1).first()
 
-active_users = db.query(models.USER_T).filter(
-    models.USER_T.active == 1).all()
-
-# if autoStatus == None:
-#     print('자동 매매 정지 exit')
-#     exit()
+active_users = db.query(models.USER_T).all()
 
 for user in active_users:
+    bithumb = Bithumb(user.public_key, user.secret_key)
+
+    if user.active == 0:
+        print('자동 매매 정지 exit')
+        exit()
+
     krTime = 60 * 60 * 9
     # 주문 확인 매매 성공 확인, 취소
     orderList = db.query(models.orderCoin).filter(
@@ -41,7 +41,7 @@ for user in active_users:
     for order in orderList:
         possession_list = db.query(models.possessionCoin).filter(
             models.possessionCoin.user_idx == user.idx).all()
-        
+        print("buy order status order_id ::: ::: ", order.order_id)
         # 매수 확인
         if order.status == 1:
             order_desc = ['bid', order.coin, order.order_id, 'KRW']
@@ -86,9 +86,9 @@ for user in active_users:
                 order_sum = {'unit': 0, 'total': 0, 'fee': 0}
                 if len(orderStatus['data']['contract']) > 0:
                     for cont in orderStatus['data']['contract']:
-                        order_sum['unit'] += cont['units']
-                        order_sum['total'] += cont['total']
-                        order_sum['fee'] += cont['fee']
+                        order_sum['unit'] += float(cont['units'])
+                        order_sum['total'] += float(cont['total'])
+                        order_sum['fee'] += float(cont['fee'])
                     order_sum['price'] = orderStatus['data']['order_price']
                     trading = db.query(models.possessionCoin).filter(
                         models.possessionCoin.coin == orderStatus['data']['order_currency'])
@@ -165,15 +165,17 @@ for user in active_users:
                 order_sum = {'unit': 0, 'total': 0, 'fee': 0}
                 if len(orderStatus['data']['contract']) > 0:
                     for cont in orderStatus['data']['contract']:
-                        order_sum['unit'] += cont['units']
-                        order_sum['total'] += cont['total']
-                        order_sum['fee'] += cont['fee']
+                        order_sum['unit'] += float(cont['units'])
+                        order_sum['total'] += float(cont['total'])
+                        order_sum['fee'] += float(cont['fee'])
+
                     order_sum['price'] = orderStatus['data']['order_price']
-                    trading = db.query(models.possessionCoin).filter(models.possessionCoin.coin == orderStatus['data']['order_currency'])
-                    trading.unit = trading.unit - order_sum['unit']
-                    trading.total = trading.total - order_sum['total']
+                    trading = db.query(models.possessionCoin).filter(models.possessionCoin.coin == orderStatus['data']['order_currency']).first()
+
+                    trading.unit = float(trading.unit) - order_sum['unit']
+                    trading.total = float(trading.total) - order_sum['total']
                     trading.price = order_sum['price']
-                    trading.fee = trading.fee - order_sum['fee']
+                    trading.fee = float(trading.fee) - order_sum['fee']
                     db.commit()
 
                 timeCheck = str(datetime.datetime.strptime(
@@ -181,7 +183,7 @@ for user in active_users:
                 print(timeCheck[0])
                 if timeCheck[0] == '-':
                     if len(orderStatus['data']['contract']) > 0:
-                        if trading.total < 1000:
+                        if float(trading.total) < 1000:
                             continue
                     cancel = bithumb.cancel_order(order_desc)
                     if cancel == True:
@@ -189,6 +191,6 @@ for user in active_users:
                         Possession.status = 4
             print(orderStatus)
             db.commit()
-    possessionExplore(possession_list, bithumb, db)
+        possessionExplore(possession_list, bithumb, db)
 
     print('process end')

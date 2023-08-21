@@ -140,18 +140,18 @@ def useTradingOptionStatus(idx):
   where op.idx like ''' + "'" + idx + "'"
 
 def getTradingHisSql(idx):
-  return f"SELECT * FROM nc_p_possession_coin_his_t WHERE transaction_time >= (SELECT start_date FROM nc_b_now_auto_status_t) and user_idx = {idx} order by idx desc"
+  return f"SELECT * FROM nc_p_possession_coin_his_t WHERE transaction_time >= (SELECT start_date FROM nc_b_user_t WHERE idx = {idx}) and user_idx = {idx} order by idx desc"
 
 autoStatusCheck = "SELECT status FROM nc_b_now_auto_status_t"
 updateAutoStatus = "UPDATE nc_b_now_auto_status_t SET status = %s, start_date = %s WHERE user_idx = 1"
 
 insertLog = "INSERT INTO nc_f_log_t (content, insert_date) VALUES (%s, now())" 
 
-def todayBuyPrice(dateStart, dateEnd):
-  return 'SELECT sum(total) FROM nc_p_possession_coin_his_t WHERE transaction_time > ' + "'" + dateStart + "'" + ' AND transaction_time < ' + "'" + dateEnd + "'" + " AND type = 'bid' "
+def todayBuyPrice(dateStart, dateEnd, idx):
+  return 'SELECT sum(total) FROM nc_p_possession_coin_his_t WHERE user_idx = ' + "'" + idx + "'" + ' AND transaction_time > ' + "'" + dateStart + "'" + ' AND transaction_time < ' + "'" + dateEnd + "'" + " AND type = 'bid' "
 
-def todaySellPrice(dateStart, dateEnd):
-  return 'SELECT sum(total) FROM nc_p_possession_coin_his_t WHERE transaction_time > ' + "'" + dateStart + "'" + ' AND transaction_time < ' + "'" + dateEnd + "'" + " AND type = 'ask' "
+def todaySellPrice(dateStart, dateEnd, idx):
+  return 'SELECT sum(total) FROM nc_p_possession_coin_his_t WHERE user_idx = ' + "'" + idx + "'" + ' AND transaction_time > ' + "'" + dateStart + "'" + ' AND transaction_time < ' + "'" + dateEnd + "'" + " AND type = 'ask' "
 
 get_yesterday_balance = "SELECT account_balance FROM nc_r_account_rate_t WHERE insert_date = ( SELECT MAX(insert_date) FROM nc_r_account_rate_t )"
 
@@ -200,4 +200,4 @@ where sot.used = 1
 
 def get_coin_close_price(low_limit, high_limit): return 'select * from( select coin_name, Close from nc_p_min_bithumb_t where (coin_name, time) in ( select coin_name, max(time) as time from nc_p_min_bithumb_t where Close > ' + low_limit + ' AND Close < ' + high_limit + ' group by coin_name) ) t group by coin_name'
 
-getATOrderList = 'SELECT * FROM nc_r_order_coin_t order by transaction_time DESC'
+def getATOrderList(idx): return f'SELECT * FROM nc_r_order_coin_t WHERE user_idx = {idx} order by transaction_time DESC'

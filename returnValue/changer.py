@@ -36,7 +36,7 @@ def TODAY_TRADING_RESULT(value):
     if(value[1][0][0] != None): 
         print("value[1][0] :::: ", value[1][0])
         sell = value[1]
-    R_VALUE={
+    R_VALUE = {
         "total":round(value[2]),
         "deposit": round(value[3]),
         "buy":buy,

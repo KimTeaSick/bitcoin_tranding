@@ -11,14 +11,6 @@ import requests
 import time
 import json
 
-# 빗썸 api 키 오
-# secretKey = "c59e7f376201984d26224428649e42c7"
-# connenctKey = "e2fee448690937ae2e8cd6dada5a183e"
-
-# 빗썸 api 키 신
-secretKey = "07c1879d34d18036405f1c4ae20d3023"
-connenctKey = "9ae8ae53e7e0939722284added991d55"
-
 now1 = datetime.datetime.now()
 try:
     db = SessionLocal()
@@ -28,12 +20,12 @@ finally:
 
 # 검색 함수 실행
 
-
 async def recommendCoins(options, mMax, hMax):
     coins = await recommend.recommendCoin(options, mMax, hMax)
     return coins
 
 active_users = db.query(models.USER_T).filter(models.USER_T.active == 1).all()
+
 for active_user in active_users:
     bithumb = Bithumb(active_user.public_key, active_user.secret_key)
 # 사용 db 가져오기
@@ -218,7 +210,7 @@ for active_user in active_users:
         order_coin.order_id = ordercheck['orders']
         order_coin.cancel_time = (datetime.datetime.now(
         ) + datetime.timedelta(seconds=accountOption.buy_cancle_time))
-        order_coin.user_idx = 1
+        order_coin.user_idx = active_user.idx
         db.add(order_coin)
 
         # 보유코인 추가

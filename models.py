@@ -452,6 +452,7 @@ class USER_T(Base):
   __tablename__ = "nc_b_user_t"
   idx = Column(Integer, primary_key=True, index=True, autoincrement=True)
   active = Column(Integer)
+  start_date = Column(String(100))
   name = Column(String(100))
   email = Column(String(100))
   password = Column(String(100))

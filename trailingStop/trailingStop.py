@@ -42,6 +42,8 @@ def on_open(ws):
         "type": "transaction",
         "symbols": coinNames
     }
+    print('coinNames ::: ::: ', coinNames)
+    print('userIdx ::: ::: ', userIdx)
     ws.send(json.dumps(subscribe_data))
 
 
@@ -58,7 +60,7 @@ def on_message(ws, message):
         symbol = data['content']['list'][0]['symbol']
         price = float(data['content']['list'][0]['contPrice'])
 
-        print("on_message data ::: ::: ", data)
+        print("on_message data ::: ::: ", userIdx)
         # 트레일링 스탑 시작
         if possessionCoin[symbol]['sensingPrice'] < price and possessionCoin[symbol]['trailingStop'] == 0:
             possessionCoin[symbol]['trailingStop'] = 1
@@ -103,10 +105,8 @@ def on_message(ws, message):
                         else:
                             status.status = 3
                             order_coin.status = 3
-
                         db.add(order_coin)
                         print(order_coin.cancel_time)
-
                         try:
                             db.commit()
                         except:
@@ -118,19 +118,17 @@ def on_message(ws, message):
                             file.write(
                                 f"{'coin':symbol[:-4]}, reason: trailing stop" + '\n')
                             file.close()
-
                 except Exception as e:
                     print(e)
 
-        print(symbol, possessionCoin[symbol], price)
+        print("symbol, possessionCoin[symbol], price", symbol, possessionCoin[symbol], price)
 
         # 보유 코인 확인
         nowMin = str(datetime.datetime.now().strftime('%M'))
         if minute != nowMin:
             minute = nowMin
             possession = db.query(models.possessionCoin).all()
-
-            print(minute)
+            print("minute :::", minute)
             for coin in possession:
                 try:
                     coin.trailingstop_flag = possessionCoin[f'{coin.coin}_KRW']['trailingStop']
@@ -158,7 +156,8 @@ def on_error(ws, error):
     print('Error:', error)
 
 
-def start():
+def start(idx):
+    global userIdx
     global coinNames
     global possessionCoin
     global coinList
@@ -166,6 +165,7 @@ def start():
     global trailingPercent
     global askOption
     global accountOption
+    print("idx ::: ::: ", idx)
     active_users = db.query(models.USER_T).filter(models.USER_T.active == 1).all()
     for active_user in active_users:
         coinList = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == active_user.idx).all()
@@ -179,14 +179,10 @@ def start():
             models.autoTradingStatus.status == 1).first()
         accountOption = accountOp.sell_cancle_time
 
-        if autoStatus == None:
-            print('exit')
-            print('자동 매매 정지')
-            exit()
-
         sensingPercent = int(sellOption.trailing_start_percent)
         trailingPercent = int(sellOption.trailing_stop_percent)
         askOption = sellOption.trailing_order_call_price
+        userIdx = active_user.idx
         coinNames = []
         possessionCoin = {}
 
@@ -197,9 +193,11 @@ def start():
             trailingCoin = {'buyPrice': float(coin.price), 'sensingPrice': float(coin.price) + (float(coin.price) * (sensingPercent / 100)), 'trailingStop': coin.trailingstop_flag,
                             'max': float(coin.max), 'trailingPrice': float(coin.max) - (float(coin.max) * (trailingPercent / 100)), 'unit': float(coin.unit)}
             possessionCoin[f'{coin.coin}_KRW'] = trailingCoin
+
         if len(coinList) == 0:
             print('none coin')
             exit()
+
         print(possessionCoin)
         websocket_url = 'wss://pubwss.bithumb.com/pub/ws'
         ws = websocket.WebSocketApp(websocket_url,
@@ -210,4 +208,5 @@ def start():
         ws.run_forever()
 
 
-start()
+
+start(234234)

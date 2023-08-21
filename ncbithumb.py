@@ -25,7 +25,7 @@ import os
 
 app = FastAPI()
 
-origins = ["http://121.165.242.171:48604"]
+origins = ["http://121.165.242.171:48604", "http://192.168.10.119", "http://52.78.246.119"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -49,8 +49,8 @@ async def middleware(request: Request, call_next):
     if bit != 1:
         idx = bit[1]
         bit = bit[0]
-        print("getCandleChart item idx", idx)
-        print("getCandleChart item bit", bit)
+        print("middleware idx", idx)
+        print("middleware bit", bit)
         request.state.bit = bit
         request.state.idx = idx
         response = await call_next(request)
@@ -107,7 +107,8 @@ async def updateSearchOption(item: updateSearchOptionBody, request: Request):
 
 @app.get('/todayAccount')
 async def todayAccount(request: Request):
-    response = await request.state.bit.todayAccount()
+    response = await request.state.bit.todayAccount(request.state.idx)
+    print("todayAccount ::: ::: ", response)
     return response
 
 @app.get("/nowRate")

@@ -97,17 +97,22 @@ class SearchFn():
           print(e)
           return 444
 
-  async def optionList(self):
+  async def optionList(self, idx):
     try:
-      optionL = db.query(models.searchOption).all()
+      option_list = db.query(models.searchOption).all()
+      user =  db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
       options = []
-      for option in optionL:
+      for option in option_list:
+        used = 0
         if option.Update_date == None:
           option.Update_date = "-"
         else:
           option.Update_date = option.Update_date[0:19]
+        if user.search_option == option.idx:
+           used = 1
         options.append(
-          {'idx':option.idx ,'Name': option.name, 'Create_date': option.Create_date[0:19], 'Update_date': option.Update_date})
+          {'idx':option.idx ,'Name': option.name, 'Create_date': option.Create_date[0:19], 
+           'Update_date': option.Update_date, "Used":used})
       return options
     except Exception as e:
       print("optionList Error :::: ", e)
@@ -144,7 +149,7 @@ class SearchFn():
                 "Disparity": {"chart_term": dis.chart_term, "disparity_term": dis.disparity_term, "low_disparity": dis.low_disparity, "high_disparity": dis.high_disparity, "flag": dis.flag},
                 "MACD": {"chart_term": mac.chart_term, "short_disparity": mac.short_disparity, "long_disparity": mac.long_disparity, "up_down": mac.up_down, "flag": mac.flag, "signal": mac.signal}}}
       except Exception as e:
-          print("optionList Error :::: ", e)
+          print("optionDetail Error :::: ", e)
           insertLog.log(e)
           db.rollback()
           return 444
@@ -249,49 +254,45 @@ class SearchFn():
 
   async def deleteOption(self, item):
       try:
-          optionL = db.query(models.searchOption).filter(
-              models.searchOption.idx == item.option).first()
+          db = SessionLocal()
+          db: Session
           db.query(models.PriceOption).filter(
               models.PriceOption.idx == item.option).delete()
+          
           db.query(models.TransactionAmountOption).filter(
               models.TransactionAmountOption.idx == item.option).delete()
+          
           db.query(models.MASPOption).filter(
               models.MASPOption.idx == item.option).delete()
+          
           db.query(models.DisparityOption).filter(
               models.DisparityOption.idx == item.option).delete()
+          
           db.query(models.TrendOption).filter(
               models.TrendOption.idx == item.option).delete()
+          
           db.query(models.MACDOption).filter(
               models.MACDOption.idx == item.option).delete()
+              
           db.query(models.searchOption).filter(
               models.searchOption.idx == item.option).delete()
-          try:
-              db.commit()
-          except Exception as e:
-              insertLog.log(e)
-              print(e)
-              db.rollback()
+          db.commit()
           return 'delete success'
       except Exception as e:
-          print(e)
+          db.rollback()
+          print("deleteOption Error ::: ::: ", e)
+      finally:
+        db.close()
 
-  async def useOption(self, item):
+  async def useOption(self, item, idx):
       try:
-        useOption = db.query(models.searchOption).filter(
-            models.searchOption.idx == item.option).first()
-
-        optionL = db.query(models.searchOption).filter(
-            models.searchOption.used == 1).all()
-
-        for option in optionL:
-            option.used = 0
-        useOption.used = 1
-        useOption.Update_date = datetime.datetime.now()
+        user = db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
+        user.search_option = item.option
         db.commit()
-        print("success :::::")
+        print("useOption success ::: :::")
         return 200
       except Exception as e:
         insertLog.log(e)
-        print("fail :::::", e)
+        print("useOption Error ::: :::", e)
         db.rollback()
         return 444

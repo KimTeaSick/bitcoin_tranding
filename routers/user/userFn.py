@@ -76,7 +76,8 @@ class user_fn():
         self.bithumb = BitThumbPrivate(user_info.public_key, user_info.secret_key)
         db.add(user_info)
         db.commit()
-        return {"status":200, "data": {"idx":user_info.idx ,"name": user_info.name, "access_token": token, "token_type": "bearer"}} 
+        return {"status":200, "data": {"idx":user_info.idx ,"name": user_info.name, "auto_active": user_info.active, 
+                                      "access_token": token, "token_type": "bearer"}}
       else : 
         return { "status" : 444 }
     except Exception as e:
@@ -120,11 +121,7 @@ class user_fn():
       decode_token = jwt.decode(token, SECRET, algorithms="HS256", verify=True)
       user_info = db.query(models.USER_T).filter(models.USER_T.idx == decode_token["idx"]).first()
       idx = decode_token["idx"]
-      print("user_info.public_key", user_info.public_key)
-      print("user_info.secret_key", user_info.secret_key)
-      
       bit = BitThumbPrivate(user_info.public_key, user_info.secret_key)
-      print("connect_bithumb_privit", bit)
       return bit, idx
     except Exception as e:
       print("connect_bithumb_privit Error", e)

@@ -26,7 +26,6 @@ async def getPossessoionCoinInfo(request: Request):
 
 @dashRouter.post("/getRecommendCoin")
 async def getRecommendPrice(item: getRecommendOption, request: Request):
-    print("request.state.bit ::: ::: ", request.state.bit)
     now1 = datetime.datetime.now()
     response = await request.state.bit.getRecommendCoin(item)
     now2 = datetime.datetime.now()
@@ -36,7 +35,6 @@ async def getRecommendPrice(item: getRecommendOption, request: Request):
 
 @dashRouter.get('/accountInfo/')
 async def getAccountInfo(date1, date2, request: Request):
-    print("request.state.bit ::: ::: ", request.state.bit)
     try:
         response = await dash.dashProperty([str(date1), str(date2)], request.state.bit)
         return response
@@ -45,7 +43,6 @@ async def getAccountInfo(date1, date2, request: Request):
     
 @dashRouter.post('/rateCheck')
 async def test(item: rateCheckBody, request: Request):
-    print("request.state.bit ::: ::: ", request.state.bit)
-    res = await dash.rate_check(item, request.state.bit)
+    res = await dash.rate_check(item, request.state.bit, request.state.idx)
     print("res", res)
     return {'rate': res[0], 'account_balance': res[1]}

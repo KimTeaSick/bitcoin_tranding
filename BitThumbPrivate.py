@@ -247,14 +247,15 @@ class BitThumbPrivate():
         returnLog = list(buyLog)
         return returnLog
 
-    async def todayAccount(self):
+    async def todayAccount(self, idx):
         try:
+            print("async def todayAccount(self, idx) ::: :::", idx)
             dt = str(datetime.datetime.now().replace())
             start_dt = dt[0:10] + " 00:00:00.000000"
             end_dt = dt[0:10] + " 23:59:59.999999"
             total_and_deposit = self.myProperty()
-            today_buy_price = await self.mysql.Select(todayBuyPrice(start_dt, end_dt))
-            today_sell_price = await self.mysql.Select(todaySellPrice(start_dt, end_dt))
+            today_buy_price = await self.mysql.Select(todayBuyPrice(start_dt, end_dt, str(idx)))
+            today_sell_price = await self.mysql.Select(todaySellPrice(start_dt, end_dt, str(idx)))
             return changer.TODAY_TRADING_RESULT([today_buy_price, today_sell_price, total_and_deposit[0], total_and_deposit[1]])
         except Exception as e:
             print(e)

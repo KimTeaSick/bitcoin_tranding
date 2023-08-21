@@ -11,12 +11,12 @@ coin = CoinFn()
 
 @coinRouter.get("/getBitcoinInfo")
 def getBitcoinInfo(request:Request):
-    data = request.state.bit.bithumb.getBitCoinList('ALL')
+    data = request.state.bit.getBitCoinList('ALL')
     return data
 
 @coinRouter.get("/getDetailBTCInfo/{item_id}")
 def getDetailBTCInfo(item_id, request:Request):
-    data = request.state.bit.bithumb.getBitCoinList(item_id)
+    data = request.state.bit.getBitCoinList(item_id)
     return data
 
 @coinRouter.get('/getDisparity')

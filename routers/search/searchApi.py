@@ -5,7 +5,7 @@ IS_DEV = os.environ.get('IS_DEV')
 pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
 sys.path.append(pwd) 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from .parameter import *
 from .searchFn import SearchFn
 from lib import insertLog
@@ -27,9 +27,9 @@ async def updateSearchOption(item: insertOption):
         insertLog.log("검색 옵션 등록 기능 사용 실패")
 
 @searchRouter.get('/optionList')
-async def getOptionList():
+async def getOptionList(request:Request):
     try:
-        response = await search.optionList()
+        response = await search.optionList(request.state.idx)
         insertLog.log("검색 옵션 조회 기능 사용")
         return response
     except:
@@ -68,9 +68,9 @@ async def OptionDelete(item: deleteOption):
         return 444
 
 @searchRouter.post('/useOption')
-async def OptionUsed(item: useOption):
+async def OptionUsed(item: useOption, request:Request):
     try:
-        response = await search.useOption(item)
+        response = await search.useOption(item, request.state.idx)
         insertLog.log("검색 옵션 사용 등록 기능 사용")
         return response
     except:

@@ -27,8 +27,8 @@ bithumbApi = 'https://api.bithumb.com/public/ticker/'
 # connenctKey = "e2fee448690937ae2e8cd6dada5a183e"
 
 # 빗썸 api 키 신
-secretKey = "07c1879d34d18036405f1c4ae20d3023"
-connenctKey = "9ae8ae53e7e0939722284added991d55"
+# secretKey = "07c1879d34d18036405f1c4ae20d3023"
+# connenctKey = "9ae8ae53e7e0939722284added991d55"
 
 
 headers = {"accept": "application/json"}
@@ -100,7 +100,7 @@ for active_user in active_users:
             if float(coin.total) <= 1000:
                 under_one_dollar.append({'coin': coin.coin, 'nowprice': response['data']['closing_price'], 'unit': coin.unit, 'buyPrice': coin.price, 'percent': (
                 nowPrice / float(coin.total)) * 100 - 100, 'ask': ask, 'macd_chart': coin.macd_chart, 'disparity_chart': coin.disparity_chart, "total": coin.total })
-            elif coin.status == 4 and coin.total >= 1000:
+            elif coin.status == 4 and float(coin.total) >= 1000:
                 resale.append({'coin': coin.coin, 'nowprice': response['data']['closing_price'], 'unit': coin.unit, 'buyPrice': coin.price, 'percent': (
                 nowPrice / float(coin.total)) * 100 - 100, 'ask': ask, 'macd_chart': coin.macd_chart, 'disparity_chart': coin.disparity_chart})
             else:

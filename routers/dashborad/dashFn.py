@@ -14,34 +14,28 @@ import time
 from BitThumbPrivate import BitThumbPrivate
 
 class DashBoardFn():
-  async def rate_check(self, item, bit):
+  async def rate_check(self, item, bit, idx):
     try:
       res = 0
-      total_rate = await bit.mysql.Select(total_rate_sql(str(item.days)))
+      total_rate = await bit.mysql.Select(total_rate_sql(str(item.days), idx))
       for rate in total_rate:
         res += float(rate[0])
-      print(total_rate[-1][-1])
       return round(res, 3), total_rate[-1][-1]
     except Exception as e:
       print('Error ::: ::: ', e)
   
   async def possessoionCoinInfo(self, idx, bit):
     try:
-      print("DashBoardFn bit ::: :::", bit)
-      print("possessoionCoinInfo idx ::: ::: ", idx)
-      possessionCoin = await bit.mysql.Select(getMyCoinListSql(idx)) #
-      time.sleep(1)
+      possessionCoin = await bit.mysql.Select(getMyCoinListSql(idx))
       if len(possessionCoin) == 0:
         return 203
       else:
         returnList = []
         for coin in possessionCoin:
           coinInfo = bit.getBitCoinList(coin[0])['data']
-          print("coinInfo ::: ::: ", coinInfo)
           coinValue = float(coinInfo['closing_price'])
           returnList.append(
             changer.POSSESSION_COIN_LIST(coin, coinValue))
-        print("returnListreturnList", returnList)
         return returnList
     except Exception as e:
       print("possessoionCoinInfo Error :::: ", e)

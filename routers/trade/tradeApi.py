@@ -28,9 +28,9 @@ async def OptionUsed(item: tradingOption):
         return 444
 
 @tradeRouter.get('/tradingOptionList')
-async def getOptionList():
+async def getOptionList(request:Request):
     try:
-        response = await trade.tradingOptionList()
+        response = await trade.tradingOptionList(request.state.idx)
         insertLog.log("매매 옵션 조회 기능 사용")
         return response
     except:
@@ -81,7 +81,7 @@ async def OptionUsed(item: useTradingOption):
 
 @tradeRouter.get("/orderList")
 async def getoderList(request:Request):
-    response = await trade.getATOrderList(request.state.bit)
+    response = await trade.getATOrderList(request.state.bit, request.state.idx)
     return response
 
 @tradeRouter.get('/getSearchPriceList')
@@ -107,7 +107,7 @@ async def getNowUsedCondition(idx,request:Request):
 @tradeRouter.get('/getTradingHis')
 async def getTradingHis(request:Request):
     try:
-        response = await trade.getTradingHis(request.state.bit)
+        response = await trade.getTradingHis(request.state.bit, request.state.idx)
         insertLog.log("자동 매매 거래 내역 조회 기능 사용")
         return response
     except:
@@ -126,7 +126,7 @@ async def autoTradingCheck(request:Request):
 @tradeRouter.post('/controlAutoTrading')
 async def controlAutoTrading(item: controlAT,request:Request):
     try:
-        response = await trade.controlAutoTrading(item.flag, request.state.bit)
+        response = await trade.controlAutoTrading(item.flag, request.state.bit, request.state.idx)
         insertLog.log("자동 매매 컨트롤 기능 사용")
         return response
     except:

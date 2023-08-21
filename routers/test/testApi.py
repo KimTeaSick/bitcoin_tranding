@@ -16,12 +16,17 @@ testRouter = APIRouter(
 
 test = TestFn()
 
-@testRouter.post("/cancleTrade")
-def cancleTradeApi(item: orderItem, req:Request):
-  response = test.cancleTradeFn(item, req.state.bit)
-  return response
+# @testRouter.post("/cancleTrade")
+# def cancleTradeApi(item: orderItem, req:Request):
+#   response = test.cancleTradeFn(item, req.state.bit)
+#   return response
 
 @testRouter.post("/signTrade")
 def signTradeApi(item: orderItem, req:Request):
   response = test.signTradeFn(item, req.state.bit)
+  return response
+
+@testRouter.get("/cancleTrade")
+def signTradeApi(req:Request):
+  response = test.cancleTradeFn()
   return response

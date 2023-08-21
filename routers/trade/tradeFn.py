@@ -15,7 +15,7 @@ import subprocess
 import datetime
 import models 
 from routers.user.userApi import user
- 
+import psutil
 
 try:
     db = SessionLocal()
@@ -111,13 +111,17 @@ class TradeFn():
             print(e)
             return 444
 
-  async def tradingOptionList(self):
+  async def tradingOptionList(self, idx):
       try:
-          optionL = db.query(models.tradingOption).all()
+          option_list = db.query(models.tradingOption).all()
+          user = db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
           options = []
-          for option in optionL:
+          for option in option_list:
+              used = 0
+              if user.trading_option == option.idx:
+                used = 1
               options.append(
-                  {'idx': option.idx, 'Name': option.name, 'Create_date': option.insert_time[:19], 'Update_date': option.update_time[:19], 'used': option.used})
+                  {'idx': option.idx, 'Name': option.name, 'Create_date': option.insert_time[:19], 'Update_date': option.update_time[:19], 'used': used})
               print(options)
           return options
       except Exception as e:
@@ -312,10 +316,10 @@ class TradeFn():
           insertLog.log(e)
           return 444  
       
-  async def getTradingHis(self, bit):
+  async def getTradingHis(self, bit, idx):
       try:
           returnValue = []
-          tradingHis = await bit.mysql.Select(getTradingHisSql())  
+          tradingHis = await bit.mysql.Select(getTradingHisSql(idx))  
           if (tradingHis != None):
               for his in tradingHis:
                   returnValue.append(changer.TRADING_LIST(his))
@@ -332,9 +336,9 @@ class TradeFn():
         insertLog.log(e)
         return 444
       
-  async def getATOrderList(self, bit):
+  async def getATOrderList(self, bit, idx):
     return_value = []
-    raw_data = await bit.mysql.Select(getATOrderList)
+    raw_data = await bit.mysql.Select(getATOrderList(idx))
     if len(raw_data) == 0:
         return return_value
     else:
@@ -342,38 +346,58 @@ class TradeFn():
             return_value.append(changer.ATOrderList(o_list))
     return return_value
     
-  async def controlAutoTrading(self, flag, bit):
+  async def controlAutoTrading(self, flag, bit, idx):
         try:
+            user = db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
             if (flag == 1):
-                await bit.mysql.Update(updateAutoStatus, [flag, str(datetime.datetime.now().replace())])
-                subprocess.run(
-                    ['/bin/python3', '/data/4season/bitcoin_trading_back/autoBuy.py'])
+                user.active = 1
+                user.start_date = str(datetime.datetime.now().replace())
+                process = ['nohup', '/bin/python3', '/data/4season/trailingStop/main.py', str(idx), '&']
+                subprocess.run(['/bin/python3', '/data/4season/bitcoin_trading_back/autoBuy.py'])
+                subprocess.Popen(process)
+                with open(f"trailingStop/user_active_log {idx}", "a") as file:
+                    file.write(f'{datetime.datetime.now()}------------------------------------------------------------------\n')
+                    file.write(f"user idx: {idx}, trailing start" + '\n')
+                    file.close()
             elif (flag == 0):
-                orderList = db.query(models.orderCoin).all()
+                orderList = db.query(models.orderCoin).filter(models.orderCoin.user_idx == user.idx).all()
                 for order in orderList:
-                    Possession = db.query(models.possessionCoin).filter(
-                        models.possessionCoin.coin == order.coin).first()
+                    Possession = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == user.idx).first()
                     if order.status == 1:
                         order_desc = ['bid', order.coin, order.order_id, 'KRW']
                     elif order.status == 3 or order.status == 5:
                         order_desc = ['ask', order.coin, order.order_id, 'KRW']
-
                     cancel = bit.bithumb.cancel_order(order_desc)
                     if cancel == True:
                         if order.status == 1:
                             db.delete(Possession)
                         elif order.status == 3 or order.status == 5:
                             Possession.status = 4
-
                         db.delete(order)
                         Possession.status = 0
+                for proc in psutil.process_iter():
                     try:
-                        db.commit()
-                    except:
-                        db.rollback()
-
-                await bit.mysql.Update(updateAutoStatus, [flag, "-"])
+                        processCmdline = proc.cmdline()
+                        print("proc ::: ::: ", processCmdline)
+                        if len(processCmdline) >= 4:
+                            print("proc ::: ::: ", processCmdline[1], "idx ::: :::", processCmdline[2])
+                            if processCmdline[1] == '/data/4season/trailingStop/main.py' and processCmdline[2] == str(idx):
+                                processID = proc.pid
+                                autoTrading = psutil.Process(processID)
+                                autoTrading.kill() 
+                    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):   #예외처리
+                      pass
+                with open(f"trailingStop/user_active_log {idx}", "a") as file:
+                    file.write(
+                        f'{datetime.datetime.now()}------------------------------------------------------------------\n')
+                    file.write(
+                        f"user idx: {idx}, trailing stop" + '\n')
+                    file.close()
+                user.start_date = "-"
+                user.active = 0
+            db.commit()        
             return 200
         except Exception as e:
-            print("tradingOptionListError :::: ", e)
+            db.rollback()
+            print("controlAutoTrading :::: ", e)
             return 444
