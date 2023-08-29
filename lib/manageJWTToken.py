@@ -14,7 +14,7 @@ def make_access_JWT_token(data):
 
 def make_refresh_JWT_token():
   now = str(datetime.utcnow())
-  token_expiration_time = now + timedelta( hours = refresh_expiration_time )
+  token_expiration_time = now + timedelta( days = refresh_expiration_time )
   token = jwt.encode({"exp": token_expiration_time}, SECRET, algorithm="HS256")
   return token
 

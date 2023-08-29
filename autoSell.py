@@ -54,11 +54,6 @@ for active_user in active_users:
     sellOption = db.query(models.tradingSellOption).filter(
         models.tradingSellOption.idx == useTradingOption.idx).first()
 
-    if active_user.active == 0:
-        print('exit')
-        print('자동매매 정지')
-        exit()
-
     chartMax = 0 
     for possession in possession_coins:
         if chartMax < int(possession.macd_chart[:-1]):

@@ -184,7 +184,7 @@ class BitThumbPrivate():
             else:
                 returnList = []
                 for coin in possessionCoin:
-                    coinInfo = self.getBitCoinList(coin[0])['data']
+                    coinInfo = self.getBitCoinList(coin[1])['data']
                     coinValue = float(coinInfo['closing_price'])
                     returnList.append(
                         changer.POSSESSION_COIN_LIST(coin, coinValue))

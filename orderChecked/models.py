@@ -393,7 +393,6 @@ class tradingSellOption(Base):
 
 class possessionCoin(Base):
     __tablename__ = 'nc_r_possession_coin_t'
-    # idx = Column(Integer, primary_key=True)
     coin = Column(String(100), primary_key=True)
 
     unit = Column(String(100))
@@ -410,7 +409,6 @@ class possessionCoin(Base):
     optionName = Column(String(100))
     trailingstop_flag = Column(Integer)
     max = Column(String(100))
-
 
 class possessionLog(Base):
     __tablename__ = 'nc_p_possession_coin_his_t'

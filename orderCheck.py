@@ -29,11 +29,6 @@ active_users = db.query(models.USER_T).all()
 
 for user in active_users:
     bithumb = Bithumb(user.public_key, user.secret_key)
-
-    if user.active == 0:
-        print('자동 매매 정지 exit')
-        exit()
-
     krTime = 60 * 60 * 9
     # 주문 확인 매매 성공 확인, 취소
     orderList = db.query(models.orderCoin).filter(

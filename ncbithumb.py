@@ -1,7 +1,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import FastAPI, Depends, Request
+from fastapi import FastAPI, Depends, Request, HTTPException
 from starlette.requests import Request
 from routers.dashborad import dashApi
 from routers.coinList import coinApi
@@ -46,7 +46,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 async def middleware(request: Request, call_next):
     global bit
     bit = await token_validator(request)
-    if bit != 1:
+    if bit != 1 and bit != 2:
         idx = bit[1]
         bit = bit[0]
         print("middleware idx", idx)
@@ -55,9 +55,13 @@ async def middleware(request: Request, call_next):
         request.state.idx = idx
         response = await call_next(request)
         return response
+    elif bit == 1:
+        response = await call_next(request)
+        return response
     else:
         response = await call_next(request)
         return response
+
 
 @app.get("/")
 def read_root():

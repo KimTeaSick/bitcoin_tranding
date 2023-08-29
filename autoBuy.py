@@ -21,11 +21,11 @@ finally:
 # 검색 함수 실행
 
 async def recommendCoins(options, mMax, hMax):
+    
     coins = await recommend.recommendCoin(options, mMax, hMax)
     return coins
 
 active_users = db.query(models.USER_T).filter(models.USER_T.active == 1).all()
-
 for active_user in active_users:
     bithumb = Bithumb(active_user.public_key, active_user.secret_key)
 # 사용 db 가져오기
@@ -37,11 +37,6 @@ for active_user in active_users:
     autoStatus = db.query(models.autoTradingStatus).filter(
         models.autoTradingStatus.status == 1).first()
     userIdx = 2
-
-    if active_user.active == 0:
-        print('exit')
-        print('자동매매 정지')
-        exit()
 
     # 보유코인 갯수
     coinCount = len(possession_coins)

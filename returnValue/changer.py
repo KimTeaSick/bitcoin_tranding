@@ -114,49 +114,49 @@ def BITHUMB_COIN_LIST(value):
     return R_VALUE
 
 def POSSESSION_COIN_LIST(coin, coin_now_price):
-    print("POSSESSION_COIN_LIST ::: ::: ",coin)
+    print("POSSESSION_COIN_LIST ::: ::: ", coin)
     def type_one(coin, coin_now_price, status):
         return {
-            "coin" : coin[0], 
+            "coin" : coin[1], 
             "status" : status, 
             "info" : { 
-                    "unit" : coin[1],
+                    "unit" : coin[2],
                     "now_price" : coin_now_price,
-                    "buy_price" : coin[2],
-                    "buy_total_price" : coin[3],
-                    "evaluate_price" : float(coin_now_price) * float(coin[1]), #평가금액
-                    "profit" : float(coin_now_price) * float(coin[1]) - float(coin[3]),
-                    "rate" : ((float(coin_now_price) * float(coin[1]) - float(coin[3])) / float(coin[3])) * 100
+                    "buy_price" : coin[3],
+                    "buy_total_price" : coin[4],
+                    "evaluate_price" : float(coin_now_price) * float(coin[2]), #평가금액
+                    "profit" : float(coin_now_price) * float(coin[2]) - float(coin[4]),
+                    "rate" : ((float(coin_now_price) * float(coin[2]) - float(coin[4])) / float(coin[4])) * 100
                     }
             }
     def type_two(coin, coin_now_price, status):
         return {
-            "coin" : coin[0], 
+            "coin" : coin[1], 
             "status" : status, 
             "info" : { 
-                    "unit" : coin[1],
+                    "unit" : coin[2],
                     "now_price" : coin_now_price,
-                    "buy_price" : coin[2],
-                    "buy_total_price" : coin[3],
+                    "buy_price" : coin[3],
+                    "buy_total_price" : coin[4],
                     "evaluate_price" : 0,
                     "profit" : 0,
                     "rate" : 0
                     }
             }
     
-    if coin[5] == 0:
+    if coin[6] == 0:
         return type_one(coin, coin_now_price, "보유중")
-    elif coin[5] == 1:
+    elif coin[6] == 1:
         return type_two(coin, coin_now_price, "매수 중")
-    elif coin[5] == 2:
+    elif coin[6] == 2:
         return type_two(coin, coin_now_price, "분할 매수")
-    elif coin[5] == 3:
+    elif coin[6] == 3:
         return type_one(coin, coin_now_price, "첫번째 매도 중")
-    elif coin[5] == 4:
+    elif coin[6] == 4:
         return type_one(coin, coin_now_price, "매도 취소")
-    elif coin[5] == 5:
+    elif coin[6] == 5:
         return type_one(coin, coin_now_price, "매도 중")
-    elif coin[5] == 6:
+    elif coin[6] == 6:
         return type_two(coin, coin_now_price, "매도 완료")
     
 

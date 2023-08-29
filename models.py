@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, Integer, String, Float
+from sqlalchemy import Boolean, Column, Integer, String, Float, PrimaryKeyConstraint
 from database import Base
 
 class coinList(Base):
@@ -389,9 +389,7 @@ class tradingSellOption(Base):
 
 class possessionCoin(Base):
     __tablename__ = 'nc_r_possession_coin_t'
-    # idx = Column(Integer, primary_key=True)
-    coin = Column(String(100), primary_key=True)
-
+    coin = Column(String(100))
     unit = Column(String(100))
     price = Column(String(100))
     total = Column(String(100))
@@ -407,6 +405,10 @@ class possessionCoin(Base):
     trailingstop_flag = Column(Integer)
     max = Column(String(100))
     user_idx = Column(Integer)
+    __table_args__ = (
+        PrimaryKeyConstraint(coin, user_idx),
+        {},
+    )
 
 class possessionLog(Base):
     __tablename__ = 'nc_p_possession_coin_his_t'
