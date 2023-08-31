@@ -16,6 +16,7 @@ import datetime
 import models 
 from routers.user.userApi import user
 import psutil
+from fastapi import Request
 
 try:
     db = SessionLocal()
@@ -275,20 +276,26 @@ class TradeFn():
           db.rollback()
           return 444
       
-  async def useTradingOption(self, item):
-      print(item)
-      useOption = db.query(models.tradingOption).filter(
-          models.tradingOption.idx == item.idx).first()
-      optionL = db.query(models.tradingOption).filter(
-          models.tradingOption.used == 1).all()
-      for option in optionL:
-          option.used = 0
-      useOption.used = 1
-      useOption.Update_date = datetime.datetime.now()
-      try:
-          db.commit()
-      except:
-          db.rollback()
+  async def useTradingOption(self, item, idx):
+    try:
+        print("item ::: ::: ",item)
+        user = db.query(models.USER_T).filter(
+            models.USER_T.idx == idx).first()
+        
+        user.trading_option = item.idx
+        # useOption = db.query(models.tradingOption).filter(
+        #     models.tradingOption.idx == item.idx).first()
+
+        # option_list = db.query(models.tradingOption).filter(
+        #     models.tradingOption.used == 1).all()
+
+        # for option in option_list:
+        #     option.used = 0
+        # useOption.used = 1
+        # useOption.Update_date = datetime.datetime.now()
+        db.commit()
+    except:
+        db.rollback()
 
   async def getSearchPriceList(self, bit):
       try:
@@ -347,57 +354,107 @@ class TradeFn():
     return return_value
     
   async def controlAutoTrading(self, flag, bit, idx):
-        try:
-            user = db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
-            if (flag == 1):
-                user.active = 1
-                user.start_date = str(datetime.datetime.now().replace())
-                process = ['nohup', '/bin/python3', '/data/4season/trailingStop/main.py', str(idx), '&']
-                subprocess.run(['/bin/python3', '/data/4season/bitcoin_trading_back/autoBuy.py'])
-                subprocess.Popen(process)
-                with open(f"trailingStop/user_active_log {idx}", "a") as file:
-                    file.write(f'{datetime.datetime.now()}------------------------------------------------------------------\n')
-                    file.write(f"user idx: {idx}, trailing start" + '\n')
-                    file.close()
-            elif (flag == 0):
-                orderList = db.query(models.orderCoin).filter(models.orderCoin.user_idx == user.idx).all()
-                for order in orderList:
-                    Possession = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == user.idx).first()
+    try:
+        user = db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
+        if (flag == 1):
+            user.active = 1
+            user.start_date = str(datetime.datetime.now().replace())
+            process = ['nohup', '/bin/python3', '/data/4season/trailingStop/main.py', str(idx), '&']
+            subprocess.run(['/bin/python3', '/data/4season/bitcoin_trading_back/autoBuy.py'])
+            subprocess.Popen(process, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, start_new_session=True)
+        elif (flag == 0):
+            orderList = db.query(models.orderCoin).filter(models.orderCoin.user_idx == user.idx).all()
+            for order in orderList:
+                Possession = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == user.idx).first()
+                if order.status == 1:
+                    order_desc = ['bid', order.coin, order.order_id, 'KRW']
+                elif order.status == 3 or order.status == 5:
+                    order_desc = ['ask', order.coin, order.order_id, 'KRW']
+                cancel = bit.bithumb.cancel_order(order_desc)
+                if cancel == True:
                     if order.status == 1:
-                        order_desc = ['bid', order.coin, order.order_id, 'KRW']
+                        db.delete(Possession)
                     elif order.status == 3 or order.status == 5:
-                        order_desc = ['ask', order.coin, order.order_id, 'KRW']
-                    cancel = bit.bithumb.cancel_order(order_desc)
-                    if cancel == True:
-                        if order.status == 1:
-                            db.delete(Possession)
-                        elif order.status == 3 or order.status == 5:
-                            Possession.status = 4
-                        db.delete(order)
-                        Possession.status = 0
-                for proc in psutil.process_iter():
-                    try:
-                        processCmdline = proc.cmdline()
-                        print("proc ::: ::: ", processCmdline)
-                        if len(processCmdline) >= 4:
-                            print("proc ::: ::: ", processCmdline[1], "idx ::: :::", processCmdline[2])
-                            if processCmdline[1] == '/data/4season/trailingStop/main.py' and processCmdline[2] == str(idx):
-                                processID = proc.pid
-                                autoTrading = psutil.Process(processID)
-                                autoTrading.kill() 
-                    except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):   #예외처리
-                      pass
-                with open(f"trailingStop/user_active_log {idx}", "a") as file:
-                    file.write(
-                        f'{datetime.datetime.now()}------------------------------------------------------------------\n')
-                    file.write(
-                        f"user idx: {idx}, trailing stop" + '\n')
-                    file.close()
-                user.start_date = "-"
-                user.active = 0
-            db.commit()        
-            return 200
-        except Exception as e:
-            db.rollback()
-            print("controlAutoTrading :::: ", e)
-            return 444
+                        Possession.status = 4
+                    db.delete(order)
+                    Possession.status = 0
+            for proc in psutil.process_iter():
+                try:
+                    processCmdline = proc.cmdline()
+                    print("proc ::: ::: ", processCmdline)
+                    if len(processCmdline) >= 4:
+                        print("proc ::: ::: ", processCmdline[1], "idx ::: :::", processCmdline[2])
+                        if processCmdline[1] == '/data/4season/trailingStop/main.py' and processCmdline[2] == str(idx):
+                            processID = proc.pid
+                            autoTrading = psutil.Process(processID)
+                            autoTrading.kill() 
+                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):   #예외처리
+                    pass
+            user.start_date = "-"
+            user.active = 0
+        db.commit()        
+        return 200
+    except Exception as e:
+        print("controlAutoTrading :::: ", e)
+        db.rollback()
+        return 444
+    
+  async def autoTradingOn(self, idx):
+    try:
+        user = db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
+        user.active = 1
+        user.start_date = str(datetime.datetime.now().replace())
+        process = ['nohup', '/bin/python3', '/data/4season/trailingStop/main.py', str(idx), '&']
+        subprocess.run(['/bin/python3', '/data/4season/bitcoin_trading_back/autoBuy.py'], check=True)
+        subprocess.Popen(process, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, start_new_session=True)
+        db.commit()        
+        return 200
+    except subprocess.CalledProcessError as e:
+        print("subprocess CalledProcessError ::: :::", e)
+        db.rollback()
+        raise
+    except Exception as e:
+        print("autoTradingOn Error :::: ", e)
+        db.rollback()
+        raise  
+    
+  async def autoTradingOff(self, bit, idx):
+    try:
+        user = db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
+        order_list = db.query(models.orderCoin).filter(models.orderCoin.user_idx == user.idx).all()
+        for order in order_list:
+            possession_coin = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == user.idx).first()
+            if order.status == 1:
+                order_desc = ['bid', order.coin, order.order_id, 'KRW']
+            elif order.status == 3 or order.status == 5:
+                order_desc = ['ask', order.coin, order.order_id, 'KRW']
+            cancel = bit.bithumb.cancel_order(order_desc)
+            if cancel == True:
+                if order.status == 1:
+                    db.delete(possession_coin)
+                elif order.status == 3 or order.status == 5:
+                    possession_coin.status = 4
+                db.delete(order)
+                possession_coin.status = 0
+        for proc in psutil.process_iter():
+            try:
+                processCmdline = proc.cmdline()
+                print("proc ::: ::: ", processCmdline)
+                if len(processCmdline) >= 4:
+                    print("proc ::: ::: ", processCmdline[1], "idx ::: :::", processCmdline[2])
+                    if processCmdline[1] == '/data/4season/trailingStop/main.py' and processCmdline[2] == str(idx):
+                        processID = proc.pid
+                        autoTrading = psutil.Process(processID)
+                        autoTrading.kill() 
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):   #예외처리
+                print("autoTradingOff psutil Error :::: ", e)
+                db.rollback()
+                raise 
+        user.start_date = "-"
+        user.active = 0
+        db.commit()
+        return 200
+    except Exception as e:
+        print("autoTradingOff Error :::: ", e)
+        db.rollback()
+        raise 

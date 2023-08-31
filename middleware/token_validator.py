@@ -1,17 +1,26 @@
 from routers.user.userApi import user
+from BitThumbPrivate import BitThumbPrivate
+from sqlalchemy.orm import Session
+from database import SessionLocal
+import models
+import jwt
+
+SECRET = "randomstring"
 
 async def token_validator(request):
-  headers = request.headers
-  path = request.url.path
-  pass_path = ["/user/login", "/user/register", "/test/test"] 
-  
-  if path in pass_path: 
-    return 1
-  
-  if "authorization" in headers.keys():
-    bithumb = user.connect_bithumb_privit(headers.get("authorization").replace("Bearer ", ""))
-    idx = bithumb[1]
-    bithumb = bithumb[0]
-    return (bithumb , idx)
-  else:
-    return 2
+  try:
+    db = SessionLocal()
+    db: Session
+    headers = request.headers
+    decode_token = jwt.decode(headers.get("authorization").replace("Bearer ", ""), SECRET, algorithms="HS256", verify=True)
+    user_info = db.query(models.USER_T).filter(models.USER_T.idx == decode_token["idx"]).first()
+    idx = decode_token["idx"]
+    bit = BitThumbPrivate(user_info.public_key, user_info.secret_key)
+    return bit, idx
+  except Exception as e:
+    print("token_validator Error", e)
+    db.rollback()
+    return 401
+  finally:
+    print("token_validator finally")
+    db.close()

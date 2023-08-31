@@ -8,12 +8,13 @@ sys.path.append(pwd)
 from routers.user.userApi import user
 import psutil
 from pybithumb import Bithumb
- 
+
 
 class TestFn():
-  def signTradeFn(self, order, bit):
+  def signTradeFn(self, order):
+    bit = Bithumb("aeda5f9da2474b1a374db964c23c0f1c", "e9f80d26e7a60ba7e076161325eb2704")
     order_desc= [order.type, order.coin, order.order_id, 'KRW']
-    orderStatus = bit.bithumb.get_order_completed(order_desc)
+    orderStatus = bit.get_order_completed(order_desc)
     return orderStatus
   
   def cancleTradeFn(self):

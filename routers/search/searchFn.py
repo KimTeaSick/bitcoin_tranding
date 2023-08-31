@@ -12,7 +12,7 @@ from lib import insertLog
 import datetime
 import models 
 from routers.user.userApi import user
- 
+
 
 try:
     db = SessionLocal()
@@ -122,7 +122,6 @@ class SearchFn():
     
   async def optionDetail(self, item):
       try:
-          print(item) 
           now1 = datetime.datetime.now()
           optionL = db.query(models.searchOption).filter(
               models.searchOption.idx == item.option).first()

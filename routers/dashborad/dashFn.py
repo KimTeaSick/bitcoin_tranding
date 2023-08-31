@@ -22,12 +22,11 @@ class DashBoardFn():
         res += float(rate[0])
       return round(res, 3), total_rate[-1][-1]
     except Exception as e:
-      print('Error ::: ::: ', e)
+      print('rate_check Error ::: ::: ', e)
   
   async def possessoionCoinInfo(self, idx, bit):
     try:
       possessionCoin = await bit.mysql.Select(getMyCoinListSql(idx))
-      print("possessionCoin ::: ::: ", possessionCoin)
       if len(possessionCoin) == 0:
         return 203
       else:

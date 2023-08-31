@@ -14,6 +14,7 @@ from BitThumbPrivate import BitThumbPrivate
 import models
 from pybithumb import Bithumb
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.responses import RedirectResponse
 import jwt
 
 SECRET = "randomstring"
@@ -55,6 +56,7 @@ class user_fn():
       return 200
     except Exception as e:
       print("Error", e)
+      db.rollback()
       return 444
     
   def user_login_fn(self, item):
@@ -82,6 +84,7 @@ class user_fn():
         return { "status" : 444 }
     except Exception as e:
       print("Error", e)
+      db.rollback()
     finally:
       db.close()
 
@@ -95,6 +98,7 @@ class user_fn():
         return 444
     except Exception as e:
       print("verfy_token Error ::: :::", e)
+      db.rollback()
       return 333
     
   def get_user_info_fn(self, token):
@@ -107,6 +111,7 @@ class user_fn():
         return 444
     except Exception as e:
       print("verfy_token Error ::: :::", e)
+      db.rollback()
       return 333
     
   def get_user_info(self, token):
@@ -119,10 +124,12 @@ class user_fn():
   def connect_bithumb_privit(self, token):
     try:
       decode_token = jwt.decode(token, SECRET, algorithms="HS256", verify=True)
+      print("decode_token ::: ::: ", decode_token)
       user_info = db.query(models.USER_T).filter(models.USER_T.idx == decode_token["idx"]).first()
       idx = decode_token["idx"]
       bit = BitThumbPrivate(user_info.public_key, user_info.secret_key)
       return bit, idx
     except Exception as e:
       print("connect_bithumb_privit Error", e)
-      return
+      db.rollback()
+      return 456

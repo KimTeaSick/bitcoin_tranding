@@ -9,6 +9,7 @@ from fastapi import APIRouter, Request
 from .parameter import *
 from .tradeFn import TradeFn
 from lib import insertLog
+from lib.errorList import error_list
 
 tradeRouter = APIRouter(
     prefix="/trade",
@@ -18,117 +19,152 @@ tradeRouter = APIRouter(
 trade = TradeFn()
 
 @tradeRouter.post('/insertTradingOption')
-async def OptionUsed(item: tradingOption):
+async def OptionUsed(item: insetTradingOption):
     try:
-        response = await trade.insertTradingOPtion(item)
+        data = await trade.insertTradingOPtion(item)
         insertLog.log("매매 옵션 등록 기능 사용")
-        return response
+        return {"status": 200, "data":data}
     except:
         insertLog.log("매매 옵션 등록 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 @tradeRouter.get('/tradingOptionList')
 async def getOptionList(request:Request):
+    if request.state.valid_token != True:
+        return error_list(0)
     try:
-        response = await trade.tradingOptionList(request.state.idx)
+        data = await trade.tradingOptionList(request.state.idx)
         insertLog.log("매매 옵션 조회 기능 사용")
-        return response
+        return {"status": 200, "data":data}
     except:
         insertLog.log("매매 옵션 조회 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 @tradeRouter.post('/tradingOptionDetail')
 async def selectOptionDetail(item: getTradingOptionDetail):
     try:
-        response = await trade.tradingOptionDetail(item)
+        data = await trade.tradingOptionDetail(item)
         insertLog.log("매매 옵션 상세 조회 기능 사용")
-        return response
+        return {"status": 200, "data":data}
     except:
         insertLog.log("매매 옵션 상세 조회 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 @tradeRouter.post('/updateTradingOption')
 async def UpdateOption(item: tradingOption):
     try:
-        response = await trade.updateTradingOption(item)
+        data = await trade.updateTradingOption(item)
         insertLog.log("매매 옵션 수정 기능 사용")
-        return response
+        return {"status": 200, "data":data}
     except:
         insertLog.log("매매 옵션 수정 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 @tradeRouter.post('/deleteTradingOption')
 async def OptionDelete(item: deleteTradingOption):
     try:
-        response = await trade.deleteTradingOption(item)
+        data = await trade.deleteTradingOption(item)
         insertLog.log("매매 옵션 삭제 기능 사용")
-        return response
+        return {"status": 200, "data":data}
     except:
         insertLog.log("매매 옵션 삭제 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 
 @tradeRouter.post('/useTradingOption')
-async def OptionUsed(item: useTradingOption):
+async def OptionUsed(item: useTradingOption, request:Request):
     try:
-        response = await trade.useTradingOption(item)
+        data = await trade.useTradingOption(item, request.state.idx)
         insertLog.log("매매 옵션 사용 등록 기능 사용")
-        return response
-    except:
+        return {"status": 200, "data":data}
+    except Exception as e:
+        print("useTradingOption Error ::: ::: ", e)
         insertLog.log("매매 옵션 사용 등록 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 
 @tradeRouter.get("/orderList")
 async def getoderList(request:Request):
-    response = await trade.getATOrderList(request.state.bit, request.state.idx)
-    return response
+    if request.state.valid_token != True:
+        return error_list(0)
+    try:
+        data = await trade.getATOrderList(request.state.bit, request.state.idx)
+        return {"status": 200, "data":data}
+    except Exception as e:
+        print("trade orderList Error ::: :::", e)
 
 @tradeRouter.get('/getSearchPriceList')
 async def getSearchList(request:Request):
+    if request.state.valid_token != True:
+        return error_list(0)
     try:
-        response = await trade.getSearchPriceList(request.state.bit)
+        data = await trade.getSearchPriceList(request.state.bit)
         insertLog.log("검색 종목 조회 기능 사용")
-        return response
+        return {"status": 200, "data":data}
     except:
         insertLog.log("검색 종목 조회 기능 사용 실패")
-        return 444
+        return error_list(2)
 
-@tradeRouter.get('/getNowUsedCondition/')
-async def getNowUsedCondition(idx,request:Request):
+@tradeRouter.get('/getNowUsedCondition')
+async def getNowUsedCondition(request:Request):
+    if request.state.valid_token != True:
+        return error_list(0)
     try:
-        response = await trade.getNowUseCondition(idx,request.state.bit)
+        data = await trade.getNowUseCondition(request.state.idx, request.state.bit)
         insertLog.log("현재 사용 옵션 조회 기능 사용")
-        return response
+        return {"status": 200, "data":data}
     except:
         insertLog.log("현재 사용 옵션 조회 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 @tradeRouter.get('/getTradingHis')
 async def getTradingHis(request:Request):
+    if request.state.valid_token != True:
+        return error_list(0)
     try:
-        response = await trade.getTradingHis(request.state.bit, request.state.idx)
+        data = await trade.getTradingHis(request.state.bit, request.state.idx)
         insertLog.log("자동 매매 거래 내역 조회 기능 사용")
-        return response
+        return {"status": 200, "data":data}
     except:
         insertLog.log("자동 매매 거래 내역 조회 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 @tradeRouter.get('/autoTradingCheck')
 async def autoTradingCheck(request:Request):
+    if request.state.valid_token != True:
+        return error_list(0)
     try:
-        response = await trade.nowAutoStatusCheck(request.state.bit)
-        return response
+        data = await trade.nowAutoStatusCheck(request.state.bit)
+        return {"status": 200, "data":data}
     except:
         insertLog.log("자동 매매 플래그 기능 사용 실패")
-        return 444
+        return error_list(2)
 
+# @tradeRouter.post('/controlAutoTrading')
+# async def controlAutoTrading(item: controlAT,request:Request):
+#     if request.state.valid_token != True:
+#         return error_list(0)
+#     try:
+#         data = await trade.controlAutoTrading(item.flag, request.state.bit, request.state.idx)
+#         insertLog.log("자동 매매 컨트롤 기능 사용")
+#         return {"status": 200, "data": data}
+#     except:
+#         insertLog.log("자동 매매 컨트롤 기능 사용 실패")
+#         return error_list(2)
+    
 @tradeRouter.post('/controlAutoTrading')
 async def controlAutoTrading(item: controlAT,request:Request):
+    if request.state.valid_token != True:
+        return error_list(0)
     try:
-        response = await trade.controlAutoTrading(item.flag, request.state.bit, request.state.idx)
-        insertLog.log("자동 매매 컨트롤 기능 사용")
-        return response
+        if item.flag == 1:
+            data = await trade.autoTradingOn(request.state.idx)
+            insertLog.log("자동 매매 컨트롤 가동 기능 사용")
+            return {"status": 200, "data": data}
+        elif item.flag == 0:
+            data = await trade.autoTradingOff(request.state.bit, request.state.idx)
+            insertLog.log("자동 매매 컨트롤 정지 기능 사용")
+            return {"status": 200, "data": data}
     except:
         insertLog.log("자동 매매 컨트롤 기능 사용 실패")
-        return 444
+        return error_list(2)

@@ -22,20 +22,18 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @userRouter.post('/register')
 def user_register_api(item: user_register_body):
-  res = user.user_register_fn(item)
-  return res
+  data = user.user_register_fn(item)
+  return {"status":200, "data":data}
 
 @userRouter.post('/login')
 def user_login_api(item: user_login_body):
-  res = user.user_login_fn(item)
-  print("user.bithumb ::: ::: :::", user.bithumb)
-  return res
+  data = user.user_login_fn(item)
+  return {"status":200, "data":data}
 
 @userRouter.get('/getUserInfo')
 def get_user_info(token:str = Depends(oauth2_scheme)):
-    print("user_verfy_api", token)
-    res = user.get_user_info_fn(token)
-    return res
+    data = user.get_user_info_fn(token)
+    return {"status":200, "data":data}
 
 # @userRouter.get('/loginCheck')
 # def user_login_check(token:str = Depends(oauth2_scheme)):

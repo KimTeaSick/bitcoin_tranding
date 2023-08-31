@@ -9,6 +9,7 @@ from fastapi import APIRouter, Request
 from .parameter import *
 from .searchFn import SearchFn
 from lib import insertLog
+from lib.errorList import error_list
 
 searchRouter = APIRouter(
     prefix="/option",
@@ -20,59 +21,64 @@ search = SearchFn()
 @searchRouter.post('/insertOption')
 async def updateSearchOption(item: insertOption):
     try:
-        response = await search.insertOption(item)
+        data = await search.insertOption(item)
         insertLog.log("검색 옵션 등록 기능 사용")
-        return response
+        return {"status": 200, "data": data}
     except:
         insertLog.log("검색 옵션 등록 기능 사용 실패")
+        return error_list(2)
 
 @searchRouter.get('/optionList')
 async def getOptionList(request:Request):
+    if request.state.valid_token != True:
+        return error_list(0)
     try:
-        response = await search.optionList(request.state.idx)
+        data = await search.optionList(request.state.idx)
         insertLog.log("검색 옵션 조회 기능 사용")
-        return response
+        return {"status": 200, "data": data}
     except:
         insertLog.log("검색 옵션 조회 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 @searchRouter.post('/optionDetail')
 async def selectOptionDetail(item: getOptionDetail):
     try:
         print("item",item)
-        response = await search.optionDetail(item)
+        data = await search.optionDetail(item)
         insertLog.log("검색 옵션 상세 조회 기능 사용")
-        return response
+        return {"status": 200, "data": data}
     except:
         insertLog.log("검색 옵션 상세 조회 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 @searchRouter.post('/updateOption')
 async def UpdateOption(item: updateOption):
     try:
-        response = await search.updateOption(item)
+        data = await search.updateOption(item)
         insertLog.log("검색 옵션 수정 기능 사용")
-        return response
+        return {"status": 200, "data": data}
     except:
         insertLog.log("검색 옵션 수정 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 @searchRouter.post('/deleteOption')
 async def OptionDelete(item: deleteOption):
     try:
-        response = await search.deleteOption(item)
+        data = await search.deleteOption(item)
         insertLog.log("검색 옵션 삭제 기능 사용")
-        return response
+        return {"status": 200, "data": data}
     except:
         insertLog.log("검색 옵션 삭제 기능 사용 실패")
-        return 444
+        return error_list(2)
 
 @searchRouter.post('/useOption')
 async def OptionUsed(item: useOption, request:Request):
+    if request.state.valid_token != True:
+        return error_list(0)
     try:
-        response = await search.useOption(item, request.state.idx)
+        data = await search.useOption(item, request.state.idx)
         insertLog.log("검색 옵션 사용 등록 기능 사용")
-        return response
+        return {"status": 200, "data": data}
     except:
         insertLog.log("검색 옵션 사용 등록 기능 사용 실패")
-        return 444
+        return error_list(2)

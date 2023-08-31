@@ -23,7 +23,7 @@ test = TestFn()
 
 @testRouter.post("/signTrade")
 def signTradeApi(item: orderItem, req:Request):
-  response = test.signTradeFn(item, req.state.bit)
+  response = test.signTradeFn(item)
   return response
 
 @testRouter.get("/test")

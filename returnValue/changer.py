@@ -114,7 +114,6 @@ def BITHUMB_COIN_LIST(value):
     return R_VALUE
 
 def POSSESSION_COIN_LIST(coin, coin_now_price):
-    print("POSSESSION_COIN_LIST ::: ::: ", coin)
     def type_one(coin, coin_now_price, status):
         return {
             "coin" : coin[1], 

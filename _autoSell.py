@@ -62,10 +62,10 @@ for active_user in active_users:
         max = (sellOption.long_MACD_value +
                sellOption.MACD_signal_value + 1) * chartMax
 
-    # print(sellOption.disparity_for_upper_case, sellOption.disparity_for_down_case)
+    print(sellOption.disparity_for_upper_case, sellOption.disparity_for_down_case)
 
     max += 10
-    # print(max)
+    print(max)
 
     possession: float = 0.0 # 보유 종목 총합 매수 단가
     nowWallet = 0.0 # 보유 종목 총합 현재가
@@ -79,7 +79,9 @@ for active_user in active_users:
         possession += float(coin.total)
         response = json.loads(requests.get(bithumbApi + coin.coin+'_KRW', headers=headers).text)
         nowPrice = float(response['data']['closing_price']) * float(coin.unit)
+
         ask = askingPrice.askingPrice(float(response['data']['closing_price']))
+
         if float(coin.total) != 0.0 or float(nowPrice) != 0.0:
             if float(coin.total) <= 1000:
                 under_one_dollar.append({'coin': coin.coin, 'nowprice': response['data']['closing_price'], 'unit': coin.unit, 'buyPrice': coin.price, 'percent': (
@@ -126,27 +128,6 @@ for active_user in active_users:
 
     print("---------------------------------------------------------------------------------------------------------")
 
-    '''
-    # 로스컷 or autosell
-    if float(percent) >= float(accountOtion.loss_cut_over_percent):
-        print('로스컷 오버')
-        for sell in isSell:
-            loss_over_coin = LossOverSell(percent, accountOtion, isSell)
-            print("loss over coin ::: ::: ", loss_over_coin)
-            if loss_over_coin == None: pass
-
-            if sell['percent'] >= accountOtion.loss_cut_over_coin_specific_percent and accountOtion.gain == 2:
-                sell_list.append({'coin': sell['coin'], 'reason': 'loss cut over', 'unit': sell['unit'], 'close': sell['nowprice'],
-                                  'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_over_call_price_specific_coin})
-            if accountOtion.gain == 1:
-                sell_list.append({'coin': sell['coin'], 'reason': 'loss cut over', 'unit': sell['unit'], 'close': sell['nowprice'],
-                                  'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_over_call_price_sell_all})
-            print('로스컷 오버 판매 완료')
-
-
-    elif float(percent) <= -float(accountOtion.loss_cut_under_percent):
-    '''
-    print("---------------------------------------------------------------------------------------------------------")
 
     if float(percent) <= -float(accountOtion.loss_cut_under_percent):
         for sell in isSell:
@@ -173,15 +154,6 @@ for active_user in active_users:
         print('매도 시작')
 
         for sell in isSell:
-            '''
-            print(sell['coin'])
-            # 매도조건 1. 가격기준 / 상승 0714
-            if sell['percent'] >= sellOption.upper_percent_to_price_condition:
-                sell_list.append({'coin': sell['coin'], 'reason': 'price over', 'unit': sell['unit'], 'close': sell['nowprice'],
-                                  'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
-                continue
-            '''
-
             # 매도조건 1. 가격기준 / 하락
             # elif sell['percent'] <= (- sellOption.down_percent_to_price_condition):
 
@@ -192,83 +164,7 @@ for active_user in active_users:
             #     sell_list.append({'coin': sell['coin'], 'reason': 'price under', 'unit': sell['unit'], 'close': sell['nowprice'],
             #                     'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
             #     continue
-
-            '''
-            nowstamp = int(int(now1.timestamp()) / 60) * 60  # + (60*540)
-            print(nowstamp, '============================================================')
-            hNowStamp = nowstamp - (max * 3600)
-            dfhList = []
-            dfhSource = db.query(models.coin1HPrice).filter(models.coin1HPrice.STime >= hNowStamp).filter(
-                models.coin1HPrice.coin_name == sell['coin'] + '_KRW').all()
-            for dfs in dfhSource:
-                dfhList.append({'idx': dfs.idx, 'coin_name': dfs.coin_name, 'S_time': int(dfs.STime), 'time': dfs.time, 'Close': float(
-                    dfs.Close), 'Volume': float(dfs.Volume), 'Transaction_amount': float(dfs.Close) * float(dfs.Volume)})
-
-            df = pd.DataFrame(dfhList)
-
-            df['time'] = pd.to_datetime(df['time'])
-
-            df = df.set_index('time').resample('1H').asfreq()
-            df = df.fillna(method='ffill')
-
-            dfx = df[(len(df) % int(sell['disparity_chart'][:-1])):]
-            dfx.reset_index(drop=True, inplace=True)
-
-            # 리스트를 times개씩 묶기
-            new_df = dfx.groupby(np.arange(
-                len(dfx)) // int(sell['disparity_chart'][:-1])).mean(numeric_only=True)
-
-            df2 = new_df[len(new_df)-sellOption.disparity_for_upper_case:]
-            avgUpper = df2['Close'].mean()
-
-            df3 = new_df[len(new_df)-sellOption.disparity_for_down_case:]
-            avgDown = df3['Close'].mean()
-
-            upDisp = (float(avgUpper) / float(sell['nowprice'])) * 100 - 100
-            dnDisp = (float(avgDown) / float(sell['nowprice'])) * 100 - 100
-
-            print(upDisp, dnDisp)
-            if upDisp > sellOption.upper_percent_to_disparity_condition:
-                sell_list.append({'coin': sell['coin'], 'reason': 'disparity over', 'unit': sell['unit'], 'close': sell['nowprice'],
-                                  'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
-                continue
-
-            if upDisp > sellOption.down_percent_to_disparity_condition:
-                sell_list.append({'coin': sell['coin'], 'reason': 'disparity under', 'unit': sell['unit'], 'close': sell['nowprice'],
-                                  'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
-                continue
-
-            if sell['nowprice'] > sell['buyPrice']:
-                print(
-                    'MACD-----------------------------------------------------------------------')
-                # 매도 조건 Macd
-                dfy = df[(len(df) % int(sell['macd_chart'][:-1])):]
-                dfy.reset_index(drop=True, inplace=True)
-
-                # 리스트를 times개씩 묶기
-                new_df2 = dfy.groupby(
-                    np.arange(len(dfy)) // int(sell['macd_chart'][:-1])).mean(numeric_only=True)
-                print(new_df2)
-
-                # short EMA 계산
-                emashort = new_df2['Close'].ewm(
-                    span=int(sellOption.shot_MACD_value)).mean()
-                # long EMA 계산
-                emalong = new_df2['Close'].ewm(
-                    span=int(sellOption.long_MACD_value)).mean()
-                # MACD 계산
-                macd = emashort - emalong
-
-                macdSignal = macd.ewm(
-                    span=int(sellOption.MACD_signal_value)).mean()
-                macdOscillator = macd - macdSignal
-
-                if macdOscillator.iloc[-2] > 0 and macdOscillator.iloc[-1] < 0:
-                    sell_list.append({'coin': sell['coin'], 'reason': 'macd signal', 'unit': sell['unit'], 'close': sell['nowprice'],
-                                      'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': sellOption.call_money_to_sell_method})
-                    continue
-            '''
-            print("sell ::: ::: ", sell)
+            print(sell)
 
     with open("./sellLog", "a") as file:
         file.write(
@@ -278,19 +174,18 @@ for active_user in active_users:
         file.close()
 
     # 매도 주문
-    print("sell_list", sell_list)
     for sell_order in sell_list:
-        print("매도 주문", sell_order)
         try:
             if sell_order['reason'] == 'resale':
+                print("re sell_order ::: ::: ", sell_order)
                 coin = sell_order['coin']
                 ask = f'+{sellOption.call_money_to_sell_method}' if int(sellOption.call_money_to_sell_method) >= 0 else str(sellOption.call_money_to_sell_method)
                 sell_price = askingPrice.ASK_PRICE(
-                    f"{sell_order['coin']}", ask, 'sell')
+                    f"{sell_order['coin']}_KRW", ask, 'sell')
                 orderids = bithumb.sell_market_order(sell_order['coin'], float(sell_order['unit']), "KRW")
                 print(f'{coin} 매도주문')
                 print("------------------------------------------------------------------")
-                print("resale order id ::: :::", orderids)
+                print(orderids)
                 order_coin = models.orderCoin()
                 order_coin.coin = sell_order['coin']
                 order_coin.status = 5
@@ -303,21 +198,21 @@ for active_user in active_users:
                 db.commit()
 
             else:
+                print("first sell_order ::: ::: ", sell_order)
                 coin = sell_order['coin']
+                # askP = float(sell_order['close']) + (int(sell_order['askprice']) * sell_order['ask'])
                 if int(sellOption.call_money_to_sell_method) >= 0:
                     ask = f'+{sellOption.call_money_to_sell_method}'
                 else:
                     ask = str(sellOption.call_money_to_sell_method)
                 askP = askingPrice.ASK_PRICE(
-                    f"{sell_order['coin']}", ask, 'sell')
-                
+                    f"{sell_order['coin']}_KRW", ask, 'sell')
                 orderids = bithumb.sell_limit_order(
                     sell_order['coin'], round(float(askP), 1), float(sell_order['unit']), "KRW")
-                
                 print(sell_order['coin'], round(float(askP), 1), float(sell_order['unit']), "KRW")
                 print(f'{coin} 매도주문')
                 print("------------------------------------------------------------------")
-                print("first sell order id ::: :::", orderids)
+                print(orderids)
                 order_coin = models.orderCoin()
                 order_coin.coin = sell_order['coin']
                 order_coin.status = 3

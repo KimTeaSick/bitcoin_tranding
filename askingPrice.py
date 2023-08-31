@@ -6,20 +6,25 @@ connenctKey = "9ae8ae53e7e0939722284added991d55"
 bit = BitThumbPrivate(connenctKey, secretKey)
 
 def ASK_PRICE(coin, asking, trading_type):
-    ask_prices = []
-    raw_ask_price_list = bit.bithumb.get_orderbook(coin, limit=11)
-    ask_price_list = raw_ask_price_list['bids'] if trading_type == 'buy' else raw_ask_price_list['asks']
-    for price in ask_price_list:
-        ask_prices.append(price['price'])
-    
-    price = ask_prices[0]
+    try:
+        print("ASK_PRICE coin ::: :::", coin)
+        ask_prices = []
+        raw_ask_price_list = bit.bithumb.get_orderbook(coin, limit=11)
+        print("raw_ask_price_list", raw_ask_price_list)
+        ask_price_list = raw_ask_price_list['bids'] if trading_type == 'buy' else raw_ask_price_list['asks']
+        for price in ask_price_list:
+            ask_prices.append(price['price'])
 
-    C_VALUE = askingPrice(price, int(asking[1]))
+        price = ask_prices[0]
 
-    if asking[0] == '-':
-        return round(float(price) - C_VALUE, 4)
-    elif asking[0] == '+':
-        return round(float(price) + C_VALUE, 4)
+        C_VALUE = askingPrice(price, int(asking[1]))
+
+        if asking[0] == '-':
+            return round(float(price) - C_VALUE, 4)
+        elif asking[0] == '+':
+            return round(float(price) + C_VALUE, 4)
+    except Exception as e:
+        print("ASK_PRICE Error ::: :::", e)
 
 # 호가 계산 함수
 def askingPrice(price, asking=1):

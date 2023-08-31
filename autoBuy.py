@@ -21,7 +21,6 @@ finally:
 # 검색 함수 실행
 
 async def recommendCoins(options, mMax, hMax):
-    
     coins = await recommend.recommendCoin(options, mMax, hMax)
     return coins
 
@@ -55,8 +54,7 @@ for active_user in active_users:
         print('exit')
         print(accountOption.price_count, 'maximum')
         print(coinCount, 'have')
-        exit()
-
+        break
 
     # 검색 조건
     priceOption = db.query(models.PriceOption).filter(
@@ -166,7 +164,7 @@ for active_user in active_users:
             else:
                 ask = str(buyOption.callmoney_to_buy_method)
 
-            coin_ask_price = askingPrice.ASK_PRICE(f"{coin['name']}_KRW", ask, 'buy')
+            coin_ask_price = askingPrice.ASK_PRICE(f"{coin['name']}", ask, 'buy')
             print('coin_ask_price ::::::: ', coin_ask_price)
             print('-----------------------------------------------------------------------------------------------------------------')
             splitUnit = round(splitBuy / (float(coin_ask_price)), 4)

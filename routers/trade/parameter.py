@@ -1,11 +1,13 @@
 from typing import Optional
 from pydantic import BaseModel
 
-class tradingOption(BaseModel):
+class insetTradingOption(BaseModel):
     name: str
     account: dict
     buy: dict
     sell: dict
+
+class tradingOption(insetTradingOption):
     idx: int
 
 class getTradingOptionDetail(BaseModel):
