@@ -1,3 +1,4 @@
+
 from sqlalchemy import Boolean, Column, Integer, String, Float
 from database import Base
 
