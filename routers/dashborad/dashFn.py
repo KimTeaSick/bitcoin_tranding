@@ -17,10 +17,16 @@ class DashBoardFn():
   async def rate_check(self, item, bit, idx):
     try:
       res = 0
-      total_rate = await bit.mysql.Select(total_rate_sql(str(item.days), idx))
-      for rate in total_rate:
-        res += float(rate[0])
-      return round(res, 3), total_rate[-1][-1]
+      print(str(item.days), str(int(item.days)+1))
+      account_info = await bit.mysql.Select(total_rate_sql(str(item.days), idx))
+      total_invest = await bit.mysql.Select(total_invest_sql(idx))
+      total_withdraw = await bit.mysql.Select(total_withdraw_sql(idx))
+      total_invest_money = int(total_invest[0][0] - total_withdraw[0][0])
+      print("total_rate", account_info)
+      return {"rate":round(res, 3), "account_balance": account_info[-1][1],
+              "date": account_info[0][3][0:8] + " ~ " + account_info[-1][3][0:8],
+              "table_data": account_info[::-1], "invest_money": total_invest_money}
+    
     except Exception as e:
       print('rate_check Error ::: ::: ', e)
   

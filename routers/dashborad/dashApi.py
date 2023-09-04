@@ -60,7 +60,7 @@ async def test(item: rateCheckBody, request: Request):
         return error_list(0)
     try:
         data = await dash.rate_check(item, request.state.bit, request.state.idx)
-        return {"status":200, "data": {'rate': data[0], 'account_balance': data[1]}}
+        return {"status":200, "data": data}
     except Exception as e:
         print("rateCheck Error ::: :::", e)
         return error_list(2)
