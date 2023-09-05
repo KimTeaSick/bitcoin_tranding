@@ -5,7 +5,7 @@ def todayOrderListSql(dateStart, dateEnd):
 
 def total_rate_sql(days, idx):
   return f'''
-  SELECT rate, account_balance, invest, insert_date 
+  SELECT rate, account_balance, invest, insert_date, revenue
   FROM nc_r_account_rate_t 
   WHERE user_idx = {idx} order by insert_date DESC limit 1, {days}
 '''
@@ -23,3 +23,11 @@ def total_withdraw_sql(idx):
   FROM nc_r_account_rate_t 
   WHERE user_idx = {idx}
 '''
+
+def get_users_rate_info_Sql(idx, day):
+  return f'''
+    SELECT rate, revenue, insert_date
+    FROM nc_r_account_rate_t
+    WHERE user_idx = {idx}
+    order by idx DESC limit {day}, 1
+  '''

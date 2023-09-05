@@ -54,7 +54,7 @@ async def middleware(request: Request, call_next):
         return response
     authorization_header = request.headers.get("Authorization")
     if authorization_header != 'Bearer null' and authorization_header != None:
-        print("in if ::: :::", authorization_header)
+        # print("in if ::: :::", authorization_header)
         bit = await token_validator(request)
         if bit != 401:
             idx = bit[1]
@@ -64,10 +64,10 @@ async def middleware(request: Request, call_next):
             request.state.valid_token = True
         else:
             request.state.valid_token = False
-            print("in if else ::: :::", authorization_header)
+            # print("in if else ::: :::", authorization_header)
     else:
         request.state.valid_token = False
-        print("else ::: :::", authorization_header)
+        # print("else ::: :::", authorization_header)
 
     response = await call_next(request)
     return response
@@ -137,7 +137,7 @@ async def todayAccount(request: Request):
 async def nowRate(request: Request):
     if request.state.valid_token != True:
         return error_list(0)
-    data = await request.state.bit.nowRate()
+    data = await request.state.bit.nowRate(request.state.idx)
     return { "status":200, "data": data }
 
 @app.get("/coinlist.json")

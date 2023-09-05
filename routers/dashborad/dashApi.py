@@ -64,3 +64,14 @@ async def test(item: rateCheckBody, request: Request):
     except Exception as e:
         print("rateCheck Error ::: :::", e)
         return error_list(2)
+    
+@dashRouter.get("/get_users_rate_info")
+async def get_users_rate_info_Api(request: Request):
+    if request.state.valid_token != True:
+        return error_list(0)
+    try:
+        data = await dash.get_users_rate_info_Fn(request.state.bit)
+        return { "status":200 , "data": data }
+    except Exception as e:
+        print("get_users_rate_info Error ::: :::", e)
+        return error_list(2)

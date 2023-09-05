@@ -109,12 +109,13 @@ for user in active_users:
                 if orderStatus == None : continue
                 print("---------------------------------------------------------------------------------")
                 if orderStatus['data']['order_status'] == 'Completed':
-                    Possession = db.query(models.possessionCoin).filter(models.possessionCoin.coin == order.coin).first()
+                    Possession = db.query(models.possessionCoin).filter(
+                        models.possessionCoin.coin == order.coin).filter(
+                        models.possessionCoin.user_idx == order.user_idx).first()
+                    
                     if Possession == None : 
                         db.delete(order)
                         continue
-
-
 
                     order_price: float = 0.0
                     order_sum = {'unit': 0, 'total': 0, 'fee': 0}
@@ -160,10 +161,10 @@ for user in active_users:
                         trading.price = order_sum['price']
                         trading.fee = float(trading.fee) - order_sum['fee']
                         db.commit()
-
                     timeCheck = str(datetime.datetime.strptime(
                         order.cancel_time, '%Y-%m-%d %H:%M:%S.%f') - datetime.datetime.now())
                     print(timeCheck[0])
+
                     if timeCheck[0] == '-':
                         if len(orderStatus['data']['contract']) > 0:
                             if float(trading.total) < 1000:
@@ -172,6 +173,15 @@ for user in active_users:
                         if cancel == True:
                             db.delete(order)
                             Possession.status = 4
+
+                if orderStatus['data']['order_status'] == 'Cancel':
+                    Possession = db.query(models.possessionCoin).filter(
+                        models.possessionCoin.coin == order.coin).filter(
+                        models.possessionCoin.user_idx == order.user_idx).first()
+                    print('Cancel')
+                    db.delete(order)
+                    Possession.status = 4
+
                 print(orderStatus)
                 db.commit()
 
@@ -213,6 +223,7 @@ for user in active_users:
                         p_coin.price = order_sum['price']
                         p_coin.fee = order_sum['fee']
                         db.commit()
+                        
         print('process end')
     except Exception as e:
         print(e)

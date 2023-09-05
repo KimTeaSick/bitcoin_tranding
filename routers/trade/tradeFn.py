@@ -404,7 +404,7 @@ class TradeFn():
         user = db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
         user.active = 1
         user.start_date = str(datetime.datetime.now().replace())
-        process = ['nohup', '/bin/python3', '/data/4season/trailingStop/main.py', str(idx), '&']
+        process = ['/bin/python3', '/data/4season/trailingStop/main.py', str(idx)]
         subprocess.run(['/bin/python3', '/data/4season/bitcoin_trading_back/autoBuy.py'], check=True)
         subprocess.Popen(process, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, start_new_session=True)
         db.commit()        

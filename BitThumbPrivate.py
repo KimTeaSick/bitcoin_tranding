@@ -14,6 +14,7 @@ from lib import *
 import recommend
 import datetime
 import requests
+import models
 import time
 import json
 
@@ -33,7 +34,22 @@ class BitThumbPrivate():
         self.coinList = list(self.getBitCoinList('ALL')['data'].keys())[0:-1]
         self.recommandCoinList = []
         self.mysql = MySql()
+    
+    def get_my_coin_list(self):
+      coin_list = self.bithumb.get_balance('All')
+      coin_list = coin_list['data']
+      coin_total_list = dict.items(coin_list)
+      my_coin_list = []
+      for item in coin_total_list:
+          if 'total_' in str(item[0]) and float(item[1]) >= 0.0001:
+              if item[0] != 'total_krw' and item[0] != 'total_bm':
+                  my_coin_list.append(item)
+      return my_coin_list
 
+    def check_account(self):
+        krw_balance = self.bithumb.get_balance('BTC')[2]
+        return krw_balance
+    
     async def getMyPossessionCoinList(self):
         myCoinList = await self.mysql.Select(getMyCoinListSql)
         return myCoinList
@@ -260,17 +276,33 @@ class BitThumbPrivate():
         except Exception as e:
             print(e)
 
-    async def nowRate(self):
+    async def nowRate(self, idx):
         try:
-            row_yesterday_balance = await self.mysql.Select(get_yesterday_balance)
-            yesterday_balance = row_yesterday_balance[0][0]
-            print("yesterday_balance :::: ", yesterday_balance)
+            total_revenue = 0
+            investment_amount = 0
+            property_value = 0
+            coin_list = self.get_my_coin_list()
+            possession_coin_list = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == idx).all()
+            for possession_coin in possession_coin_list:       
+                coin_info = self.getBitCoinList(possession_coin.coin)
+                if int(coin_info['status']) == 5500:
+                    continue
+                buy_at_coin_value = float(possession_coin.price) * round(float(possession_coin.unit), 4)
+                now_coin_value = float(coin_info['data']['closing_price']) * round(float(possession_coin.unit), 4)
+                revenue = now_coin_value - buy_at_coin_value
+                investment_amount += buy_at_coin_value
+                total_revenue += revenue
+            for coin in coin_list:
+                coin_name = str(coin[0]).replace('total_', '')
+                coin_info = self.getBitCoinList(coin_name)
+                if int(coin_info['status']) == 5500:
+                    continue
+                coin_value = float(coin_info['data']['closing_price']) * round(float(coin[1]), 4)
+                property_value += coin_value
+
             now_balance = self.myProperty()[0]
-            print("now_balance :::: ", now_balance)
-            now_rate = ((round(now_balance)-yesterday_balance) /
-                        round(now_balance))*100
-            print("now_rate :::: ", round(now_rate, 3))
-            return {"rate": round(now_rate, 3), "now_balance": round(now_balance)}
+            rate = round((total_revenue / property_value) * 100, 2)
+            return {"rate": rate, "now_balance": round(now_balance)}
         except Exception as e:
             print(e)
 

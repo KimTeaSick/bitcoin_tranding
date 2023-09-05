@@ -465,3 +465,15 @@ class USER_T(Base):
   trading_option = Column(Integer, default=None, nullable=True)
   jwt_token = Column(String(100), default=None, nullable=True)
   refresh_token = Column(String(100), default=None, nullable=True)
+
+class account_rate(Base):
+  __tablename__ = "nc_r_account_rate_t"
+  idx = Column(Integer, primary_key=True, index=True, autoincrement=True)
+  account_balance = Column(Integer)
+  rate = Column(Integer)
+  deposit = Column(Integer)
+  insert_date = Column(String(100))
+  user_idx = Column(Integer)
+  invest = Column(Integer)
+  withdraw = Column(Integer)
+  revenue = Column(Integer)
