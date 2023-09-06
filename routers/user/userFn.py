@@ -36,6 +36,9 @@ class user_fn():
     try:
       user_t_check = db.query(models.USER_T).filter(models.USER_T.email == item.email).first()
       if user_t_check != None: return 333
+      bit = Bithumb(item.public, item.secret)
+      pass_registe = bit.get_balance('ALL')
+      if pass_registe['status'] != '0000': return 456
       user_name = item.name
       user_email = item.email
       user_pw = item.password

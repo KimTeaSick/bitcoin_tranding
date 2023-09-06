@@ -111,8 +111,8 @@ for active_user in active_users:
     print(sortedCoins)
 
     # 거래 가능 금액 가져오기
-    money = bithumb.get_balance('BTC')[2]
-    print('deposit ::::::: ',money)
+    money = bithumb.get_balance('BTC')[2] - bithumb.get_balance('BTC')[3]
+    print('deposit ::::::: ',active_user.idx, money)
     print('-----------------------------------------------------------------------------------------------------------------')
     moneyPerCoin: float = 0
 
@@ -166,9 +166,12 @@ for active_user in active_users:
 
             coin_ask_price = askingPrice.ASK_PRICE(f"{coin['name']}", ask, 'buy')
             print('coin_ask_price ::::::: ', coin_ask_price)
-            print('-----------------------------------------------------------------------------------------------------------------')
-            splitUnit = round(splitBuy / (float(coin_ask_price)), 4)
-            print('coin order content ::: ::: ', coin['name'], round(float(coin_ask_price), 2), round(splitUnit, 4), 'KRW')
+            fee = bithumb.get_trading_fee(coin['name'])
+            payment = float(splitBuy * (1 - fee))
+            splitUnit = round(payment / (float(coin_ask_price)), 4)
+            print('주문코인 정보 ::: ::: ', coin['name'], round(float(coin_ask_price), 2), round(splitUnit, 4), 'KRW')
+            print("예수금", splitBuy)
+            print("수수료 제외 매수 금액", payment)
             # 주문
             order = bithumb.buy_limit_order(
                 coin['name'], round(float(coin_ask_price), 2), round(splitUnit, 4), 'KRW')

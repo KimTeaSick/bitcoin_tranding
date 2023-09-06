@@ -405,8 +405,10 @@ class TradeFn():
         user.active = 1
         user.start_date = str(datetime.datetime.now().replace())
         process = ['/bin/python3', '/data/4season/trailingStop/main.py', str(idx)]
-        subprocess.run(['/bin/python3', '/data/4season/bitcoin_trading_back/autoBuy.py'], check=True)
-        subprocess.Popen(process, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, start_new_session=True)
+        # process = f'/bin/python3 /data/4season/trailingStop/main.py {idx}'
+        subprocess.run(['/bin/python3', '/data/4season/bitcoin_trading_back/_autoBuy.py', str(idx)], check=True)
+        # subprocess.Popen(process, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False, start_new_session=True)
+        subprocess.Popen(process, stdout=subprocess.DEVNULL )
         db.commit()        
         return 200
     except subprocess.CalledProcessError as e:

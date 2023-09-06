@@ -10,11 +10,11 @@ def ASK_PRICE(coin, asking, trading_type):
         print("ASK_PRICE coin ::: :::", coin)
         ask_prices = []
         raw_ask_price_list = bit.bithumb.get_orderbook(coin, limit=11)
-        print("raw_ask_price_list", raw_ask_price_list)
+        # print("raw_ask_price_list", raw_ask_price_list)
+        # if raw_ask_price_list['status'] == '5500': return 'pass'
         ask_price_list = raw_ask_price_list['bids'] if trading_type == 'buy' else raw_ask_price_list['asks']
         for price in ask_price_list:
             ask_prices.append(price['price'])
-
         price = ask_prices[0]
 
         C_VALUE = askingPrice(price, int(asking[1]))
