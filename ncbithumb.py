@@ -11,6 +11,7 @@ from routers.search import searchApi
 from routers.trade import tradeApi
 from routers.test import testApi
 from routers.user import userApi
+from routers.assets import assetsApi
 # from search_option import search
 # from BitThumbPrivate import *
 from lib.pagiNation import PagiNation
@@ -155,6 +156,7 @@ app.include_router(coinApi.coinRouter)
 app.include_router(tradeHisApi.tradeRouter)
 app.include_router(searchApi.searchRouter)
 app.include_router(tradeApi.tradeRouter)
+app.include_router(assetsApi.assetsRouter)
 app.include_router(testApi.testRouter)
 
 if __name__ == "__main__":

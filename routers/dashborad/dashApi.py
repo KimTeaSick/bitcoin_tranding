@@ -21,7 +21,6 @@ dashRouter = APIRouter(
 
 @dashRouter.get('/getPossessoionCoinInfo/')
 async def getPossessoionCoinInfo(request: Request):
-    print("request.state.valid_token", request.state.valid_token)
     if request.state.valid_token != True:
         return error_list(0)
     try:

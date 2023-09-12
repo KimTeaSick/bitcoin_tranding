@@ -263,16 +263,25 @@ class BitThumbPrivate():
         returnLog = list(buyLog)
         return returnLog
 
-    async def todayAccount(self, idx):
+    async def todayAccount(self, idx): 
         try:
-            print("async def todayAccount(self, idx) ::: :::", idx)
+            total_revenue = 0
+            possession_coin_list = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == idx).all()
+            for possession_coin in possession_coin_list:       
+                coin_info = self.getBitCoinList(possession_coin.coin)
+                if int(coin_info['status']) == 5500:
+                    continue
+                buy_at_coin_value = float(possession_coin.price) * round(float(possession_coin.unit), 4)
+                now_coin_value = float(coin_info['data']['closing_price']) * round(float(possession_coin.unit), 4)
+                revenue = now_coin_value - buy_at_coin_value
+                total_revenue += revenue
             dt = str(datetime.datetime.now().replace())
             start_dt = dt[0:10] + " 00:00:00.000000"
             end_dt = dt[0:10] + " 23:59:59.999999"
             total_and_deposit = self.myProperty()
             today_buy_price = await self.mysql.Select(todayBuyPrice(start_dt, end_dt, str(idx)))
             today_sell_price = await self.mysql.Select(todaySellPrice(start_dt, end_dt, str(idx)))
-            return changer.TODAY_TRADING_RESULT([today_buy_price, today_sell_price, total_and_deposit[0], total_and_deposit[1]])
+            return changer.TODAY_TRADING_RESULT([today_buy_price, today_sell_price, total_and_deposit[0], total_and_deposit[1], total_revenue])
         except Exception as e:
             print(e)
 
@@ -299,11 +308,11 @@ class BitThumbPrivate():
                     continue
                 coin_value = float(coin_info['data']['closing_price']) * round(float(coin[1]), 4)
                 property_value += coin_value
-
             now_balance = self.myProperty()[0]
             rate = round((total_revenue / property_value) * 100, 2)
             return {"rate": rate, "now_balance": round(now_balance)}
         except Exception as e:
+            db.rollback()
             print(e)
 
     async def getBithumbCoinList(self):

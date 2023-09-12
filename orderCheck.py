@@ -1,10 +1,9 @@
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 import models
 import datetime
 from pybithumb import Bithumb
-from orderChecked.possessionExplore import possessionExplore
-from orderChecked.buyCheck import BUY_CHECK
 
 
 now1 = datetime.datetime.now()
@@ -36,7 +35,9 @@ for user in active_users:
                 print("--------------------------------------------------------------------------")
 
                 if orderStatus['data']['order_status'] == 'Completed':
-                    had_coin = db.query(models.possessionCoin).filter(models.possessionCoin.coin == order.coin).first()
+                    had_coin = db.query(models.possessionCoin).filter(and_(
+                        models.possessionCoin.coin == order.coin, 
+                        models.possessionCoin.user_idx == user.idx)).first()
                     order_sum = {'unit': 0, 'total': 0, 'fee': 0}
                     for cont in orderStatus['data']['contract']:
                         order_sum['unit'] += float(cont['units'])
@@ -75,8 +76,9 @@ for user in active_users:
                             order_sum['total'] += float(cont['total'])
                             order_sum['fee'] += float(cont['fee'])
                         order_sum['price'] = orderStatus['data']['order_price']
-                        trading = db.query(models.possessionCoin).filter(
-                            models.possessionCoin.coin == orderStatus['data']['order_currency'])
+                        trading = db.query(models.possessionCoin).filter(and_(
+                            models.possessionCoin.coin == orderStatus['data']['order_currency'],
+                            models.possessionCoin.user_idx == user.idx))
                         trading.unit = order_sum['unit']
                         trading.total = order_sum['total']
                         trading.price = order_sum['price']
@@ -89,8 +91,9 @@ for user in active_users:
                         order.cancel_time, '%Y-%m-%d %H:%M:%S.%f') - datetime.datetime.now())
                     print(timeCheck[0])
                     if timeCheck[0] == '-':
-                        delpossession = db.query(models.possessionCoin).filter(
-                            models.possessionCoin.coin == order.coin).first()
+                        delpossession = db.query(models.possessionCoin).filter(and_(
+                            models.possessionCoin.coin == order.coin,
+                            models.possessionCoin.user_idx == user.idx)).first()
                         # 분할매도에 완전히 실패할 경우 내역에서 제거하는 로직
                         cancel = bithumb.cancel_order(order_desc)
                         if cancel == True:
@@ -109,9 +112,9 @@ for user in active_users:
                 if orderStatus == None : continue
                 print("---------------------------------------------------------------------------------")
                 if orderStatus['data']['order_status'] == 'Completed':
-                    Possession = db.query(models.possessionCoin).filter(
-                        models.possessionCoin.coin == order.coin).filter(
-                        models.possessionCoin.user_idx == order.user_idx).first()
+                    Possession = db.query(models.possessionCoin).filter(and_(
+                        models.possessionCoin.user_idx == order.user_idx,
+                        models.possessionCoin.coin == order.coin)).first()
                     
                     if Possession == None : 
                         db.delete(order)
@@ -155,7 +158,9 @@ for user in active_users:
                             order_sum['total'] += float(cont['total'])
                             order_sum['fee'] += float(cont['fee'])
                         order_sum['price'] = orderStatus['data']['order_price']
-                        trading = db.query(models.possessionCoin).filter(models.possessionCoin.coin == orderStatus['data']['order_currency']).first()
+                        trading = db.query(models.possessionCoin).filter(and_(
+                            models.possessionCoin.coin == orderStatus['data']['order_currency'],
+                            models.possessionCoin.user_idx == user.idx,)).first()
                         trading.unit = float(trading.unit) - order_sum['unit']
                         trading.total = float(trading.total) - order_sum['total']
                         trading.price = order_sum['price']
@@ -173,15 +178,14 @@ for user in active_users:
                         if cancel == True:
                             db.delete(order)
                             Possession.status = 4
-
                 if orderStatus['data']['order_status'] == 'Cancel':
-                    Possession = db.query(models.possessionCoin).filter(
-                        models.possessionCoin.coin == order.coin).filter(
-                        models.possessionCoin.user_idx == order.user_idx).first()
+                    Possession = db.query(models.possessionCoin).filter(and_(
+                        models.possessionCoin.user_idx == order.user_idx,
+                        models.possessionCoin.coin == order.coin
+                        )).first()
                     print('Cancel')
                     db.delete(order)
                     Possession.status = 4
-
                 print(orderStatus)
                 db.commit()
 
@@ -191,6 +195,7 @@ for user in active_users:
                 coin_order_status = bithumb.get_order_completed(order_desc)
                 if coin_order_status['data']['order_status'] == 'Cancel':
                     db.delete(p_coin)
+                    db.commit()
                 if coin_order_status['data']['order_status'] == 'Completed':
                     print("com_coin ::: ::: ", p_coin.coin)
                     order_sum = {'unit': 0, 'total': 0, 'fee': 0}

@@ -442,12 +442,12 @@ class TradeFn():
             try:
                 processCmdline = proc.cmdline()
                 print("proc ::: ::: ", processCmdline)
-                if len(processCmdline) >= 4:
+                if len(processCmdline) >= 3:
                     print("proc ::: ::: ", processCmdline[1], "idx ::: :::", processCmdline[2])
                     if processCmdline[1] == '/data/4season/trailingStop/main.py' and processCmdline[2] == str(idx):
                         processID = proc.pid
                         autoTrading = psutil.Process(processID)
-                        autoTrading.kill() 
+                        autoTrading.kill()
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):   #예외처리
                 print("autoTradingOff psutil Error :::: ", e)
                 db.rollback()

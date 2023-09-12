@@ -26,8 +26,11 @@ def total_withdraw_sql(idx):
 
 def get_users_rate_info_Sql(idx, day):
   return f'''
-    SELECT rate, revenue, insert_date
-    FROM nc_r_account_rate_t
-    WHERE user_idx = {idx}
-    order by idx DESC limit {day}, 1
+    SELECT SUM(rate), sum(revenue)
+    FROM (
+      SELECT rate, revenue
+      FROM nc_r_account_rate_t
+      WHERE user_idx = {idx}
+      ORDER BY idx DESC LIMIT {day}
+    ) AS top_7_sales;
   '''

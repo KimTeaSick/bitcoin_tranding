@@ -34,7 +34,6 @@ class DashBoardFn():
       return {"rate":round(res, 3), "account_balance": account_info[-1][1],
               "date": account_info[0][3][0:8] + " ~ " + account_info[-1][3][0:8],
               "table_data": account_info[::-1], "invest_money": total_invest_money}
-    
     except Exception as e:
       print('rate_check Error ::: ::: ', e)
   

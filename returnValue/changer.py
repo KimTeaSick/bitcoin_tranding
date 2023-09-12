@@ -41,6 +41,7 @@ def TODAY_TRADING_RESULT(value):
         "deposit": round(value[3]),
         "buy":buy,
         "sell":sell,
+        "revenue":round(value[4])
     }
     return R_VALUE
 
