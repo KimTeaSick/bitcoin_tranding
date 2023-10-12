@@ -28,7 +28,13 @@ import os
 
 app = FastAPI()
 
-origins = ["http://121.165.242.171:48604", "http://192.168.10.119", "http://52.78.246.119"]
+origins = ["http://121.165.242.171:48604", 
+           "http://192.168.10.119:3000", 
+           "http://localhost:3000", 
+           "http://192.168.10.119", 
+           "http://52.78.246.119", 
+           "http://www.argo4s.com", 
+           "https://www.argo4s.com"]
 
 app.add_middleware(
     CORSMiddleware,
@@ -135,10 +141,10 @@ async def todayAccount(request: Request):
     return { "status":200, "data": data }
 
 @app.get("/nowRate")
-async def nowRate(request: Request):
+async def now_rate_api(request: Request):
     if request.state.valid_token != True:
         return error_list(0)
-    data = await request.state.bit.nowRate(request.state.idx)
+    data = await request.state.bit.now_rate_fn(request.state.idx)
     return { "status":200, "data": data }
 
 @app.get("/coinlist.json")
@@ -147,7 +153,7 @@ async def getCoinJsonFile(request: Request):
         return error_list(0)
     data = await request.state.bit.getBithumbCoinList()
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    print("dir_path :::: ", dir_path)
+    # print("dir_path :::: ", dir_path)
     return { "status":200, "data": data }
 
 app.include_router(userApi.userRouter)

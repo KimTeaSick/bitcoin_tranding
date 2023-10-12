@@ -24,13 +24,94 @@ def total_withdraw_sql(idx):
   WHERE user_idx = {idx}
 '''
 
-def get_users_rate_info_Sql(idx, day):
+def users_info_sql(idx):
   return f'''
-    SELECT SUM(rate), sum(revenue)
-    FROM (
-      SELECT rate, revenue
-      FROM nc_r_account_rate_t
-      WHERE user_idx = {idx}
-      ORDER BY idx DESC LIMIT {day}
-    ) AS top_7_sales;
+    SELECT name
+    FROM nc_b_user_t
+    WHERE idx = {idx}
   '''
+
+def users_total_acc_sql(idx):
+  return f'''
+    SELECT account_balance
+    FROM nc_r_account_rate_t
+    WHERE user_idx = {idx}
+    ORDER BY idx DESC LIMIT 1
+  '''
+
+def get_user_acc_info(idx, day):
+  return f'''
+    select 
+      account_balance,
+      revenue,
+      rate
+    from 
+      nc_r_account_rate_t 
+    where 
+      insert_date = DATE_SUB(CURRENT_DATE , INTERVAL {day} day)
+    and 
+      user_idx = {idx}
+  '''
+
+def max_day_acc_info(idx):
+  return f'''
+    select 
+      account_balance,
+      insert_date,
+      user_idx
+    from 
+      nc_r_account_rate_t 
+    where 
+      insert_date = (
+        select min(insert_date) 
+        from nc_r_account_rate_t 
+        where user_idx = {idx}
+      ) 
+      and user_idx = {idx}
+'''
+
+def day_data_sql(idx):
+  return f'''
+    SELECT
+      account_balance AS total_value,
+      revenue,
+      rate
+    FROM
+      nc_r_account_rate_t
+    WHERE user_idx = {idx}
+    ORDER BY insert_date DESC LIMIT 7
+    '''
+
+def week_avg_data_sql(idx, date):
+  return f'''
+    select 
+      sum(account_balance)/count(account_balance) as week_balance_total,
+      sum(revenue) week_revenue_total,
+      sum(rate) as week_rate_total
+    from nc_r_account_rate_t 
+    where
+      insert_date <= DATE_SUB(CURRENT_DATE, INTERVAL {date} week)
+      and insert_date >= DATE_ADD(DATE_SUB(CURRENT_DATE , INTERVAL {date + 1} week), INTERVAL 1 day)
+      and user_idx = {idx}
+'''
+
+def month_avg_data_sql(idx, date):
+  return f'''
+select sum(account_balance)/count(account_balance) as week_balance_total,
+  sum(revenue) week_revenue_total,
+  sum(rate) as week_rate_total
+from nc_r_account_rate_t 
+where
+  insert_date <= DATE_SUB(CURRENT_DATE, INTERVAL {date} MONTH)
+  and insert_date >= DATE_SUB(CURRENT_DATE , INTERVAL {date + 1} MONTH)
+  and user_idx = {idx}
+    '''
+
+def his_data_sql(idx, date):
+  return f'''
+    SELECT coin, unit, price, total, fee,transaction_time, type, sell_reason
+    FROM nc_p_possession_coin_his_t
+    WHERE user_idx = {idx} 
+    AND transaction_time > '{date}'
+    ORDER BY transaction_time DESC
+    '''

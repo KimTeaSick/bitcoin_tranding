@@ -22,5 +22,4 @@ async def token_validator(request):
     db.rollback()
     return 401
   finally:
-    print("token_validator finally")
     db.close()

@@ -16,9 +16,7 @@ def ASK_PRICE(coin, asking, trading_type):
         for price in ask_price_list:
             ask_prices.append(price['price'])
         price = ask_prices[0]
-
         C_VALUE = askingPrice(price, int(asking[1]))
-
         if asking[0] == '-':
             return round(float(price) - C_VALUE, 4)
         elif asking[0] == '+':
@@ -29,7 +27,6 @@ def ASK_PRICE(coin, asking, trading_type):
 # 호가 계산 함수
 def askingPrice(price, asking=1):
     result: float = 0.0
-    
     if price < 1:
         result = 0.0001
     elif price >= 1 and price < 10:

@@ -1,4 +1,3 @@
-import datetime
 from dotenv import load_dotenv
 import os
 load_dotenv()
@@ -19,7 +18,7 @@ dashRouter = APIRouter(
     tags=["dash"]
 )
 
-@dashRouter.get('/getPossessoionCoinInfo/')
+@dashRouter.get('/getPossessoionCoinInfo')
 async def getPossessoionCoinInfo(request: Request):
     if request.state.valid_token != True:
         return error_list(0)
@@ -64,12 +63,34 @@ async def test(item: rateCheckBody, request: Request):
         print("rateCheck Error ::: :::", e)
         return error_list(2)
     
-@dashRouter.get("/get_users_rate_info")
-async def get_users_rate_info_Api(request: Request):
+@dashRouter.get('/all_user_deposit')
+async def all_user_deposit_api(request: Request):
     if request.state.valid_token != True:
         return error_list(0)
     try:
-        data = await dash.get_users_rate_info_Fn(request.state.bit)
+        data = await dash.all_user_deposit_fn()
+        return {"status":200, "data": data}
+    except Exception as e:
+        print("all_user_deposit_api Error ::: :::", e)
+        return error_list(2)
+    
+@dashRouter.post("/get_users_rate_info")
+async def get_users_rate_info_Api(item:users_rate_info_body ,request: Request):
+    if request.state.valid_token != True:
+        return error_list(0)
+    try:
+        data = await dash.get_users_rate_info_Fn(item.idx, request.state.bit)
+        return { "status":200 , "data": data }
+    except Exception as e:
+        print("get_users_rate_info Error ::: :::", e)
+        return error_list(2)
+
+@dashRouter.post("/day_week_month_data")
+async def day_week_month_data_api(item:day_week_month_data_body, request: Request):
+    if request.state.valid_token != True:
+        return error_list(0)
+    try:
+        data = await dash.day_week_month_data_fn(item.idx ,request.state.bit)
         return { "status":200 , "data": data }
     except Exception as e:
         print("get_users_rate_info Error ::: :::", e)

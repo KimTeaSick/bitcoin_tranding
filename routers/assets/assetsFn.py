@@ -26,6 +26,5 @@ class AssetsFn():
         return {"rate":round(res, 3), "account_balance": account_info[-1][4],
                 "date": account_info[0][3][0:8] + " ~ " + account_info[-1][3][0:8],
                 "table_data": account_info[::-1], "invest_money": account_info[0][4]}
-    
     except Exception as e:
       print('rate_check Error ::: ::: ', e)

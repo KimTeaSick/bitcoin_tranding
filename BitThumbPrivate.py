@@ -285,14 +285,14 @@ class BitThumbPrivate():
         except Exception as e:
             print(e)
 
-    async def nowRate(self, idx):
+    async def now_rate_fn(self, idx):
         try:
             total_revenue = 0
             investment_amount = 0
             property_value = 0
             coin_list = self.get_my_coin_list()
             possession_coin_list = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == idx).all()
-            for possession_coin in possession_coin_list:       
+            for possession_coin in possession_coin_list:   
                 coin_info = self.getBitCoinList(possession_coin.coin)
                 if int(coin_info['status']) == 5500:
                     continue

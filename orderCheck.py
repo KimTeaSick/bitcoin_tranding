@@ -100,6 +100,10 @@ for user in active_users:
                             db.delete(order)
                             if len(orderStatus['data']['contract']) != 0:
                                 db.delete(delpossession)
+
+                if orderStatus['data']['order_status'] == 'Cancel':
+                    db.delete(order)
+
                 print(orderStatus)
                 db.commit()
 
@@ -132,7 +136,6 @@ for user in active_users:
                     db.delete(Possession)
                     print("delete Possession ::: ::: ")
                     db.delete(order)
-
                     for cont in orderStatus['data']['contract']:
                         print('cont', cont)
                     transactionLog = models.possessionLog()
@@ -178,6 +181,7 @@ for user in active_users:
                         if cancel == True:
                             db.delete(order)
                             Possession.status = 4
+
                 if orderStatus['data']['order_status'] == 'Cancel':
                     Possession = db.query(models.possessionCoin).filter(and_(
                         models.possessionCoin.user_idx == order.user_idx,
@@ -186,6 +190,7 @@ for user in active_users:
                     print('Cancel')
                     db.delete(order)
                     Possession.status = 4
+
                 print(orderStatus)
                 db.commit()
 
@@ -193,9 +198,15 @@ for user in active_users:
             if p_coin.status == 1:
                 order_desc = ['bid', p_coin.coin, p_coin.order_id, 'KRW']
                 coin_order_status = bithumb.get_order_completed(order_desc)
+
                 if coin_order_status['data']['order_status'] == 'Cancel':
+                    d_order = db.query(models.orderCoin).filter(and_(
+                        models.orderCoin.user_idx == user.idx,
+                        models.orderCoin.coin == p_coin.coin)).first()
                     db.delete(p_coin)
+                    db.delete(d_order)
                     db.commit()
+
                 if coin_order_status['data']['order_status'] == 'Completed':
                     print("com_coin ::: ::: ", p_coin.coin)
                     order_sum = {'unit': 0, 'total': 0, 'fee': 0}
@@ -214,6 +225,7 @@ for user in active_users:
                     p_coin.max = p_coin.price
                     db.commit()
                     print("com_coin insert ::: ::: ")
+
                 if coin_order_status['data']['order_status'] == 'Pending':
                     order_sum = {'unit': 0, 'total': 0, 'fee': 0}
                     if len(coin_order_status['data']['contract']) > 0:
