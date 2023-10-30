@@ -243,6 +243,7 @@ class recommendList(Base):
     coin_name = Column(String(100))
     catch_price = Column(String(100))
     option_name = Column(String(100))
+    user_idx = Column(Integer)
 
 # class recommendList(Base):
 #     __tablename__ = "nc_f_recommend_coin_list_t"

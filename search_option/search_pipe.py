@@ -74,3 +74,9 @@ def raw_search_pipe(value):
   }
 
   return R_VALUE
+
+def getCondition(db, models, idx):
+  user = db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
+  priceCondiotion = db.query(models.nc_c_pr_price).filter(models.nc_c_pr_price == user.search_option).first()
+  print('priceCondiotion')
+  return priceCondiotion

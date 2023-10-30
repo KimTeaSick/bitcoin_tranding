@@ -15,14 +15,10 @@ from sell.oneDollarUnderPriceClean import one_doller_under_price_clean
 import time
 import pandas as pd
 import numpy as np
-
 now1 = datetime.datetime.now()
-
 # api url
 bithumbApi = 'https://api.bithumb.com/public/ticker/'
-
 headers = {"accept": "application/json"}
-
 try:
     db = SessionLocal()
     db: Session
@@ -34,13 +30,10 @@ print("active_users", active_users)
 for active_user in active_users:
     bithumb = Bithumb(active_user.public_key, active_user.secret_key)
     possession_coins = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == active_user.idx).all()
-
     useTradingOption = db.query(models.tradingOption).filter(
         models.tradingOption.idx == active_user.trading_option).first()
-    
     accountOtion = db.query(models.tradingAccountOption).filter(
         models.tradingAccountOption.idx == useTradingOption.idx).first()
-    
     sellOption = db.query(models.tradingSellOption).filter(
         models.tradingSellOption.idx == useTradingOption.idx).first()
 
@@ -74,8 +67,9 @@ for active_user in active_users:
 
     # 총 구매 금액 계산 0, 보유중, 1: 매수 중, 2: 분할 매수, 3: 첫 번째 매도 중, 4: 매도 취소, 5: 매도 중 , 6: 매도 완료
     for coin in possession_coins:
+        print(coin.coin)
         possession += float(coin.total)
-        response = json.loads(requests.get(bithumbApi + coin.coin+'_KRW', headers=headers).text)
+        response = json.loads(requests.get(bithumbApi + coin.coin + '_KRW', headers=headers).text)
         nowPrice = float(response['data']['closing_price']) * float(coin.unit)
         ask = askingPrice.askingPrice(float(response['data']['closing_price']))
         if float(coin.total) != 0.0 or float(nowPrice) != 0.0:
@@ -119,11 +113,9 @@ for active_user in active_users:
 
     if float(percent) <= -float(accountOtion.loss_cut_under_percent):
         for sell in isSell:
-
             loss_under_coin = LossUnderSell(sell, accountOtion)
             print("loss under coin", loss_under_coin)
             if loss_under_coin == None: pass
-
             # if sell['percent'] <= accountOtion.loss_cut_under_coin_specific_percent and accountOtion.loss == 2:
             #     sell_list.append({'coin': sell['coin'], 'reason': 'loss cut under', 'unit': sell['unit'], 'close': sell['nowprice'],
             #                     'buyPrice': sell['buyPrice'], 'ask': sell['ask'], 'askprice': accountOtion.loss_cut_under_call_price_specific_coin})
@@ -162,20 +154,17 @@ for active_user in active_users:
                 coin = sell_order['coin']
                 ask = f'+{sellOption.call_money_to_sell_method}' if int(sellOption.call_money_to_sell_method) >= 0 else str(sellOption.call_money_to_sell_method)
                 sell_price = askingPrice.ASK_PRICE(f"{sell_order['coin']}", ask, 'sell')
-                orderids = bithumb.sell_market_order(sell_order['coin'], float(sell_order['unit']), "KRW")
-
-                order_coin = models.orderCoin()
-                order_coin.coin = sell_order['coin']
-                order_coin.status = 5
-                order_coin.transaction_time = datetime.datetime.now()
-                order_coin.order_id = orderids[2]
-                order_coin.cancel_time = (datetime.datetime.now() + datetime.timedelta(seconds=accountOtion.buy_cancle_time))
-                order_coin.sell_reason = sell_order['reason']
-                order_coin.user_idx = active_user.idx
-                
-                db.add(order_coin)
-                db.commit()
-
+                # orderids = bithumb.sell_market_order(sell_order['coin'], float(sell_order['unit']), "KRW")
+                # order_coin = models.orderCoin()
+                # order_coin.coin = sell_order['coin']
+                # order_coin.status = 5
+                # order_coin.transaction_time = datetime.datetime.now()
+                # order_coin.order_id = orderids[2]
+                # order_coin.cancel_time = (datetime.datetime.now() + datetime.timedelta(seconds=accountOtion.buy_cancle_time))
+                # order_coin.sell_reason = sell_order['reason']
+                # order_coin.user_idx = active_user.idx
+                # db.add(order_coin)
+                # db.commit()
             else:
                 coin = sell_order['coin']
                 if int(sellOption.call_money_to_sell_method) >= 0:
@@ -183,20 +172,17 @@ for active_user in active_users:
                 else:
                     ask = str(sellOption.call_money_to_sell_method)
                 askP = askingPrice.ASK_PRICE(f"{sell_order['coin']}", ask, 'sell')
-                orderids = bithumb.sell_limit_order(sell_order['coin'], round(float(askP), 1), float(sell_order['unit']), "KRW")
-
-                order_coin = models.orderCoin()
-                order_coin.coin = sell_order['coin']
-                order_coin.status = 3
-                order_coin.transaction_time = datetime.datetime.now()
-                order_coin.order_id = orderids[2]
-                order_coin.cancel_time = (datetime.datetime.now() + datetime.timedelta(seconds=accountOtion.buy_cancle_time))
-                order_coin.sell_reason = sell_order['reason']
-                order_coin.user_idx = active_user.idx
-
-                db.add(order_coin)
-                db.commit()
-
+                # orderids = bithumb.sell_limit_order(sell_order['coin'], round(float(askP), 1), float(sell_order['unit']), "KRW")
+                # order_coin = models.orderCoin()
+                # order_coin.coin = sell_order['coin']
+                # order_coin.status = 3
+                # order_coin.transaction_time = datetime.datetime.now()
+                # order_coin.order_id = orderids[2]
+                # order_coin.cancel_time = (datetime.datetime.now() + datetime.timedelta(seconds=accountOtion.buy_cancle_time))
+                # order_coin.sell_reason = sell_order['reason']
+                # order_coin.user_idx = active_user.idx
+                # db.add(order_coin)
+                # db.commit()
         except Exception as e:
             print("sell Error ::: ::: ", e)
             pass

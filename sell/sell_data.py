@@ -1,31 +1,11 @@
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-IS_DEV = os.environ.get('IS_DEV')
-DEV_PWD = os.environ.get('DEV_PWD')
-PRO_PWD = os.environ.get('PRO_PWD')
-
-pwd = DEV_PWD if IS_DEV == "True" else PRO_PWD
-import sys 
-sys.path.append(pwd) 
-
-from database import engine, SessionLocal
-from sqlalchemy.orm import Session
-import models
-import datetime
-
-
-now1 = datetime.datetime.now()
-
-
-def get_active_user(db):
+def get_active_user(db, models):
   try:
-    return db.query(models.USER_T).filter(models.USER_T.active == 1).all()
+    # return db.query(models.USER_T).filter(models.USER_T.active == 1).all()
+    return db.query(models.USER_T).all()
   except:
     db.rollback()
 
-def get_sell_condition(active_user, db):
+def get_sell_condition(active_user, db, models):
   try:
     possession_coins = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == active_user.idx).all()
     useTradingOption = db.query(models.tradingOption).filter(models.tradingOption.idx == active_user.trading_option).first()
@@ -36,6 +16,8 @@ def get_sell_condition(active_user, db):
     db.rollback()
 
 def get_rate_percent(nowWallet, possession):
+  print("nowWallet ::: ",nowWallet)
+  print("possession ::: ",possession)
   try:
     percent = (nowWallet / possession) * 100 - 100
   except Exception as e:

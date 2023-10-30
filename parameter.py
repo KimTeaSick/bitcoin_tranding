@@ -41,3 +41,11 @@ class updateSearchOptionBody(getSearchOptionBody):
 
 class updateUseSearchOptionBody(BaseModel):
     num: str
+
+class searchOptionBody(BaseModel):
+    Price: dict
+    TransactionAmount: dict
+    MASP: dict
+    Disparity: dict
+    Trend: dict
+    MACD: dict

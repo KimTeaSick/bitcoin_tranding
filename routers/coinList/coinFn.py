@@ -9,7 +9,15 @@ import pandas as pd
 from sqld import *
 import requests
 import json
- 
+import models 
+from sqlalchemy.orm import Session
+from database import SessionLocal
+
+try:
+    db = SessionLocal()
+    db: Session
+finally:
+    db.close()
 
 class CoinFn():
 
@@ -54,3 +62,20 @@ class CoinFn():
       print("Error :::::: ", e)
       return 333
     
+
+  # value: number;
+  # coin_name: string;
+  def update_warning_fn(self, item):
+    try:
+      select_coin = db.query(models.coinList).filter(models.coinList.coin_name == item.coin_name).first()
+      select_coin.warning = item.value
+      db.commit()
+    except:
+      db.rollback()
+      
+  def get_warning_fn(self, coin_name):
+    try:
+      select_coin = db.query(models.coinList).filter(models.coinList.coin_name == coin_name + "_KRW").first()
+      return select_coin.warning
+    except:
+      db.rollback()

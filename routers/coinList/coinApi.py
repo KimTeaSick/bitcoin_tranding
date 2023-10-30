@@ -27,6 +27,9 @@ def getDetailBTCInfo(item_id, request:Request):
         return error_list(0)
     try:
         data = request.state.bit.getBitCoinList(item_id)
+        warning = coin.get_warning_fn(item_id)
+        data = data["data"]
+        data['warning'] = warning
         return {"status":200, "data":data}
     except Exception as e:
         print("getDetailBTCInfo", e)
@@ -60,6 +63,17 @@ def sendAvgData(item: getAvgDataBody, request:Request):
         return error_list(0)
     try:
         data = coin.getAvgData(item.range, item.coin, item.term, request.state.bit)
+        return {"status":200, "data": data}
+    except Exception as e:
+        print("getAvgData Error ::: :::", e)
+        return error_list(2)
+
+@coinRouter.post("/updateWarning")
+def update_warning_api(item: update_coin_warning_body, request:Request):
+    if request.state.valid_token != True:
+        return error_list(0)
+    try:
+        data = coin.update_warning_fn(item)
         return {"status":200, "data": data}
     except Exception as e:
         print("getAvgData Error ::: :::", e)

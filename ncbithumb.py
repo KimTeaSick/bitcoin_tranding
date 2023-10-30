@@ -19,6 +19,7 @@ from lib.errorList import error_list
 from middleware.token_validator import token_validator
 from routers.user.userApi import user
 from mongoDB import MongoDB
+from search_option.search import search
 from dbConnection import *
 from parameter import *
 from sqld import *
@@ -155,6 +156,14 @@ async def getCoinJsonFile(request: Request):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     # print("dir_path :::: ", dir_path)
     return { "status":200, "data": data }
+
+@app.post("/newRawSearch")
+async def newSearch(item: searchOptionBody, request: Request):
+    if request.state.valid_token != True:
+        return error_list(0)
+    data = await search(item, request.state.bit, request.state.idx)
+    return { "status":200, "data": data }
+
 
 app.include_router(userApi.userRouter)
 app.include_router(dashApi.dashRouter)

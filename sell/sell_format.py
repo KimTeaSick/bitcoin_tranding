@@ -18,16 +18,13 @@ def price_drop_coin_format(coin, sell_option):
     return ({'coin': coin['coin'], 'reason': 'price under', 'unit': coin['unit'], 'close': coin['nowprice'],
         'buyPrice': coin['buyPrice'], 'ask': coin['ask'], 'askprice': sell_option.call_money_to_sell_method})
 
-def insert_order_format(models, sell_order, orderids, transaction_time, cancel_time, idx, type ):
+def insert_order_format( models, sell_order, orderids, transaction_time, cancel_time, idx, type ):
   order_coin = models.orderCoin()
   order_coin.coin = sell_order['coin']
   order_coin.status = 3 if type != "resale" else 5
-  # order_coin.transaction_time = datetime.datetime.now()
   order_coin.transaction_time = transaction_time
   order_coin.order_id = orderids[2]
-  # order_coin.cancel_time = (datetime.datetime.now() + datetime.timedelta(seconds=accountOtion.buy_cancle_time))
   order_coin.cancel_time = cancel_time
   order_coin.sell_reason = sell_order['reason']
-  # order_coin.user_idx = active_user.idx
   order_coin.user_idx = idx
   return order_coin

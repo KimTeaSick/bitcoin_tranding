@@ -82,12 +82,43 @@ def day_data_sql(idx):
     ORDER BY insert_date DESC LIMIT 7
     '''
 
+def day_end_acc_sql(idx, date):
+  return f'''
+    select 
+      account_balance,
+      insert_date
+    from nc_r_account_rate_t 
+    where
+      insert_date = DATE_SUB(CURRENT_DATE, INTERVAL {date} day)
+      and user_idx = {idx}
+'''
+
+def day_start_acc_sql(idx, date):
+  return f'''
+    select 
+      account_balance,
+      insert_date
+    from nc_r_account_rate_t 
+    where
+      insert_date = DATE_SUB(CURRENT_DATE , INTERVAL {date + 1} day)
+      and user_idx = {idx}
+'''
+
+
+
+
+
+
+
+
+
+
+
 def week_avg_data_sql(idx, date):
   return f'''
     select 
       sum(account_balance)/count(account_balance) as week_balance_total,
-      sum(revenue) week_revenue_total,
-      sum(rate) as week_rate_total
+      sum(revenue) week_revenue_total
     from nc_r_account_rate_t 
     where
       insert_date <= DATE_SUB(CURRENT_DATE, INTERVAL {date} week)
@@ -95,16 +126,58 @@ def week_avg_data_sql(idx, date):
       and user_idx = {idx}
 '''
 
+def week_end_acc_sql(idx, date):
+  return f'''
+    select 
+      account_balance,
+      insert_date
+    from nc_r_account_rate_t 
+    where
+      insert_date = DATE_SUB(CURRENT_DATE, INTERVAL {date} week)
+      and user_idx = {idx}
+'''
+
+def week_start_acc_sql(idx, date):
+  return f'''
+    select 
+      account_balance,
+      insert_date
+    from nc_r_account_rate_t 
+    where
+      insert_date = DATE_SUB(CURRENT_DATE , INTERVAL {date + 1} week)
+      and user_idx = {idx}
+'''
+
+def month_end_acc_sql(idx, date):
+  return f'''
+    select 
+      account_balance
+    from nc_r_account_rate_t 
+    where
+      insert_date = DATE_SUB(CURRENT_DATE, INTERVAL {date} month)
+      and user_idx = {idx}
+'''
+
+def month_start_acc_sql(idx, date):
+  return f'''
+    select 
+      account_balance
+    from nc_r_account_rate_t 
+    where
+      insert_date = DATE_SUB(CURRENT_DATE , INTERVAL {date + 1} month)
+      and user_idx = {idx}
+    '''
+
 def month_avg_data_sql(idx, date):
   return f'''
-select sum(account_balance)/count(account_balance) as week_balance_total,
-  sum(revenue) week_revenue_total,
-  sum(rate) as week_rate_total
-from nc_r_account_rate_t 
-where
-  insert_date <= DATE_SUB(CURRENT_DATE, INTERVAL {date} MONTH)
-  and insert_date >= DATE_SUB(CURRENT_DATE , INTERVAL {date + 1} MONTH)
-  and user_idx = {idx}
+    select 
+      sum(account_balance) / count(account_balance) as week_balance_total,
+      sum(revenue) as month_revenue_total
+    from nc_r_account_rate_t 
+    where
+      insert_date <= DATE_SUB(CURRENT_DATE, INTERVAL {date} MONTH)
+      and insert_date >= DATE_SUB(CURRENT_DATE , INTERVAL {date + 1} MONTH)
+      and user_idx = {idx}
     '''
 
 def his_data_sql(idx, date):

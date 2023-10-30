@@ -25,6 +25,7 @@ async def recommendCoins(options, mMax, hMax):
     return coins
 
 active_users = db.query(models.USER_T).filter(models.USER_T.active == 1).all()
+
 for active_user in active_users:
     bithumb = Bithumb(active_user.public_key, active_user.secret_key)
 # 사용 db 가져오기
@@ -86,7 +87,8 @@ for active_user in active_users:
     print(options)
     print(f'mMax: {mMax}, hMax: {hMax}')
 
-    db.query(models.recommendList).delete()
+    prevCoin = db.query(models.recommendList).filter(models.recommendList.user_idx == active_user.idx).all()
+    db.delete(prevCoin)
 
     # 검색 함수 실행
     coins = asyncio.run(recommendCoins(options, mMax, hMax))
@@ -105,6 +107,7 @@ for active_user in active_users:
         RCCoin.coin_name = coinName
         RCCoin.catch_price = coin[coinName]['closing_price']
         RCCoin.option_name = useRecommendOPtion.name
+        RCCoin.user_idx = active_user.idx
         db.add(RCCoin)
 
     sortedCoins = sorted(sortedByDisparity, key=lambda x: x['disparity'])
