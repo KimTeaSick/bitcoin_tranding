@@ -8,7 +8,7 @@ sys.path.append(pwd)
 from BitThumbPrivate import BitThumbPrivate
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from lib import insertLog
+from utils import insertLog
 import datetime
 import models 
 from routers.user.userApi import user

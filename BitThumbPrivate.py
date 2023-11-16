@@ -1,4 +1,4 @@
-from lib.searchCondition import optionStandardization
+from utils.searchCondition import optionStandardization
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from returnValue import changer
@@ -10,7 +10,7 @@ from pandas import DataFrame
 from dbConnection import *
 from parameter import *
 from sqld import *
-from lib import *
+from utils import *
 import recommend
 import datetime
 import requests
@@ -53,9 +53,6 @@ class BitThumbPrivate():
     async def getMyPossessionCoinList(self):
         myCoinList = await self.mysql.Select(getMyCoinListSql)
         return myCoinList
-
-    def callGetTradingFee(self):  # 수수료 구하기
-        print(self.bithumb.get_trading_fee("BTC"))
 
     def getBitCoinList(self, coin):  # 코인 리스트, 코인 정보 가져오기
         url = f"https://api.bithumb.com/public/ticker/{coin}_KRW"
@@ -135,13 +132,7 @@ class BitThumbPrivate():
                     if item[0] != 'total_bm':
                         myCoinList.append(item)
         return myCoinList
-
-    def getTransactionHistory(self, target):  # 거래내역
-        print(self.bithumb.get_transaction_history(target))
-
-    def getOrderCompleted(self):
-        print(self.bithumb.get_order_completed())
-
+    
     def getBuyPrice(self, coin):
         buyPrice = self.bithumb.get_orderbook(coin)['bids'][1]['price']
         return buyPrice
@@ -285,7 +276,7 @@ class BitThumbPrivate():
         except Exception as e:
             print(e)
 
-    async def now_rate_fn(self, idx):
+    async def nowRateFn(self, idx):
         try:
             total_revenue = 0
             investment_amount = 0
@@ -313,7 +304,7 @@ class BitThumbPrivate():
             return {"rate": rate, "now_balance": round(now_balance)}
         except Exception as e:
             db.rollback()
-            print(e)
+            print("nowRateFn ::: ",e)
 
     async def getBithumbCoinList(self):
         try:
@@ -325,3 +316,19 @@ class BitThumbPrivate():
         except Exception as e:
             print("Error :::: ", e)
             return
+        
+        # order_currency
+        # price
+        # unit
+
+    def sellLimitOrder(self, coin, coinPrice, coinUnit):
+        print("coin", coin)
+        orderId = self.bithumb.sell_limit_order(coin, coinPrice, coinUnit, "KRW")
+        print("orderId",orderId)
+        return orderId
+    
+    def sellMarketOrder(self, coin, coinUnit):
+        print("coin", coin)
+        orderId = self.bithumb.sell_market_order(coin, coinUnit, "KRW")
+        print("orderId",orderId)
+        return orderId

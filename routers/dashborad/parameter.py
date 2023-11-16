@@ -15,8 +15,5 @@ class rateCheckBody(BaseModel):
 class getPcoinInfoBody(BaseModel):
   idx: int
 
-class users_rate_info_body(BaseModel):
-  idx: int
-
-class day_week_month_data_body(BaseModel):
+class onlyIdx(BaseModel):
   idx: int

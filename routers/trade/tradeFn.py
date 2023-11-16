@@ -5,18 +5,16 @@ IS_DEV = os.environ.get('IS_DEV')
 pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
 sys.path.append(pwd) 
-from BitThumbPrivate import BitThumbPrivate
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from returnValue import changer
-from lib import insertLog
+from utils import insertLog, getDate
 from sqld import *
 import subprocess
 import datetime
 import models 
-from routers.user.userApi import user
 import psutil
-from fastapi import Request
+
 
 try:
     db = SessionLocal()
@@ -281,33 +279,23 @@ class TradeFn():
         print("item ::: ::: ",item)
         user = db.query(models.USER_T).filter(
             models.USER_T.idx == idx).first()
-        
         user.trading_option = item.idx
-        # useOption = db.query(models.tradingOption).filter(
-        #     models.tradingOption.idx == item.idx).first()
-
-        # option_list = db.query(models.tradingOption).filter(
-        #     models.tradingOption.used == 1).all()
-
-        # for option in option_list:
-        #     option.used = 0
-        # useOption.used = 1
-        # useOption.Update_date = datetime.datetime.now()
         db.commit()
     except:
         db.rollback()
 
-  async def getSearchPriceList(self, bit):
-      try:
-          returnValue = []
-          searchList = await bit.mysql.Select(selectSearchPriceList)
-          for coin in searchList:
-              returnValue.append({'name': coin[1], 'catch_price': coin[2]})
-          return returnValue
-      except Exception as e:
-          print("getSearchPriceList :::: ", e)
-          insertLog.log(e)
-          return 444  
+  async def getSearchPriceList(self, idx):
+    try:
+        returnValue = []
+        searchList = db.query(models.recommendList).filter(models.recommendList.user_idx == idx).all()
+        for coin in searchList:
+            returnValue.append({'name': coin.coin_name, 'catch_price': coin.catch_price })
+        return returnValue
+    except Exception as e:
+        db.rollback()
+        insertLog.log(e)
+        print("getSearchPriceList :::: ", e)
+        return 444  
       
   async def getNowUseCondition(self, idx, bit):
       try:
@@ -460,3 +448,27 @@ class TradeFn():
         print("autoTradingOff Error :::: ", e)
         db.rollback()
         raise 
+
+  def sellFn(self, bit, idx, item):
+    try:
+        if item.sellType == 1:
+            orderId = bit.sellLimitOrder(item.coin, item.sellPrice, item.coinUnit)
+        if item.sellType == 2:
+            orderId = bit.sellMarketOrder(item.coin, item.coinUnit)
+        print("orderId", orderId)
+        transactionTime = getDate.getTransactionTime()
+        cancleTime = getDate.getCancleTime(transactionTime, item.cancleTime)
+        insertOrder = models.orderCoin()
+        insertOrder.coin = item.coin
+        insertOrder.status = 3
+        insertOrder.transaction_time = transactionTime
+        insertOrder.order_id = orderId[2]
+        insertOrder.cancel_time = cancleTime
+        insertOrder.sell_reason = "sell"
+        insertOrder.user_idx = idx
+        db.add(insertOrder)
+        db.commit()
+        return 200
+    except Exception as e:
+        print("sellFn Error :::: ", e)
+        db.rollback()

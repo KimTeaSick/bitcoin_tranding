@@ -7,9 +7,9 @@ import sys
 sys.path.append(pwd) 
 from sqlalchemy.orm import Session
 from database import SessionLocal
-from lib.makeSalt import make_salt
+from utils.makeSalt import make_salt
 import hashlib
-from lib.manageJWTToken import make_access_JWT_token, verify_jwt_token
+from utils.manageJWTToken import make_access_JWT_token, verify_jwt_token
 from BitThumbPrivate import BitThumbPrivate
 import models
 from pybithumb import Bithumb
@@ -38,6 +38,7 @@ class user_fn():
       if user_t_check != None: return 333
       bit = Bithumb(item.public, item.secret)
       pass_registe = bit.get_balance('ALL')
+      print("pass_registe", pass_registe)
       if pass_registe['status'] != '0000': return 456
       user_name = item.name
       user_email = item.email

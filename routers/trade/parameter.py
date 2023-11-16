@@ -21,3 +21,10 @@ class useTradingOption(BaseModel):
 
 class controlAT(BaseModel):
     flag: int
+
+class sellInfoBody(BaseModel):
+    coin: str
+    sellType: int
+    sellPrice: float
+    coinUnit: float
+    cancleTime: int

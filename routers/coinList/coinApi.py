@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 from .coinFn import CoinFn
 from .parameter import *
-from lib.errorList import error_list
+from utils.errorList import error_list
 
 coinRouter = APIRouter(
     prefix="/coin",

@@ -83,13 +83,14 @@ for active_user in active_users:
     mMax: int = option_result[1]
     hMax:int  = option_result[2]
 
-
     print(options)
     print(f'mMax: {mMax}, hMax: {hMax}')
 
     prevCoin = db.query(models.recommendList).filter(models.recommendList.user_idx == active_user.idx).all()
-    db.delete(prevCoin)
-
+    if len(prevCoin) != 0:
+        for coin in prevCoin:
+            db.delete(coin)
+            db.commit()
     # 검색 함수 실행
     coins = asyncio.run(recommendCoins(options, mMax, hMax))
     print('검색 완료 ::::::: ')

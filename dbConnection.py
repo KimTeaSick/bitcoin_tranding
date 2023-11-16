@@ -75,3 +75,17 @@ class MySql():
             return selectData   
         except mysql.connector.Error as err:
             self.mydb.reconnect()
+
+    async def oneSelect(self, sql ):
+        try:
+            mycursor = self.mydb.cursor(prepared=False)
+            mycursor.execute(sql)
+            result = mycursor.fetchall()
+            self.mydb.commit()
+            selectData = []
+            for data in result:
+                selectData.append(data[0])
+            mycursor.close()
+            return selectData   
+        except mysql.connector.Error as err:
+            self.mydb.reconnect()

@@ -8,8 +8,8 @@ sys.path.append(pwd)
 from fastapi import APIRouter, Request
 from .parameter import *
 from .searchFn import SearchFn
-from lib import insertLog
-from lib.errorList import error_list
+from utils import insertLog
+from utils.errorList import error_list
 
 searchRouter = APIRouter(
     prefix="/option",

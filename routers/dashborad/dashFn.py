@@ -10,6 +10,7 @@ from database import SessionLocal
 from returnValue import changer
 from sql.dashBoardSql import *
 from .dashLib import DASH_LIB
+from BitThumbPrivate import BitThumbPrivate
 import datetime 
 import models
 import time
@@ -23,7 +24,7 @@ finally:
 lib = DASH_LIB()
 
 class DashBoardFn():
-  async def rate_check(self, item, bit, idx):
+  async def rateCheck(self, item, bit, idx):
     try:
       res = 0
       print(str(item.days), str(int(item.days)+1))
@@ -61,6 +62,7 @@ class DashBoardFn():
       else:
         returnList = []
         for coin in possessionCoin:
+          print("coin :::", coin)
           coinInfo = bit.getBitCoinList(coin[1])['data']
           coinValue = float(coinInfo['closing_price'])
           returnList.append(
@@ -75,8 +77,6 @@ class DashBoardFn():
     coinList = bit.getMyCoinList()
     time.sleep(1)
     dt = datetime.now().replace()
-    start_dt = dt[0:10] + "00:00:00.000000"
-    end_dt = dt[0:10] + "23:59:59.999999"
     list = []
     fee = 0
     totalMoney = 0
@@ -103,11 +103,11 @@ class DashBoardFn():
         accountData = [totalMoney, account, buyingMoney, sellingMoney, fee]
         return accountData
     
-  async def get_users_rate_info_Fn(self,idx, bit):
+  async def getUsersRateInfoFn(self,idx, bit):
     try:
       user_name = await bit.mysql.Select(users_info_sql(idx))
       user_total = await bit.mysql.Select(users_total_acc_sql(idx))
-      data = await lib.get_dashboard_user_rate_data_lib(bit, idx)
+      data = await lib.getDashboardUserRateDataLib(bit, idx)
       return {
         "date_info": {
           "name": user_name[0][0],
@@ -129,3 +129,48 @@ class DashBoardFn():
     except:
       db.rollback()
       raise
+
+  async def getCurrentRateFn(self, idx):
+    try:
+      user = db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
+      bit = BitThumbPrivate(user.public_key, user.secret_key)
+      rate = await bit.nowRateFn(idx)
+      print("rate", rate)
+      return rate
+    except Exception as e:
+      print("getCurrentRateFn Error", e)
+      db.rollback()
+
+  async def getTotalOperateMoney(self, bit):
+    try:
+      now = datetime.datetime.now()
+      rawTime = str(now.time())
+      time = rawTime[0: 2]
+      date = str(now.date()).replace("-","") + str(time) + "0000"
+      res = await bit.mysql.Select(getTotalOperateMoneySql(date))
+      print("TotalOperateMoney",res)
+      return res[0][0]
+    except Exception as e:
+      print("Error ",e)
+
+  async def getChartData(self, bit, idx):
+    try:
+      rawDateData = await bit.mysql.oneSelect(getDateDataSql(idx))
+      rawChartData = await bit.mysql.oneSelect(getChartDataSql(idx))
+      return rawDateData, rawChartData
+    except Exception as e:
+      print(e)
+
+  async def getUserCountFn(self, bit, now):
+    page = {}
+    userCount = await bit.mysql.oneSelect(getUserCountSql)
+    page["now"] = now
+    page["count"] = int(round(userCount[0] / 3, 0))
+    page["next"] = now + 1 if now != page["count"] else page["count"]
+    page["prev"] = now - 1 if now != 1 else 1
+    return page
+  
+  async def getUserListFn(self, bit, now):
+    userList = await bit.mysql.oneSelect(getTableUserList(now))
+    print("userList", userList)
+    return userList

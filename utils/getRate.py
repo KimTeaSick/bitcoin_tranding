@@ -49,7 +49,7 @@ def get_my_coin_list(bit):  # 현재 보유 코인 종류
                   myCoinList.append(item)
   return myCoinList
 
-def now_rate_fn(db, models, bit, idx):
+def nowRateFn(db, models, bit, idx):
     try:
         total_revenue = 0
         investment_amount = 0

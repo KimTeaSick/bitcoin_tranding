@@ -8,8 +8,8 @@ sys.path.append(pwd)
 from fastapi import APIRouter,Request
 from .dashFn import DashBoardFn
 from .parameter import *
-from lib import insertLog
-from lib.errorList import error_list
+from utils import insertLog
+from utils.errorList import error_list
 
 dash = DashBoardFn()
 
@@ -57,7 +57,7 @@ async def test(item: rateCheckBody, request: Request):
     if request.state.valid_token != True:
         return error_list(0)
     try:
-        data = await dash.rate_check(item, request.state.bit, request.state.idx)
+        data = await dash.rateCheck(item, request.state.bit, request.state.idx)
         return {"status":200, "data": data}
     except Exception as e:
         print("rateCheck Error ::: :::", e)
@@ -74,19 +74,40 @@ async def all_user_deposit_api(request: Request):
         print("all_user_deposit_api Error ::: :::", e)
         return error_list(2)
     
-@dashRouter.post("/get_users_rate_info")
-async def get_users_rate_info_Api(item:users_rate_info_body ,request: Request):
+# @dashRouter.post("/get_users_rate_info")
+# async def get_users_rate_info_Api(item:onlyIdx ,request: Request):
+#     if request.state.valid_token != True:
+#         return error_list(0)
+#     try:
+#         data = await dash.getUsersRateInfoFn(item.idx, request.state.bit)
+#         return { "status":200 , "data": data }
+#     except Exception as e:
+#         print("get_users_rate_info Error ::: :::", e)
+#         return error_list(2)
+
+@dashRouter.get("/get_users_rate_info/")
+async def get_users_rate_info_Api(idx:int ,request: Request):
     if request.state.valid_token != True:
         return error_list(0)
     try:
-        data = await dash.get_users_rate_info_Fn(item.idx, request.state.bit)
+        data = await dash.getUsersRateInfoFn(idx, request.state.bit)
         return { "status":200 , "data": data }
     except Exception as e:
         print("get_users_rate_info Error ::: :::", e)
         return error_list(2)
 
+@dashRouter.get("/getCurrentRate/")
+async def getCurrentRate(idx, request: Request):
+    if request.state.valid_token != True:
+        return error_list(0)
+    try:
+        data = await dash.getCurrentRateFn(idx)
+        return { "status":200 , "data": data }
+    except Exception as e:
+        print("getCurrentRate Error ::: ", e)
+
 @dashRouter.post("/day_week_month_data")
-async def day_week_month_data_api(item:day_week_month_data_body, request: Request):
+async def day_week_month_data_api(item:onlyIdx, request: Request):
     if request.state.valid_token != True:
         return error_list(0)
     try:
@@ -95,3 +116,43 @@ async def day_week_month_data_api(item:day_week_month_data_body, request: Reques
     except Exception as e:
         print("get_users_rate_info Error ::: :::", e)
         return error_list(2)
+
+@dashRouter.get("/totalOperateMoney")
+async def getTotalOperateMoney(request: Request):
+    if request.state.valid_token != True:
+        return error_list(0)
+    try:
+        data = await dash.getTotalOperateMoney(request.state.bit)
+        return { "status":200 , "data": data }
+    except Exception as e:
+        print("getCurrentRate Error ::: ", e)
+
+@dashRouter.get("/getChartData/")
+async def getTotalOperateMoney(idx:int, request: Request):
+    if request.state.valid_token != True:
+        return error_list(0)
+    try:
+        data = await dash.getChartData(request.state.bit, idx)
+        return { "status":200 , "data": data }
+    except Exception as e:
+        print("getCurrentRate Error ::: ", e)
+
+@dashRouter.get("/getUserCount/")
+async def getUserCountApi(request: Request, now: int):
+    if request.state.valid_token != True:
+        return error_list(0)
+    try:
+        data = await dash.getUserCountFn(request.state.bit, now)
+        return { "status":200 , "data": data }
+    except Exception as e:
+        print("getUserCount Error ::: ", e)
+
+@dashRouter.get("/getUserList/")
+async def getUserListApi(request: Request, now: int):
+    if request.state.valid_token != True:
+        return error_list(0)
+    try:
+        data = await dash.getUserListFn(request.state.bit, now)
+        return { "status":200 , "data": data }
+    except Exception as e:
+        print("getUserCount Error ::: ", e)

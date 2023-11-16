@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request
-from lib.errorList import error_list
+from utils.errorList import error_list
 from .paramater import *
 from .assetsFn import AssetsFn
 

@@ -8,8 +8,8 @@ sys.path.append(pwd)
 from fastapi import APIRouter, Request
 from .parameter import *
 from .tradeFn import TradeFn
-from lib import insertLog
-from lib.errorList import error_list
+from utils import insertLog
+from utils.errorList import error_list
 
 tradeRouter = APIRouter(
     prefix="/trade",
@@ -98,7 +98,7 @@ async def getSearchList(request:Request):
     if request.state.valid_token != True:
         return error_list(0)
     try:
-        data = await trade.getSearchPriceList(request.state.bit)
+        data = await trade.getSearchPriceList(request.state.idx)
         insertLog.log("검색 종목 조회 기능 사용")
         return {"status": 200, "data":data}
     except:
@@ -167,4 +167,14 @@ async def controlAutoTrading(item: controlAT,request:Request):
             return {"status": 200, "data": data}
     except:
         insertLog.log("자동 매매 컨트롤 기능 사용 실패")
+        return error_list(2)
+    
+@tradeRouter.post('/sell')
+async def controlAutoTrading(item: sellInfoBody,request:Request):
+    if request.state.valid_token != True:
+        return error_list(0)
+    try:
+        data = await trade.sellFn(request.state.bit,request.state.idx, item)
+        return {"status": 200, "data": data}
+    except:
         return error_list(2)

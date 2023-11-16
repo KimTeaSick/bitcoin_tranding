@@ -12,10 +12,11 @@ from routers.trade import tradeApi
 from routers.test import testApi
 from routers.user import userApi
 from routers.assets import assetsApi
+from routers.member import memberApi
 # from search_option import search
 # from BitThumbPrivate import *
-from lib.pagiNation import PagiNation
-from lib.errorList import error_list
+from utils.pagiNation import PagiNation
+from utils.errorList import error_list
 from middleware.token_validator import token_validator
 from routers.user.userApi import user
 from mongoDB import MongoDB
@@ -32,7 +33,8 @@ app = FastAPI()
 origins = ["http://121.165.242.171:48604", 
            "http://192.168.10.119:3000", 
            "http://localhost:3000", 
-           "http://192.168.10.119", 
+           "http://192.168.10.119",
+           "http://127.0.0.1:8585", 
            "http://52.78.246.119", 
            "http://www.argo4s.com", 
            "https://www.argo4s.com"]
@@ -145,7 +147,7 @@ async def todayAccount(request: Request):
 async def now_rate_api(request: Request):
     if request.state.valid_token != True:
         return error_list(0)
-    data = await request.state.bit.now_rate_fn(request.state.idx)
+    data = await request.state.bit.nowRateFn(request.state.idx)
     return { "status":200, "data": data }
 
 @app.get("/coinlist.json")
@@ -173,6 +175,7 @@ app.include_router(searchApi.searchRouter)
 app.include_router(tradeApi.tradeRouter)
 app.include_router(assetsApi.assetsRouter)
 app.include_router(testApi.testRouter)
+app.include_router(memberApi.memberRouter)
 
 if __name__ == "__main__":
     config = uvicorn.Config("ncbithumb:app", port=8888, log_level="info", host="0.0.0.0")

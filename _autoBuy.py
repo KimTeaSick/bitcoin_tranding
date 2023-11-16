@@ -78,7 +78,12 @@ async def autoBuy(idx):
     hMax:int  = option_result[2]
     print(options)
     print(f'mMax: {mMax}, hMax: {hMax}')
-    db.query(models.recommendList).delete()
+
+    prevCoin = db.query(models.recommendList).filter(models.recommendList.user_idx == active_user.idx).all()
+    print("prevCoin", prevCoin)
+    if len(prevCoin) != 0:
+        db.delete(prevCoin)
+
     # 검색 함수 실행
     coins = await recommendCoins(options, mMax, hMax)
     print('검색 완료 ::::::: ')
@@ -91,11 +96,12 @@ async def autoBuy(idx):
       coinName = list(coin.keys())[0]
       sortedByDisparity.append(
           {'name': coinName, 'disparity': coin[coinName]['disparity'], 'price': coin[coinName]['closing_price']})
-      RC_coin = models.recommendList()
-      RC_coin.coin_name = coinName
-      RC_coin.catch_price = coin[coinName]['closing_price']
-      RC_coin.option_name = useRecommendOPtion.name
-      db.add(RC_coin)
+      RCCoin = models.recommendList()
+      RCCoin.coin_name = coinName
+      RCCoin.catch_price = coin[coinName]['closing_price']
+      RCCoin.option_name = useRecommendOPtion.name
+      RCCoin.user_idx = active_user.idx
+      db.add(RCCoin)
     sortedCoins = sorted(sortedByDisparity, key=lambda x: x['disparity'])
     print("sort complete coins ::: ::: ", sortedCoins)
 

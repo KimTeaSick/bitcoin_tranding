@@ -6,8 +6,6 @@ import sell_data
 import sell_cal
 import sell_action
 import sell_format
-
-
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -18,7 +16,7 @@ pwd = DEV_PWD if IS_DEV == "True" else PRO_PWD
 import sys 
 sys.path.append(pwd) 
 from database import SessionLocal
-from lib.getRate import now_rate_fn
+from utils.getRate import nowRateFn
 import models
 import askingPrice
 
@@ -30,7 +28,7 @@ def sell(active_user, db, models):
     possession, nowWallet, isSell, resale, under_one_dollar = sell_cal.get_sell_list_cal(possession_coins)
     max_chart_time = sell_cal.get_max_chart_term_time(possession_coins, sellOption)
     # rate_percent = sell_data.get_rate_percent(nowWallet, possession)
-    rate_percent = now_rate_fn(db, models, bithumb, active_user.idx)
+    rate_percent = nowRateFn(db, models, bithumb, active_user.idx)
     print("rate_percent", active_user.idx, rate_percent)
     sell_list.extend(sell_cal.re_sale_list_cal(resale, sellOption))
     sell_list.extend(sell_cal.loss_cut_under_list_cal(isSell, rate_percent, accountOtion))
@@ -63,7 +61,6 @@ def sell(active_user, db, models):
     db.rollback()
   finally:
     db.close()
-
 
 def sell_t(models):
   db = SessionLocal()

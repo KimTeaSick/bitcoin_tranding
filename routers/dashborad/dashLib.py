@@ -99,29 +99,58 @@ class DASH_LIB():
     month_his_data = await bit.mysql.Select(his_data_sql(idx, str(datetime.datetime.now() - datetime.timedelta(days=365))))
     return day_table_data, week_table_data, month_table_data, day_his_data, week_his_data, month_his_data
   
-  async def get_dashboard_user_rate_data_lib(self, bit, idx):
+  async def getWithdraw(self, bit, idx, days):
+    totalWithdraw = 0
+    rowData = await bit.mysql.Select(getWithdrawSql(idx, days))
+    for withdraw in rowData:
+      totalWithdraw += withdraw[0]
+    return totalWithdraw
+
+  async def getInvest(self, bit, idx, days):
+    totalInvest = 0
+    rowData = await bit.mysql.Select(getInvestSql(idx, days))
+    for invest in rowData:
+      totalInvest += invest[0]
+    return totalInvest
+
+  async def getDashboardUserRateDataLib(self, bit, idx):
     return_value = []
+    weekFlag = 0
+    monthFlag = 0
+
     standard_acc = await bit.mysql.Select(get_user_acc_info(idx, 0))
     day_acc = await bit.mysql.Select(get_user_acc_info(idx, 1))
     week_acc = await bit.mysql.Select(get_user_acc_info(idx, 7))
     month_acc = await bit.mysql.Select(get_user_acc_info(idx, 30))
+
+    dayWithdraw = await self.getWithdraw(bit, idx, 1)
+    weekWithdraw = await self.getWithdraw(bit, idx, 7)
+    monthWithdraw = await self.getWithdraw(bit, idx, 30)
+
+    dayInvest = await self.getInvest(bit, idx, 1)
+    weekInvest = await self.getInvest(bit, idx, 7)
+    monthInvest = await self.getInvest(bit, idx, 30)
+
     if len(day_acc) == 0:
       day_acc = await bit.mysql.Select(max_day_acc_info(idx))
     if len(week_acc) == 0:
+      weekFlag = 1
       week_acc = await bit.mysql.Select(max_day_acc_info(idx))
     if len(month_acc) == 0:
+      monthFlag = 1
       month_acc = await bit.mysql.Select(max_day_acc_info(idx))
 
-    day_revenue = standard_acc[0][0] - day_acc[0][0]
+    day_revenue = (standard_acc[0][0] + dayWithdraw) - (day_acc[0][0] + dayInvest)
+    week_revenue = (standard_acc[0][0] + weekWithdraw) - (week_acc[0][0] + weekInvest)
+    month_revenue = (standard_acc[0][0] + monthWithdraw) - (month_acc[0][0] + monthInvest)
+    
+    day_rate = (standard_acc[0][0] + dayWithdraw) / (day_acc[0][0] + dayInvest) * 100 - 100
+    week_rate = (standard_acc[0][0] + weekWithdraw) / (week_acc[0][0] + weekInvest) * 100 - 100
+    month_rate = (standard_acc[0][0] + monthWithdraw) / (month_acc[0][0] + monthInvest) * 100 - 100
 
-    week_revenue = standard_acc[0][0] - week_acc[0][0]
-    month_revenue = standard_acc[0][0] - month_acc[0][0]
-
-    day_rate = standard_acc[0][0] / day_acc[0][0] * 100 - 100
-
-    week_rate = standard_acc[0][0] / week_acc[0][0] * 100 - 100
-    month_rate = standard_acc[0][0] / month_acc[0][0] * 100 - 100
     return_value.append([day_rate, day_revenue])
-    return_value.append([week_rate, week_revenue])
-    return_value.append([month_rate, month_revenue])
+    if weekFlag: return_value.append(["-", "-"])
+    else: return_value.append([week_rate, week_revenue])
+    if monthFlag:return_value.append(["-", "-"])
+    else: return_value.append([month_rate, month_revenue])
     return return_value

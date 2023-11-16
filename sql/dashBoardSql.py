@@ -188,3 +188,63 @@ def his_data_sql(idx, date):
     AND transaction_time > '{date}'
     ORDER BY transaction_time DESC
     '''
+
+def getWithdrawSql(idx, day):
+  return f'''
+    select withdraw 
+    from nc_r_account_rate_t 
+    where user_idx = {idx}
+    and insert_date >= DATE_SUB(CURRENT_DATE , INTERVAL {day} day)
+  '''
+
+def getInvestSql(idx, day):
+  return f'''
+    select invest 
+    from nc_r_account_rate_t 
+    where user_idx = {idx}
+    and insert_date >= DATE_SUB(CURRENT_DATE , INTERVAL {day} day)
+  '''
+
+def getTotalOperateMoneySql(date): 
+  return f'''
+  select sum(account_balance)
+  from nc_r_account_rate_time_t
+  where insert_date >= {date}
+  '''
+
+def getDateDataSql(idx):
+  return f'''
+    select 
+      insert_date
+    from nc_r_account_rate_t 
+    where
+      insert_date >= DATE_SUB(CURRENT_DATE, INTERVAL 1 week)
+      and user_idx = {idx}
+'''
+
+def getChartDataSql(idx):
+  return f'''
+    select 
+      account_balance
+    from nc_r_account_rate_t 
+    where
+      insert_date >= DATE_SUB(CURRENT_DATE, INTERVAL 1 month)
+      and user_idx = {idx}
+'''
+
+getUserCountSql = """
+select count(idx) from nc_b_user_t
+"""
+
+def getTableUserList(now): 
+  return f"""select user.idx 
+	from 
+	nc_b_user_t user
+	left join (
+	select account_balance,
+	user_idx
+	from nc_r_account_rate_t 
+	where insert_date = date_sub(current_date, interval 0 day)
+	) acc on user.idx = acc.user_idx
+	order by acc.account_balance DESC
+	limit 3 offset {(now - 1) * 3}"""
