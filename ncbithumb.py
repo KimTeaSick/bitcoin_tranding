@@ -1,8 +1,6 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
-from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi import FastAPI, Depends, Request, HTTPException
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Request
 from starlette.requests import Request
 from routers.dashborad import dashApi
 from routers.coinList import coinApi
@@ -19,7 +17,6 @@ from utils.pagiNation import PagiNation
 from utils.errorList import error_list
 from middleware.token_validator import token_validator
 from routers.user.userApi import user
-from mongoDB import MongoDB
 from search_option.search import search
 from dbConnection import *
 from parameter import *
@@ -49,7 +46,6 @@ app.add_middleware(
 
 # bit = user
 page = PagiNation()
-mongo = MongoDB()
 mysql = MySql()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

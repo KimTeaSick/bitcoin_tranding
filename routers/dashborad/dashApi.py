@@ -5,7 +5,7 @@ IS_DEV = os.environ.get('IS_DEV')
 pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
 sys.path.append(pwd) 
-from fastapi import APIRouter,Request
+from fastapi import APIRouter, Request
 from .dashFn import DashBoardFn
 from .parameter import *
 from utils import insertLog
@@ -128,11 +128,11 @@ async def getTotalOperateMoney(request: Request):
         print("getCurrentRate Error ::: ", e)
 
 @dashRouter.get("/getChartData/")
-async def getTotalOperateMoney(idx:int, request: Request):
+async def getChartDataApi(idx:int, term:int, request: Request):
     if request.state.valid_token != True:
         return error_list(0)
     try:
-        data = await dash.getChartData(request.state.bit, idx)
+        data = await dash.getChartDataFn(idx, term)
         return { "status":200 , "data": data }
     except Exception as e:
         print("getCurrentRate Error ::: ", e)

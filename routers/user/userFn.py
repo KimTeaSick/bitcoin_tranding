@@ -42,6 +42,7 @@ class user_fn():
       if pass_registe['status'] != '0000': return 456
       user_name = item.name
       user_email = item.email
+      user_phone = item.phone
       user_pw = item.password
       user_public = item.public
       user_secret = item.secret
@@ -51,6 +52,7 @@ class user_fn():
       user_table.name = user_name
       user_table.password = after_hash_pw
       user_table.email = user_email
+      user_table.phone = user_phone
       user_table.salt = salt
       user_table.public_key = user_public
       user_table.secret_key = user_secret

@@ -5,14 +5,11 @@ IS_DEV = os.environ.get('IS_DEV')
 pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
 sys.path.append(pwd) 
-from BitThumbPrivate import BitThumbPrivate
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from utils import insertLog
 import datetime
 import models 
-from routers.user.userApi import user
-
 
 try:
     db = SessionLocal()

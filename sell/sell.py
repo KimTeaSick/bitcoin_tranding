@@ -42,7 +42,7 @@ def sell(active_user, db, models):
           order_id = sell_action.re_sell_coin_action(bithumb, sell_coin)
           print("resale order_id", order_id)
           order_info = sell_format.insert_order_format(models, sell_coin, order_id, transaction_time, cancel_time, active_user.idx, "resale")
-          print("resale order_info", order_info) 
+          print("resale order_info", order_info)
         else:
           ask = f'+{sellOption.call_money_to_sell_method}' if int(sellOption.call_money_to_sell_method) >= 0 else str(sellOption.call_money_to_sell_method)
           ask_price = askingPrice.ASK_PRICE(f"{sell_coin['coin']}", ask, 'sell')

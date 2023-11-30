@@ -6,7 +6,6 @@ import models
 import datetime
 import asyncio
 import requests
-import askingPrice
 
 url = 'http://192.168.10.43:8888'
 

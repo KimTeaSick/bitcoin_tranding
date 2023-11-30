@@ -7,9 +7,9 @@ load_dotenv()
 
 PORT = 3306
 HOST = "nc-db-1.cyu1ow4eutwz.ap-northeast-2.rds.amazonaws.com"
+PASSWORD = "$kim99bsd00"
 DATABASE = "nc_bit_trading"
 USERNAME = "admin"
-PASSWORD = "$kim99bsd00"
 
 class MySql():
     def __init__(self):
@@ -24,7 +24,6 @@ class MySql():
         except mysql.connector.Error as e:
             print('Database Error: ', e)
             self.Insert(insertLog,[e])
-
 
     def Insert( self, sql, val ):
         try:

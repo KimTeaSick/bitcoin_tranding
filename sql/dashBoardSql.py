@@ -247,4 +247,6 @@ def getTableUserList(now):
 	where insert_date = date_sub(current_date, interval 0 day)
 	) acc on user.idx = acc.user_idx
 	order by acc.account_balance DESC
-	limit 3 offset {(now - 1) * 3}"""
+  """
+
+	# limit 4 offset {(now - 1) * 4}"""

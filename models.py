@@ -458,6 +458,7 @@ class USER_T(Base):
   start_date = Column(String(100))
   name = Column(String(100))
   email = Column(String(100))
+  phone = Column(String(100))
   password = Column(String(100))
   salt = Column(String(100))
   public_key = Column(String(100), default=None, nullable=True)

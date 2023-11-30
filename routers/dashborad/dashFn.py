@@ -11,6 +11,7 @@ from returnValue import changer
 from sql.dashBoardSql import *
 from .dashLib import DASH_LIB
 from BitThumbPrivate import BitThumbPrivate
+from chartMaker import ChartMaker
 import datetime 
 import models
 import time
@@ -153,11 +154,15 @@ class DashBoardFn():
     except Exception as e:
       print("Error ",e)
 
-  async def getChartData(self, bit, idx):
+  async def getChartDataFn(self, idx, term):
     try:
-      rawDateData = await bit.mysql.oneSelect(getDateDataSql(idx))
-      rawChartData = await bit.mysql.oneSelect(getChartDataSql(idx))
-      return rawDateData, rawChartData
+      chartMaker = ChartMaker()
+      returnValue = await chartMaker.getChartData(idx, term)
+      print("getChartDataFn idx, term", returnValue)
+      # rawDateData = await bit.mysql.oneSelect(getDateDataSql(idx))
+      # rawChartData = await bit.mysql.oneSelect(getChartDataSql(idx))
+      # return rawDateData, rawChartData
+      return returnValue
     except Exception as e:
       print(e)
 
@@ -165,7 +170,7 @@ class DashBoardFn():
     page = {}
     userCount = await bit.mysql.oneSelect(getUserCountSql)
     page["now"] = now
-    page["count"] = int(round(userCount[0] / 3, 0))
+    page["count"] = int(round(userCount[0] / 4, 0))
     page["next"] = now + 1 if now != page["count"] else page["count"]
     page["prev"] = now - 1 if now != 1 else 1
     return page
