@@ -175,7 +175,10 @@ class BitThumbPrivate():
 
 # Dash Page
     async def getRecommendCoin(self, item):
+        print("item ::: ",item)
         use_option_list, options, max_minute, max_hour = await optionStandardization.option_standardization(item)
+        print("--------------------------------------------------------------------------------------------------")
+        print("use_option_list, options, max_minute, max_hour",use_option_list, options, max_minute, max_hour)
         print("--------------------------------------------------------------------------------------------------")
         # 검색 코인 receive
         coins = await recommend.recommendCoin(options, max_minute, max_hour)
@@ -304,7 +307,7 @@ class BitThumbPrivate():
             return {"rate": rate, "now_balance": round(now_balance)}
         except Exception as e:
             db.rollback()
-            print("nowRateFn ::: ",e)
+            print("nowRateFn ::: ", idx, e)
 
     async def getBithumbCoinList(self):
         try:

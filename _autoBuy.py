@@ -82,7 +82,9 @@ async def autoBuy(idx):
     prevCoin = db.query(models.recommendList).filter(models.recommendList.user_idx == active_user.idx).all()
     print("prevCoin", prevCoin)
     if len(prevCoin) != 0:
-        db.delete(prevCoin)
+        for coin in prevCoin:
+            db.delete(coin)
+            db.commit()
 
     # 검색 함수 실행
     coins = await recommendCoins(options, mMax, hMax)
@@ -118,6 +120,7 @@ async def autoBuy(idx):
 
     print(f'moneyPerCoin: {moneyPerCoin}, money: {money}, percent: {buyOption.percent_to_buy_method}')
     orderList = []
+    
     for coin in sortedCoins:
         try:
             # 구매 안하는 사유

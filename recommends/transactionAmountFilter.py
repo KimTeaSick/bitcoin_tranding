@@ -12,13 +12,13 @@ def transactioAmountRecommend(nowstamp, coinList, dfList, chart_term, lowTransac
     transactionAmount_list = []
     transactionAmount_value = []
     time = nowstamp - ((int(chart_term[:-1]) + 1) * 60) if chart_term[-1] == 'm' else nowstamp - ((int(chart_term[:-1]) + 1) * 3600)
-
+    print("time", time)
     df = pd.DataFrame(dfList)
     time_satisfied_df = df.loc[df['S_time'] > time]
-
     for coin in coinList:
         if coin in coinList:
             matching_coin_name_df = time_satisfied_df.loc[df['coin_name'] == coin]
+            # print("dfList",matching_coin_name_df)
             if len(matching_coin_name_df) != 0 and matching_coin_name_df['Transaction_amount'].sum() > float(lowTransactionAmount) and matching_coin_name_df['Transaction_amount'].sum() < float(highTransactionAmount):
                 transactionAmount_list.append(coin)
                 transactionAmount_value.append({'coin_name': coin, 'Transaction_amount': matching_coin_name_df['Transaction_amount'].sum()})

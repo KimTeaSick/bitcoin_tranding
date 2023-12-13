@@ -174,7 +174,6 @@ async def recommendCoin(options, minute_Max, hour_Max):
             if coin.coin_name in price_list:
                 name = coin.coin_name[:-4]
                 coinPriceValue = list(filter(lambda item : item['coin_name'] == coin.coin_name, priceValue))
-
                 newDict = data[name]
                 newDict['price'] = coinPriceValue[0]['price']
                 Price_dict.append({name:newDict})
@@ -182,7 +181,6 @@ async def recommendCoin(options, minute_Max, hour_Max):
             if coin.coin_name in Transaction_list:
                 name = coin.coin_name[:-4]
                 coinTransactionAmountValue = list(filter(lambda item : item['coin_name'] == coin.coin_name, transactionAmountValue))
-
                 newDict = data[name]
                 newDict['Transaction_amount'] = coinTransactionAmountValue[0]['Transaction_amount']
                 TA_dict.append({name:newDict})
@@ -225,7 +223,6 @@ async def recommendCoin(options, minute_Max, hour_Max):
 
             if coin.coin_name in coin_name_list:
                 name = coin.coin_name[:-4]
-
                 recommend_dict.append({name:data[name]})
 
         now2 = datetime.datetime.now()
@@ -239,6 +236,7 @@ async def recommendCoin(options, minute_Max, hour_Max):
                 insert_list.append({'name':coinKey[0], 'price':coinValue[0]['closing_price']})
                 coinValue[0]['closing_price']
                 coinKey[0]
-
+                
+        print("{'recommends': recommend_dict, 'Price':Price_dict, 'TransactioAmount':TA_dict, 'Masp':Masp_dict, 'Trend': Trend_dict, 'Disparity':Disparity_dict, 'MACD': Macd_dict}",{'recommends': recommend_dict, 'Price':Price_dict, 'TransactioAmount':TA_dict, 'Masp':Masp_dict, 'Trend': Trend_dict, 'Disparity':Disparity_dict, 'MACD': Macd_dict})
         print('spend time ::::::: ', now2 - now1)
         return {'recommends': recommend_dict, 'Price':Price_dict, 'TransactioAmount':TA_dict, 'Masp':Masp_dict, 'Trend': Trend_dict, 'Disparity':Disparity_dict, 'MACD': Macd_dict}

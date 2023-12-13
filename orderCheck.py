@@ -1,21 +1,12 @@
 from database import engine, SessionLocal
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
-import models
-import datetime
 from pybithumb import Bithumb
+from sqlalchemy import and_
+import threading
+import datetime
+import models
 
-
-now1 = datetime.datetime.now()
-try:
-    db = SessionLocal()
-    db: Session
-finally:
-    db.close()
-
-active_users = db.query(models.USER_T).all()
-
-for user in active_users:
+def orderCheck(user, db):
     try:
         bithumb = Bithumb(user.public_key, user.secret_key)
         krTime = 60 * 60 * 9
@@ -31,9 +22,8 @@ for user in active_users:
                 order_desc = ['bid', order.coin, order.order_id, 'KRW']
                 orderStatus = bithumb.get_order_completed(order_desc)
                 # BUY_CHECK(orderStatus, order, bithumb, db)
-                print("buy order status ::: ::: ", orderStatus)
+                print("buy order status ::: ::: ", user.idx, orderStatus)
                 print("--------------------------------------------------------------------------")
-
                 if orderStatus['data']['order_status'] == 'Completed':
                     had_coin = db.query(models.possessionCoin).filter(and_(
                         models.possessionCoin.coin == order.coin, 
@@ -51,9 +41,7 @@ for user in active_users:
                     had_coin.transaction_time = datetime.datetime.now()
                     had_coin.trailingstop_flag = 0
                     had_coin.max = had_coin.price
-
                     db.delete(order)
-
                     transactionLog = models.possessionLog()
                     transactionLog.coin = order.coin
                     transactionLog.unit = order_sum['unit']
@@ -67,7 +55,6 @@ for user in active_users:
                     transactionLog.order_id = order.order_id
                     transactionLog.user_idx = user.idx
                     db.add(transactionLog)
-
                 if orderStatus['data']['order_status'] == 'Pending':
                     order_sum = {'unit': 0, 'total': 0, 'fee': 0}
                     if len(orderStatus['data']['contract']) > 0:
@@ -84,7 +71,6 @@ for user in active_users:
                         trading.price = order_sum['price']
                         trading.fee = order_sum['fee']
                         db.commit()
-
                     print(datetime.datetime.utcfromtimestamp(
                         int(orderStatus['data']['order_date'][:-6]) + krTime))
                     timeCheck = str(datetime.datetime.strptime(
@@ -100,13 +86,10 @@ for user in active_users:
                             db.delete(order)
                             if len(orderStatus['data']['contract']) != 0:
                                 db.delete(delpossession)
-
                 if orderStatus['data']['order_status'] == 'Cancel':
                     db.delete(order)
-
                 print(orderStatus)
                 db.commit()
-
             # 매도 확인
             if order.status == 3 or order.status == 5:
                 order_desc = ['ask', order.coin, order.order_id, 'KRW']
@@ -119,11 +102,9 @@ for user in active_users:
                     Possession = db.query(models.possessionCoin).filter(and_(
                         models.possessionCoin.user_idx == order.user_idx,
                         models.possessionCoin.coin == order.coin)).first()
-                    
                     if Possession == None : 
                         db.delete(order)
                         continue
-
                     order_price: float = 0.0
                     order_sum = {'unit': 0, 'total': 0, 'fee': 0}
                     for sell_info in orderStatus['data']['contract']:
@@ -134,10 +115,10 @@ for user in active_users:
                     order_sum['price'] = order_price / len(orderStatus['data']['contract'])
                     poseesionCheck = db.query(models.orderCoin).filter(models.orderCoin.coin == order.coin).all()
                     db.delete(Possession)
-                    print("delete Possession ::: ::: ")
                     db.delete(order)
+                    print("delete Possession ::: ::: ", user.idx, Possession.coin)
                     for cont in orderStatus['data']['contract']:
-                        print('cont', cont)
+                        print('contract', cont)
                     transactionLog = models.possessionLog()
                     transactionLog.coin = order.coin
                     transactionLog.unit = order_sum['unit']
@@ -152,7 +133,6 @@ for user in active_users:
                     transactionLog.sell_reason = order.sell_reason
                     transactionLog.user_idx = user.idx
                     db.add(transactionLog)
-
                 if orderStatus['data']['order_status'] == 'Pending':
                     order_sum = {'unit': 0, 'total': 0, 'fee': 0}
                     if len(orderStatus['data']['contract']) > 0:
@@ -172,7 +152,6 @@ for user in active_users:
                     timeCheck = str(datetime.datetime.strptime(
                         order.cancel_time, '%Y-%m-%d %H:%M:%S.%f') - datetime.datetime.now())
                     print(timeCheck[0])
-
                     if timeCheck[0] == '-':
                         if len(orderStatus['data']['contract']) > 0:
                             if float(trading.total) < 1000:
@@ -181,7 +160,6 @@ for user in active_users:
                         if cancel == True:
                             db.delete(order)
                             Possession.status = 4
-
                 if orderStatus['data']['order_status'] == 'Cancel':
                     Possession = db.query(models.possessionCoin).filter(and_(
                         models.possessionCoin.user_idx == order.user_idx,
@@ -190,15 +168,12 @@ for user in active_users:
                     print('Cancel')
                     db.delete(order)
                     Possession.status = 4
-
                 print(orderStatus)
                 db.commit()
-
         for p_coin in possession_list:
             if p_coin.status == 1:
                 order_desc = ['bid', p_coin.coin, p_coin.order_id, 'KRW']
                 coin_order_status = bithumb.get_order_completed(order_desc)
-
                 if coin_order_status['data']['order_status'] == 'Cancel':
                     d_order = db.query(models.orderCoin).filter(and_(
                         models.orderCoin.user_idx == user.idx,
@@ -206,7 +181,6 @@ for user in active_users:
                     db.delete(p_coin)
                     db.delete(d_order)
                     db.commit()
-
                 if coin_order_status['data']['order_status'] == 'Completed':
                     print("com_coin ::: ::: ", p_coin.coin)
                     order_sum = {'unit': 0, 'total': 0, 'fee': 0}
@@ -225,7 +199,6 @@ for user in active_users:
                     p_coin.max = p_coin.price
                     db.commit()
                     print("com_coin insert ::: ::: ")
-
                 if coin_order_status['data']['order_status'] == 'Pending':
                     order_sum = {'unit': 0, 'total': 0, 'fee': 0}
                     if len(coin_order_status['data']['contract']) > 0:
@@ -240,7 +213,26 @@ for user in active_users:
                         p_coin.price = order_sum['price']
                         p_coin.fee = order_sum['fee']
                         db.commit()
-                        
         print('process end')
     except Exception as e:
-        print(e)
+        print("orderCheck Error ::::: ",e)
+        db.rollback()
+    finally:
+        print("user idx ", user.idx, " end")
+        db.close()
+
+
+if __name__ == "__main__":
+    now1 = datetime.datetime.now()
+    try:
+        db = SessionLocal()
+        db: Session
+        bithumbUsers = db.query(models.USER_T).filter(models.USER_T.platform == '1').all()
+        for user in bithumbUsers:
+            forInDb = SessionLocal()
+            forInDb: Session
+            t = threading.Thread(target=orderCheck, args=[user, forInDb])
+            t.start()
+    finally:
+        print("process end !!!")
+        db.close()
