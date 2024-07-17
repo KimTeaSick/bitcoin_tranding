@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 import models
 import asyncio
 from pybithumb import Bithumb
+from sqlalchemy.orm import Session
+from database import engine, SessionLocal
 from buy.optionStandardization import OptionStandardization
 import askingPrice
 import json

@@ -431,8 +431,8 @@ class possessionLog(Base):
 
 class orderCoin(Base):
     __tablename__ = 'nc_r_order_coin_t'
-
-    coin = Column(String(100), primary_key=True)
+    idx = Column(Integer, primary_key=True)
+    coin = Column(String(100))
 
     status = Column(Integer)
     transaction_time = Column(String(100))
@@ -459,6 +459,7 @@ class USER_T(Base):
   name = Column(String(100))
   email = Column(String(100))
   phone = Column(String(100))
+  platform = Column(String(100))
   password = Column(String(100))
   salt = Column(String(100))
   public_key = Column(String(100), default=None, nullable=True)

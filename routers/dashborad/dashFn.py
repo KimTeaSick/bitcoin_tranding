@@ -136,7 +136,7 @@ class DashBoardFn():
       user = db.query(models.USER_T).filter(models.USER_T.idx == idx).first()
       bit = BitThumbPrivate(user.public_key, user.secret_key)
       rate = await bit.nowRateFn(idx)
-      print("rate", rate)
+      print("rate ::::::: ", rate)
       return rate
     except Exception as e:
       print("getCurrentRateFn Error", e)

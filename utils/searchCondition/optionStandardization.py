@@ -6,6 +6,8 @@ from .disparity import disparity_condition
 from .trend import trend_condition
 
 async def option_standardization(item):
+  print("condition :::::::::::::: ", item)
+  print("condition type :::::::::::: ", type(item))
   use_option_list = []
   options = []
   max_minute = 0

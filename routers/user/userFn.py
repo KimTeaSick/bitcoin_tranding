@@ -2,20 +2,21 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 IS_DEV = os.environ.get('IS_DEV')
-pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
+pwd = "/Users/josephkim/4season/bitcoin_trading_back" if IS_DEV == "True" else "/data/4season/bitcoin_trading_back"
 import sys
 sys.path.append(pwd) 
-from sqlalchemy.orm import Session
-from database import SessionLocal
-from utils.makeSalt import make_salt
 import hashlib
-from utils.manageJWTToken import make_access_JWT_token, verify_jwt_token
-from platformPrivate import BitThumbPrivate
 import models
+import jwt
+from pyupbit import Upbit
 from pybithumb import Bithumb
+from database import SessionLocal
+from sqlalchemy.orm import Session
+from utils.makeSalt import make_salt
+from BitThumbPrivate import BitThumbPrivate
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import RedirectResponse
-import jwt
+from utils.manageJWTToken import make_access_JWT_token, verify_jwt_token
 
 SECRET = "randomstring"
 
@@ -36,32 +37,36 @@ class user_fn():
     try:
       user_t_check = db.query(models.USER_T).filter(models.USER_T.email == item.email).first()
       if user_t_check != None: return 333
-      if (item.platform == '1'):
+      if item.platform == '1':
         bit = Bithumb(item.public, item.secret)
         pass_registe = bit.get_balance('ALL')
-        print("pass_registe", pass_registe)
-      # elif (item.platform == '2'):
-        #
-        # 업비트 로직이 들어갈 예정
-        #
-      if pass_registe['status'] != '0000': return 456
+        if pass_registe['status'] != '0000': return 456
+      elif item.platform == '2':
+        bit = Upbit(item.public, item.secret)
+        pass_registe = bit.get_balances()
+        if len(pass_registe) < 1: return 456
       user_name = item.name
       user_email = item.email
       user_phone = item.phone
       user_pw = item.password
       user_public = item.public
       user_secret = item.secret
+      user_platform = item.platform
+
       salt = make_salt()
       after_hash_pw = hashlib.sha256((user_pw + salt).encode()).hexdigest()
+
       user_table = models.USER_T()
       user_table.name = user_name
       user_table.password = after_hash_pw
       user_table.email = user_email
       user_table.phone = user_phone
+      user_table.platform = user_platform
       user_table.salt = salt
       user_table.public_key = user_public
       user_table.secret_key = user_secret
       user_table.active = 0
+
       db.add(user_table)
       db.commit()
       return 200
@@ -82,16 +87,22 @@ class user_fn():
       enter_password = enter_password.hexdigest()
       print("user_login_fn start!!")
       if(enter_password == user_password):
-        # 업비트 로직이 들어갈 예정
-        token = make_access_JWT_token({"idx":user_info.idx, "email":user_info.email, "name":user_info.name })
+        token = make_access_JWT_token({"idx":user_info.idx, "email":user_info.email, "name":user_info.name, "platform":user_info.platform })
         user_info.jwt_token = token
         user_info.refresh_token = token
         self.user_idx = user_info.idx
         self.bithumb = BitThumbPrivate(user_info.public_key, user_info.secret_key)
         db.add(user_info)
         db.commit()
-        return {"status":200, "data": {"idx":user_info.idx ,"name": user_info.name, "auto_active": user_info.active, 
-                "access_token": token, "token_type": "bearer"}}
+        return {"status":200, "data": {
+          "idx":user_info.idx,
+          "name": user_info.name, 
+          "platform":user_info.platform,
+          "auto_active": user_info.active,
+          "access_token": token, 
+          "token_type": "bearer"
+          }}
+      
       else : 
         return { "status" : 444 }
     except Exception as e:
