@@ -10,7 +10,7 @@ from database import SessionLocal
 from utils.makeSalt import make_salt
 import hashlib
 from utils.manageJWTToken import make_access_JWT_token, verify_jwt_token
-from BitThumbPrivate import BitThumbPrivate
+from platformPrivate import BitThumbPrivate
 import models
 from pybithumb import Bithumb
 from fastapi.security import OAuth2PasswordBearer
@@ -36,9 +36,14 @@ class user_fn():
     try:
       user_t_check = db.query(models.USER_T).filter(models.USER_T.email == item.email).first()
       if user_t_check != None: return 333
-      bit = Bithumb(item.public, item.secret)
-      pass_registe = bit.get_balance('ALL')
-      print("pass_registe", pass_registe)
+      if (item.platform == '1'):
+        bit = Bithumb(item.public, item.secret)
+        pass_registe = bit.get_balance('ALL')
+        print("pass_registe", pass_registe)
+      # elif (item.platform == '2'):
+        #
+        # 업비트 로직이 들어갈 예정
+        #
       if pass_registe['status'] != '0000': return 456
       user_name = item.name
       user_email = item.email
@@ -77,6 +82,7 @@ class user_fn():
       enter_password = enter_password.hexdigest()
       print("user_login_fn start!!")
       if(enter_password == user_password):
+        # 업비트 로직이 들어갈 예정
         token = make_access_JWT_token({"idx":user_info.idx, "email":user_info.email, "name":user_info.name })
         user_info.jwt_token = token
         user_info.refresh_token = token
@@ -85,7 +91,7 @@ class user_fn():
         db.add(user_info)
         db.commit()
         return {"status":200, "data": {"idx":user_info.idx ,"name": user_info.name, "auto_active": user_info.active, 
-                                      "access_token": token, "token_type": "bearer"}}
+                "access_token": token, "token_type": "bearer"}}
       else : 
         return { "status" : 444 }
     except Exception as e:

@@ -10,7 +10,7 @@ from database import SessionLocal
 from returnValue import changer
 from sql.dashBoardSql import *
 from .dashLib import DASH_LIB
-from BitThumbPrivate import BitThumbPrivate
+from platformPrivate import BitThumbPrivate
 from chartMaker import ChartMaker
 import datetime 
 import models
@@ -55,24 +55,24 @@ class DashBoardFn():
       db.rollback()
       print('all_user_deposit_fn Error ::: ::: ', e)
 
-  async def possessoionCoinInfo(self, idx, bit):
-    try:
-      possessionCoin = await bit.mysql.Select(getMyCoinListSql(idx))
-      if len(possessionCoin) == 0:
-        return 203
-      else:
-        returnList = []
-        for coin in possessionCoin:
-          print("coin :::", coin)
-          coinInfo = bit.getBitCoinList(coin[1])['data']
-          coinValue = float(coinInfo['closing_price'])
-          returnList.append(
-            changer.POSSESSION_COIN_LIST(coin, coinValue))
-        return returnList
-    except Exception as e:
-      print("possessoionCoinInfo Error :::: ", e)
-      db.rollback()
-      return 333
+  # async def possessoionCoinInfo(self, idx, bit):
+  #   try:
+  #     possessionCoin = await bit.mysql.Select(getMyCoinListSql(idx))
+  #     if len(possessionCoin) == 0:
+  #       return 203
+  #     else:
+  #       returnList = []
+  #       for coin in possessionCoin:
+  #         print("coin :::", coin)
+  #         coinInfo = bit.getBitCoinList(coin[1])['data']
+  #         coinValue = float(coinInfo['closing_price'])
+  #         returnList.append(
+  #           changer.POSSESSION_COIN_LIST(coin, coinValue))
+  #       return returnList
+  #   except Exception as e:
+  #     print("possessoionCoinInfo Error :::: ", e)
+  #     db.rollback()
+  #     return 333
     
   async def dashProperty(self, date, bit):
     coinList = bit.getMyCoinList()

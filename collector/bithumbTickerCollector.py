@@ -6,129 +6,104 @@ from sqlalchemy.orm import Session
 import datetime
 import pandas as pd
 
-try:
-    db = SessionLocal()
-    db: Session
-finally:
-    db.close()
+# Use a context manager to handle database sessions
+def get_coin_names():
+    with SessionLocal() as db:
+        coin_list = db.query(models.coinList).all()
+        return [coin.coin_name for coin in coin_list]
 
-coinList = db.query(models.coinList).all()
-coinNames = []
-for coin in coinList:
-    coinNames.append(coin.coin_name)
+coin_names = get_coin_names()
 
-# 시간 홀수 짝수 판별
-now = datetime.datetime.now().strftime("%H%M")
-if (int(now) % 2) == 0:
-    minOddEven = 'even'
-else:
-    minOddEven = 'odd'
-
-oddColector = []
-evenCollector = []
+def is_minute_odd():
+    now = datetime.datetime.now().strftime("%H%M")
+    return int(now) % 2 == 1
 
 def on_open(ws):
     print('WebSocket connection opened')
-    # Send a subscribe message to the WebSocket
     subscribe_data = {
-    "type" : "transaction", 
-    "symbols" : coinNames
+        "type": "transaction",
+        "symbols": coin_names
     }
     ws.send(json.dumps(subscribe_data))
 
 def on_message(ws, message):
     try:
-        global minOddEven
-        global oddColector
-        global evenCollector
-        global coinNames
-
         now = datetime.datetime.now().strftime("%H%M")
+        data = json.loads(message)
+        odd_even = int(now) % 2
 
-        data = eval(message)
-        #print(f"코인명: {data['content']['symbol']}, 시가: {data['content']['openPrice']}, 종가:{data['content']['closePrice']}, 고가:{data['content']['highPrice']}, 저가:{data['content']['lowPrice']}, 시간{data['content']['time']}")
-        oddEven = int(now) % 2
+        if odd_even == 1:
+            odd_collector.extend(data['content']['list'])
+        else:
+            even_collector.extend(data['content']['list'])
 
-        # 홀수 짝수 분 데이터 append
-        if oddEven == 1:
-            for content in data['content']['list']:
-                oddColector.append(content)
-        if oddEven == 0:
-            for content in data['content']['list']:
-                evenCollector.append(content)
+        if min_odd_even == 'even' and odd_even == 1:
+            min_odd_even = 'odd'
+            collect_and_insert(even_collector)
+            even_collector.clear()
 
-        if minOddEven == 'even' and (int(now) % 2) == 1:
-            #print(evenCollector, 'even min ----------------------------------------------------------------------------------------------------')
-            minOddEven = 'odd'
-            # db 저장 함수 실행
-            collectNinsert(evenCollector, coinNames)
-
-            evenCollector = []
-
-        if minOddEven == 'odd' and (int(now) % 2) == 0:
-            #print(oddColector, 'even min ----------------------------------------------------------------------------------------------------')
-            minOddEven = 'even'
-            # db 저장 함수 시행
-            collectNinsert(oddColector, coinNames)
-
-            oddColector = []
+        if min_odd_even == 'odd' and odd_even == 0:
+            min_odd_even = 'even'
+            collect_and_insert(odd_collector)
+            odd_collector.clear()
     except Exception as e:
-        print(e)
+        print(f"Error in on_message: {e}")
 
 def on_close(ws):
     print('WebSocket connection closed')
 
 def on_error(ws, error):
-    print('Error:', error)
+    print(f"Error: {error}")
 
-def collectNinsert(collector, coins):
-    now1 = datetime.datetime.now()
-    df = pd.DataFrame(collector)
+def collect_and_insert(collector):
+    with SessionLocal() as db:
+        now1 = datetime.datetime.now()
+        df = pd.DataFrame(collector)
 
-    current = db.query(models.coinCurrentPrice).all()
-    bulkinsert = []
+        current_prices = db.query(models.coinCurrentPrice).all()
+        bulk_insert = []
 
-    for coin in current:
-        df2 = df.loc[df['symbol'] == coin.coin_name]
-        transactionCnt = len(df2)
-        now = datetime.datetime.now()
-        unix_timestamp = int(now.timestamp() /60) * 60
+        for coin in current_prices:
+            df_filtered = df.loc[df['symbol'] == coin.coin_name]
+            transaction_count = len(df_filtered)
+            now = datetime.datetime.now()
+            unix_timestamp = int(now.timestamp() / 60) * 60
 
-        if transactionCnt == 0:
-            #bulkinsert.append({'coin_name': coin.coin_name, 'S_time': unix_timestamp, 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'Open': coin.Open, 'Close': coin.Close, 'High': coin.High, 'Low': coin.Low, 'Avg_price': 0, 'Transaction_amount': 0, 'Volume': 0, 'Disparity': 0, 'Ask_price': 0})
-            pass
+            if transaction_count == 0:
+                continue
 
-        else:
-            df2 = df2.astype({'contPrice':'float', 'contQty':'float', 'contAmt':'float'})
-            avgPrice = df2['contPrice'].mean()
-            minPrice = df2['contPrice'].min()
-            openPrice = df2['contPrice'].iloc[0]
-            closePrice = df2['contPrice'].iloc[-1]
-            maxPrice = df2['contPrice'].max()
-            transaction_amount = df2['contAmt'].sum()
-            volume = df2['contQty'].sum()
-            disparity = (avgPrice / closePrice) * 100
+            df_filtered = df_filtered.astype({'contPrice': 'float', 'contQty': 'float', 'contAmt': 'float'})
+            avg_price = df_filtered['contPrice'].mean()
+            min_price = df_filtered['contPrice'].min()
+            open_price = df_filtered['contPrice'].iloc[0]
+            close_price = df_filtered['contPrice'].iloc[-1]
+            max_price = df_filtered['contPrice'].max()
+            transaction_amount = df_filtered['contAmt'].sum()
+            volume = df_filtered['contQty'].sum()
+            disparity = (avg_price / close_price) * 100
 
-            print(f'시가:{openPrice}, 종가:{closePrice}, 고가:{maxPrice}, 저가:{minPrice}, 평균가:{avgPrice}, 심볼:{coin.coin_name}')
+            bulk_insert.append({
+                'coin_name': coin.coin_name, 'S_time': unix_timestamp, 'time': datetime.datetime.fromtimestamp(unix_timestamp),
+                'Open': open_price, 'Close': close_price, 'High': max_price, 'Low': min_price,
+                'Avg_price': avg_price, 'Transaction_amount': transaction_amount, 'Volume': volume,
+                'Disparity': disparity, 'Ask_price': 0
+            })
 
-            bulkinsert.append({'coin_name': coin.coin_name, 'S_time': unix_timestamp, 'time': datetime.datetime.fromtimestamp(unix_timestamp), 'Open': openPrice, 'Close': closePrice, 'High': maxPrice, 'Low': minPrice, 
-                               'Avg_price': avgPrice, 'Transaction_amount': transaction_amount, 'Volume': volume, 'Disparity': disparity, 'Ask_price': 0})
+        try:
+            db.bulk_insert_mappings(models.coinPrice1M, bulk_insert)
+            db.commit()
+        except Exception as e:
+            print(f"Database insert error: {e}")
+            db.rollback()
 
-    '''
-    try:
-        #db.bulk_insert_mappings(models.coinPrice1M, bulkinsert)
-        db.commit()
+        now2 = datetime.datetime.now()
+        print(f"Insert duration: {now2 - now1}")
+        print(f"Inserted {len(bulk_insert)} records")
 
-    except Exception as e:
-        print(e)
-        db.rollback()'''
-
-    #for row in bulkinsert:
-        #print(row)
-    print(len(bulkinsert))
-
-    now2 = datetime.datetime.now()
-    print(now2 - now1, '-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------')
+# Initialize WebSocket collectors and state
+odd_collector = []
+even_collector = []
+min_odd_even = 'even' if not is_minute_odd() else 'odd'
 
 websocket_url = 'wss://pubwss.bithumb.com/pub/ws'
 ws = websocket.WebSocketApp(websocket_url,

@@ -1,5 +1,5 @@
 from routers.user.userApi import user
-from BitThumbPrivate import BitThumbPrivate
+from platformPrivate import BitThumbPrivate
 from sqlalchemy.orm import Session
 from database import SessionLocal
 import models

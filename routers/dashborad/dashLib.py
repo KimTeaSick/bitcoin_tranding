@@ -8,7 +8,7 @@ sys.path.append(pwd)
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from sql.dashBoardSql import *
-from BitThumbPrivate import BitThumbPrivate
+from platformPrivate import BitThumbPrivate
 import datetime 
 import models
 

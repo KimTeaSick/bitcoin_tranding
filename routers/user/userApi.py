@@ -34,9 +34,3 @@ def user_login_api(item: user_login_body):
 def get_user_info(token:str = Depends(oauth2_scheme)):
     data = user.get_user_info_fn(token)
     return {"status":200, "data":data}
-
-# @userRouter.get('/loginCheck')
-# def user_login_check(token:str = Depends(oauth2_scheme)):
-#     print("user_verfy_api", token)
-#     res = user.user_login_check_fn(token)
-#     return res

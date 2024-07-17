@@ -7,6 +7,7 @@ class user_register_body(BaseModel):
   password: str
   public: str
   secret: str
+  platform: str
 
 class user_login_body(BaseModel):
   email: str

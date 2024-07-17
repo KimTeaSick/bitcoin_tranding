@@ -17,7 +17,7 @@ def checkAccount(bit):  # 보유 예수금 목록
         return 444
 
 def myProperty(bit):
-  coinList = get_my_coin_list(bit)
+  coinList = getMyCoinList(bit)
   list = []
   money = 0
   for i in coinList:
@@ -33,7 +33,7 @@ def myProperty(bit):
   money += account
   return money, account
 
-def get_my_coin_list(bit):  # 현재 보유 코인 종류
+def getMyCoinList(bit):  # 현재 보유 코인 종류
   coinList = bit.get_balance('All')
   coinList = coinList['data']
   coinTotalList = dict.items(coinList)
@@ -54,7 +54,7 @@ def nowRateFn(db, models, bit, idx):
         total_revenue = 0
         investment_amount = 0
         property_value = 0
-        coin_list = get_my_coin_list(bit)
+        coin_list = getMyCoinList(bit)
         possession_coin_list = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == idx).all()
         for possession_coin in possession_coin_list:   
             coin_info = getBitCoinList(possession_coin.coin)

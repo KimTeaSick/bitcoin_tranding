@@ -117,21 +117,6 @@ def myProperty(request: Request):
     data = request.state.bit.myProperty()
     return { "status":200, "data": data }
 
-@app.get('/setting/getSearchOptionList')
-async def getSearchOptionList(request: Request):
-    data = await request.state.bit.getSearchOptionList()
-    return { "status":200, "data": data }
-
-@app.post('/setting/registerSearchOption')
-def insertSearchOption(item: updateSearchOptionBody, request: Request):
-    data = request.state.bit.insertSearchOption(item)
-    return { "status":200, "data": data }
-
-@app.post('/setting/updateSearchOption')
-async def updateSearchOption(item: updateSearchOptionBody, request: Request):
-    data = await request.state.bit.updateSearchOption(item)
-    return { "status":200, "data": data }
-
 @app.get('/todayAccount')
 async def todayAccount(request: Request):
     if request.state.valid_token != True:

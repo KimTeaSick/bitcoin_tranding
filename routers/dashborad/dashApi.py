@@ -18,28 +18,28 @@ dashRouter = APIRouter(
     tags=["dash"]
 )
 
-@dashRouter.get('/getPossessoionCoinInfo')
-async def getPossessoionCoinInfo(request: Request):
-    if request.state.valid_token != True:
-        return error_list(0)
-    try:
-        data = await dash.possessoionCoinInfo(request.state.idx, request.state.bit)
-        return {"status":200, "data":data }
-    except Exception as e:
-        print("getPossessoionCoinInfo Error ::: :::", e)
-        return error_list(2)
+# @dashRouter.get('/getPossessoionCoinInfo')
+# async def getPossessoionCoinInfo(request: Request):
+#     if request.state.valid_token != True:
+#         return error_list(0)
+#     try:
+#         data = await dash.possessoionCoinInfo(request.state.idx, request.state.bit)
+#         return {"status":200, "data":data }
+#     except Exception as e:
+#         print("getPossessoionCoinInfo Error ::: :::", e)
+#         return error_list(2)
 
-@dashRouter.post("/getRecommendCoin")
-async def getRecommendPrice(item: getRecommendOption, request: Request):
-    if request.state.valid_token != True:
-        return error_list(0)
-    try:
-        data = await request.state.bit.getRecommendCoin(item)
-        insertLog.log("검색 기능 사용")
-        return {"status":200, "data":data }
-    except Exception as e:
-        print("getRecommendCoin Error ::: ::: ", e)
-        return error_list(2)
+# @dashRouter.post("/getRecommendCoin")
+# async def getRecommendPrice(item: getRecommendOption, request: Request):
+#     if request.state.valid_token != True:
+#         return error_list(0)
+#     try:
+#         data = await request.state.bit.getRecommendCoin(item)
+#         insertLog.log("검색 기능 사용")
+#         return {"status":200, "data":data }
+#     except Exception as e:
+#         print("getRecommendCoin Error ::: ::: ", e)
+#         return error_list(2)
 
 @dashRouter.get('/accountInfo/')
 async def getAccountInfo(date1, date2, request: Request):
