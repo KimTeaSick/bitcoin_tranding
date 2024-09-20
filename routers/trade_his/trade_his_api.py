@@ -8,7 +8,7 @@ sys.path.append(pwd)
 from fastapi import APIRouter, Request
 from .parameter import *
 from .trade_his_fn import TradeHisFn
-from utils.errorList import error_list
+from utils.error_list import error_list
 
 router = APIRouter(
     prefix='/tradeHis',

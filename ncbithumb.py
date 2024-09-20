@@ -19,14 +19,7 @@ import uvicorn
 
 app = FastAPI()
 
-origins = ["http://121.165.242.171:48604", 
-           "http://192.168.10.119:3000", 
-           "http://localhost:3000", 
-           "http://192.168.10.119",
-           "http://127.0.0.1:8585", 
-           "http://52.78.246.119", 
-           "http://www.argo4s.com", 
-           "https://www.argo4s.com"]
+origins = ["http://localhost:3000", ]
 
 app.add_middleware(
     CORSMiddleware,

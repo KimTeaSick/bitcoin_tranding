@@ -9,7 +9,7 @@ from fastapi import APIRouter, Request
 from .parameter import *
 from .trade_fn import TradeFn
 from utils import insertLog
-from utils.errorList import error_list
+from utils.error_list import error_list
 
 router = APIRouter(
     prefix="/trade",

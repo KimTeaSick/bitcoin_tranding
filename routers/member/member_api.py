@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request
 
-from utils.errorList import error_list
+from utils.error_list import error_list
 from .parameter import *
 from .member_fn import MemberFn
 

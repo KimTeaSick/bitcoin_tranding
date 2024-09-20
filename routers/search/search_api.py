@@ -9,7 +9,7 @@ from fastapi import APIRouter, Request
 from .parameter import *
 from .search_fn import SearchFn
 from utils import insertLog
-from utils.errorList import error_list
+from utils.error_list import error_list
 
 router = APIRouter(
     prefix="/option",

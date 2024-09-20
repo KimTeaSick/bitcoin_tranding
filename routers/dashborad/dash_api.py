@@ -9,7 +9,7 @@ from fastapi import APIRouter, Request
 from .dash_fn import DashBoardFn
 from .parameter import *
 from utils import insertLog
-from utils.errorList import error_list
+from utils.error_list import error_list
 
 dash = DashBoardFn()
 

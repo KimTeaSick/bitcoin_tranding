@@ -8,14 +8,11 @@ sys.path.append(pwd)
 import hashlib
 import models
 import jwt
-from pyupbit import Upbit
 from pybithumb import Bithumb
 from database import SessionLocal
 from sqlalchemy.orm import Session
 from utils.makeSalt import make_salt
-from BitThumbPrivate import BitThumbPrivate
 from fastapi.security import OAuth2PasswordBearer
-from fastapi.responses import RedirectResponse
 from utils.manageJWTToken import make_access_JWT_token, verify_jwt_token
 
 SECRET = "randomstring"
@@ -41,10 +38,6 @@ class user_fn():
         bit = Bithumb(item.public, item.secret)
         pass_registe = bit.get_balance('ALL')
         if pass_registe['status'] != '0000': return 456
-      elif item.platform == '2':
-        bit = Upbit(item.public, item.secret)
-        pass_registe = bit.get_balances()
-        if len(pass_registe) < 1: return 456
       user_name = item.name
       user_email = item.email
       user_phone = item.phone
@@ -80,18 +73,15 @@ class user_fn():
       db = SessionLocal()
       db: Session
       user_info = db.query(models.USER_T).filter(models.USER_T.email == item.email).first()
-      print("user_login_fn start!", user_info)
       user_password = user_info.password
       user_salt = user_info.salt
       enter_password = hashlib.sha256((item.password + user_salt).encode())
       enter_password = enter_password.hexdigest()
-      print("user_login_fn start!!")
       if(enter_password == user_password):
         token = make_access_JWT_token({"idx":user_info.idx, "email":user_info.email, "name":user_info.name, "platform":user_info.platform })
         user_info.jwt_token = token
         user_info.refresh_token = token
         self.user_idx = user_info.idx
-        self.bithumb = BitThumbPrivate(user_info.public_key, user_info.secret_key)
         db.add(user_info)
         db.commit()
         return {"status":200, "data": {
