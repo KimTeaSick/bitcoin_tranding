@@ -2,28 +2,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import FastAPI, Request
 from starlette.requests import Request
-from routers.dashborad import dashApi
-from routers.coinList import coinApi
-from routers.tradeHis import tradeHisApi
-from routers.search import searchApi
-from routers.trade import tradeApi
-from routers.test import testApi
-from routers.user import userApi
-from routers.assets import assetsApi
-from routers.member import memberApi
-# from search_option import search
-# from BitThumbPrivate import *
-from utils.pagiNation import PagiNation
-from utils.errorList import error_list
+
+from routers.dashborad import dash_api
+from routers.coin_list import coin_api
+from routers.trade_his import trade_his_api
+from routers.search import search_api
+from routers.trade import trade_api
+from routers.test import test_api
+from routers.user import user_api
+from routers.assets import assets_api
+from routers.member import member_api
+
 from middleware.token_validator import token_validator
-from routers.user.userApi import user
-from search_option.search import search
-from dbConnection import *
-from parameter import *
-from sqld import *
-import datetime
+
 import uvicorn
-import os
 
 app = FastAPI()
 
@@ -44,10 +36,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# bit = user
-page = PagiNation()
-mysql = MySql()
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 @app.middleware("http")
@@ -60,7 +48,6 @@ async def middleware(request: Request, call_next):
         return response
     authorization_header = request.headers.get("Authorization")
     if authorization_header != 'Bearer null' and authorization_header != None:
-        # print("in if ::: :::", authorization_header)
         bit = await token_validator(request)
         if bit != 401:
             idx = bit[1]
@@ -70,93 +57,21 @@ async def middleware(request: Request, call_next):
             request.state.valid_token = True
         else:
             request.state.valid_token = False
-            # print("in if else ::: :::", authorization_header)
     else:
         request.state.valid_token = False
-        # print("else ::: :::", authorization_header)
 
     response = await call_next(request)
     return response
 
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-@app.post("/getCandleChart")
-def getCandleStick(item: GetCandleStickBody, request: Request):
-    try:
-        data = request.state.bit.getCandleStick(item)
-        return {"status":200, "data": data}
-    except Exception as e:
-        return error_list(2)
-
-@app.get("/checkAccount")
-def checkAccount(request: Request):
-    if request.state.valid_token != True:
-        return error_list(0)
-    balance = request.state.bit.checkAccount()
-    myCoinList = request.state.bit.getMyCoinList()
-    return {"status": 200, "data": (balance, myCoinList)}
-
-@app.post("/sell")
-async def sell(item: BuyAndSell, request: Request):
-    print("item", item)
-    data = await request.state.bit.sell(item.coin, float(item.unit))
-    return data
-
-@app.post("/buy")
-async def buy(item: BuyAndSell, request: Request):
-    data = await request.state.bit.buy(item.coin, float(item.price), float(item.unit))
-    return data
-
-@app.get("/myProperty")# 예수금 / 자산현황
-def myProperty(request: Request):
-    if request.state.valid_token != True:
-        return error_list(0)
-    data = request.state.bit.myProperty()
-    return { "status":200, "data": data }
-
-@app.get('/todayAccount')
-async def todayAccount(request: Request):
-    if request.state.valid_token != True:
-        return error_list(0)
-    data = await request.state.bit.todayAccount(request.state.idx)
-    return { "status":200, "data": data }
-
-@app.get("/nowRate")
-async def now_rate_api(request: Request):
-    if request.state.valid_token != True:
-        return error_list(0)
-    data = await request.state.bit.nowRateFn(request.state.idx)
-    return { "status":200, "data": data }
-
-@app.get("/coinlist.json")
-async def getCoinJsonFile(request: Request):
-    if request.state.valid_token != True:
-        return error_list(0)
-    data = await request.state.bit.getBithumbCoinList()
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    # print("dir_path :::: ", dir_path)
-    return { "status":200, "data": data }
-
-@app.post("/newRawSearch")
-async def newSearch(item: searchOptionBody, request: Request):
-    if request.state.valid_token != True:
-        return error_list(0)
-    data = await search(item, request.state.bit, request.state.idx)
-    return { "status":200, "data": data }
-
-
-app.include_router(userApi.userRouter)
-app.include_router(dashApi.dashRouter)
-app.include_router(coinApi.coinRouter)
-app.include_router(tradeHisApi.tradeRouter)
-app.include_router(searchApi.searchRouter)
-app.include_router(tradeApi.tradeRouter)
-app.include_router(assetsApi.assetsRouter)
-app.include_router(testApi.testRouter)
-app.include_router(memberApi.memberRouter)
+app.include_router(user_api.router)
+app.include_router(dash_api.router)
+app.include_router(coin_api.router)
+app.include_router(trade_his_api.router)
+app.include_router(search_api.router)
+app.include_router(trade_api.router)
+app.include_router(assets_api.router)
+app.include_router(test_api.router)
+app.include_router(member_api.router)
 
 if __name__ == "__main__":
     config = uvicorn.Config("ncbithumb:app", port=8888, log_level="info", host="0.0.0.0")

@@ -1,4 +1,4 @@
-from routers.user.userApi import user
+from routers.user.user_api import user
 from platformPrivate import BitThumbPrivate
 from sqlalchemy.orm import Session
 from database import SessionLocal

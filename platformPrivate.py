@@ -2,7 +2,6 @@ from utils.searchCondition import optionStandardization
 from sqlalchemy.orm import Session
 from database import SessionLocal
 from returnValue import changer
-from dotenv import load_dotenv
 from dbConnection import MySql
 from pybithumb import Bithumb
 from datetime import datetime
