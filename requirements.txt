@@ -39,7 +39,6 @@ tzdata==2022.7
 tzlocal==4.2
 urllib3==1.26.14
 uvicorn==0.20.0
-uvloop==0.17.0
 watchfiles==0.18.1
 webencodings==0.5.1
 websockets==10.4

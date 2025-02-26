@@ -196,8 +196,63 @@ class cp_c_sell_option_t(Base):
     trailing_order_call_price = Column(String(255))
 
 
-class cp_r_possession_coin_t(Base):
-    __tablename__ = "cp_r_possession_coin_t"
+class possessionCoin(Base):
+    __tablename__ = 'nc_r_possession_coin_t'
+    coin = Column(String(100))
+    unit = Column(String(100))
+    price = Column(String(100))
+    total = Column(String(100))
+    fee = Column(String(100))
+    status = Column(Integer)
+    transaction_time = Column(String(100))
+    conclusion_time = Column(String(100))
+    order_id = Column(String(100))
+    cancel_time = Column(String(100))
+    macd_chart = Column(String(100))
+    disparity_chart = Column(String(100))
+    optionName = Column(String(100))
+    trailingstop_flag = Column(Integer)
+    max = Column(String(100))
+    user_idx = Column(Integer)
+    __table_args__ = (
+        PrimaryKeyConstraint(coin, user_idx),
+        {},
+    )
+
+class possessionLog(Base):
+    __tablename__ = 'nc_p_possession_coin_his_t'
+
+    idx = Column(Integer, primary_key=True)
+
+    coin = Column(String(100))
+    unit = Column(String(100))
+    price = Column(String(100))
+    total = Column(String(100))
+    fee = Column(String(100))
+    status = Column(Integer)
+    transaction_time = Column(String(100))
+    conclusion_time = Column(String(100))
+    type = Column(String(100))
+    order_id = Column(String(100))
+    sell_reason = Column(String(100))
+    user_idx = Column(Integer)
+
+class orderCoin(Base):
+    __tablename__ = 'nc_r_order_coin_t'
+    idx = Column(Integer, primary_key=True)
+    coin = Column(String(100))
+
+    status = Column(Integer)
+    transaction_time = Column(String(100))
+    conclusion_time = Column(String(100))
+    order_id = Column(String(100))
+    cancel_time = Column(String(100))
+    sell_reason = Column(String(100))
+    user_idx = Column(Integer)
+
+
+class autoTradingStatus(Base):
+    __tablename__ = 'nc_b_now_auto_status_t'
 
     coin = Column(String(255), primary_key=True)
     user_idx = Column(Integer, primary_key=True)
