@@ -48,10 +48,6 @@ selectSearchOptionSql = 'SELECT * FROM nc_b_search_option_t'
 def selectActiveSearchOptionSql(option_idx): 
   return 'SELECT first_disparity, second_disparity, trends, trends_idx, avg_volume, transaction_amount, price FROM nc_b_search_option_t WHERE idx = ' + option_idx
 
-insertSearchOptionSql = 'INSERT INTO nc_b_search_option_t (name, first_disparity, second_disparity,trends_idx, trends, avg_volume, transaction_amount, price) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
-
-updateSearchOptionSql = 'UPDATE nc_b_search_option_t SET name = %s , first_disparity = %s , second_disparity = %s ,trends_idx = %s, trends = %s , avg_volume = %s , transaction_amount = %s , price = %s WHERE idx = %s'
-
 ### Trade
 selectSearchPriceList = 'SELECT * from nc_f_recommend_coin_t'
 

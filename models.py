@@ -1,346 +1,156 @@
-from sqlalchemy import Boolean, Column, Integer, String, Float, PrimaryKeyConstraint
-from database import Base
+from sqlalchemy import ( Column, Integer, String, Float )
+from sqlalchemy.ext.declarative import declarative_base
 
-class coinList(Base):
-    __tablename__ = "nc_r_coin_list_t"
-    idx = Column(Integer, primary_key=True, index=True)
-    coin_name = Column(String(100))
-    warning = Column(String(100))
+Base = declarative_base()
+
+class cp_r_coin_list_t(Base):
+    __tablename__ = "cp_r_coin_list_t"
+
+    idx = Column(Integer, primary_key=True, autoincrement=True)
+    coin_name = Column(String(255))
+    warning = Column(String(255))
     delflag = Column(Integer)
 
-class coinCurrentCandlePrice(Base):
-    __tablename__ = "nc_p_coin_current_candle_price_t"
-    coin_name = Column(String(100), primary_key=True)
-    STime = Column(Integer)
-    Open = Column(String(100))
-    Close = Column(String(100))
-    High = Column(String(100))
-    Low = Column(String(100))
-    Volume = Column(String(100))
-    time = Column(String(100))
+
+class cp_p_coin_current_candle_price_t(Base):
+    __tablename__ = "cp_p_coin_current_candle_price_t"
+
+    coin_name = Column(String(255), primary_key=True)
+    stime = Column(Integer)
+    open_price = Column(String(255))
+    close_price = Column(String(255))
+    high_price = Column(String(255))
+    low_price = Column(String(255))
+    volume = Column(String(255))
+    time_stamp = Column(String(255))
     empty_count = Column(Integer, default=0)
 
 
-class searchOption(Base):
-    __tablename__ = "nc_b_search_option_t"
+class cp_b_search_option_t(Base):
+    __tablename__ = "cp_b_search_option_t"
+
     idx = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100))
-    Create_date = Column(String(100))
-    Update_date = Column(String(100))
+    name = Column(String(255))
+    create_date = Column(String(255))
+    update_date = Column(String(255))
 
 
-class PriceOption(Base):
-    __tablename__ = "nc_c_pr_price_t"
-    idx = Column(Integer, primary_key=True, index=True)
+class cp_c_pr_price_t(Base):
+    __tablename__ = "cp_c_pr_price_t"
+
+    idx = Column(Integer, primary_key=True, autoincrement=True)
     low_price = Column(Integer)
     high_price = Column(Integer)
     flag = Column(Integer)
 
 
-class TransactionAmountOption(Base):
-    __tablename__ = "nc_c_pr_transaction_amount_t"
-    idx = Column(Integer, primary_key=True, index=True)
-    chart_term = Column(String(100))
+class cp_c_pr_transaction_amount_t(Base):
+    __tablename__ = "cp_c_pr_transaction_amount_t"
+
+    idx = Column(Integer, primary_key=True, autoincrement=True)
+    chart_term = Column(String(255))
     low_transaction_amount = Column(Integer)
     high_transaction_amount = Column(Integer)
     flag = Column(Integer)
 
 
-class MASPOption(Base):
-    __tablename__ = "nc_c_masp_t"
-    idx = Column(Integer, primary_key=True, index=True)
-    chart_term = Column(String(100))
+class cp_c_masp_t(Base):
+    __tablename__ = "cp_c_masp_t"
+
+    idx = Column(Integer, primary_key=True, autoincrement=True)
+    chart_term = Column(String(255))
     first_disparity = Column(Integer)
     second_disparity = Column(Integer)
-    comparison = Column(String(100))
+    comparison = Column(String(255))
     flag = Column(Integer)
 
-class DisparityOption(Base):
-    __tablename__ = "nc_c_disparity_t"
-    idx = Column(Integer, primary_key=True, index=True)
-    chart_term = Column(String(100))
-    disparity_term = Column(String(100))
+
+class cp_c_disparity_t(Base):
+    __tablename__ = "cp_c_disparity_t"
+
+    idx = Column(Integer, primary_key=True, autoincrement=True)
+    chart_term = Column(String(255))
+    disparity_term = Column(String(255))
     low_disparity = Column(Integer)
     high_disparity = Column(Integer)
     flag = Column(Integer)
 
 
-class TrendOption(Base):
-    __tablename__ = "nc_c_trend_t"
-    idx = Column(Integer, primary_key=True, index=True)
-    chart_term = Column(String(100))
-    MASP = Column(Integer)
+class cp_c_trend_t(Base):
+    __tablename__ = "cp_c_trend_t"
+
+    idx = Column(Integer, primary_key=True, autoincrement=True)
+    chart_term = Column(String(255))
+    masp = Column(Integer)
     trend_term = Column(Integer)
     trend_reverse = Column(Integer)
-    trend_type = Column(String(100))
+    trend_type = Column(String(255))
     flag = Column(Integer)
 
 
-class MACDOption(Base):
-    __tablename__ = "nc_c_macd_t"
-    idx = Column(Integer, primary_key=True, index=True)
-    chart_term = Column(String(100))
+class cp_c_macd_t(Base):
+    __tablename__ = "cp_c_macd_t"
+
+    idx = Column(Integer, primary_key=True, autoincrement=True)
+    chart_term = Column(String(255))
     short_disparity = Column(Integer)
     long_disparity = Column(Integer)
-    up_down = Column(String(100))
+    up_down = Column(String(255))
     signal = Column(Integer)
     flag = Column(Integer)
 
-# candle performance ============================================================================================================
 
+class cp_p_min_bithumb_t(Base):
+    __tablename__ = "cp_p_min_bithumb_t"
 
-class coinMinPrice(Base):
-    __tablename__ = "nc_p_min_bithumb_t"
-
-    idx = Column(Integer, primary_key=True, index=True)
-
-    STime = Column(Integer)
-    Open = Column(String(100))
-    Close = Column(String(100))
-    High = Column(String(100))
-    Low = Column(String(100))
-    Volume = Column(String(100))
-    coin_name = Column(String(100))
-    time = Column(String(100))
-    empty_count = Column(Integer, default=0)
-
-
-class coin3MPrice(Base):
-    __tablename__ = "nc_p_3min_bithumb_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    STime = Column(Integer)
-    Open = Column(String(100))
-    Close = Column(String(100))
-    High = Column(String(100))
-    Low = Column(String(100))
-    Volume = Column(String(100))
-    coin_name = Column(String(100))
-    time = Column(String(100))
-    empty_count = Column(Integer, default=0)
-
-
-class coin5MPrice(Base):
-    __tablename__ = "nc_p_5min_bithumb_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    STime = Column(Integer)
-    Open = Column(String(100))
-    Close = Column(String(100))
-    High = Column(String(100))
-    Low = Column(String(100))
-    Volume = Column(String(100))
-    coin_name = Column(String(100))
-    time = Column(String(100))
-    empty_count = Column(Integer, default=0)
-
-
-class coin10MPrice(Base):
-    __tablename__ = "nc_p_10min_bithumb_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    STime = Column(Integer)
-    Open = Column(String(100))
-    Close = Column(String(100))
-    High = Column(String(100))
-    Low = Column(String(100))
-    Volume = Column(String(100))
-    coin_name = Column(String(100))
-    time = Column(String(100))
-    empty_count = Column(Integer, default=0)
-
-
-class coin30MPrice(Base):
-    __tablename__ = "nc_p_30min_bithumb_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    STime = Column(Integer)
-    Open = Column(String(100))
-    Close = Column(String(100))
-    High = Column(String(100))
-    Low = Column(String(100))
-    Volume = Column(String(100))
-    coin_name = Column(String(100))
-    time = Column(String(100))
-    empty_count = Column(Integer, default=0)
-
-
-class coin1HPrice(Base):
-    __tablename__ = "nc_p_1H_bithumb_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    STime = Column(Integer)
-    Open = Column(String(100))
-    Close = Column(String(100))
-    High = Column(String(100))
-    Low = Column(String(100))
-    Volume = Column(String(100))
-    coin_name = Column(String(100))
-    time = Column(String(100))
-    # empty_count = Column(Integer, default=0)
-
-
-class coin6HPrice(Base):
-    __tablename__ = "nc_p_6H_bithumb_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    STime = Column(Integer)
-    Open = Column(String(100))
-    Close = Column(String(100))
-    High = Column(String(100))
-    Low = Column(String(100))
-    Volume = Column(String(100))
-    coin_name = Column(String(100))
-    time = Column(String(100))
-    empty_count = Column(Integer, default=0)
-
-
-class coin12HPrice(Base):
-    __tablename__ = "nc_p_12H_bithumb_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    STime = Column(Integer)
-    Open = Column(String(100))
-    Close = Column(String(100))
-    High = Column(String(100))
-    Low = Column(String(100))
-    Volume = Column(String(100))
-    coin_name = Column(String(100))
-    time = Column(String(100))
-    empty_count = Column(Integer, default=0)
-
-
-class coin1DPrice(Base):
-    __tablename__ = "nc_p_1D_bithumb_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    STime = Column(Integer)
-    Open = Column(String(100))
-    Close = Column(String(100))
-    High = Column(String(100))
-    Low = Column(String(100))
-    Volume = Column(String(100))
-    coin_name = Column(String(100))
-    time = Column(String(100))
-    empty_count = Column(Integer, default=0)
-
-# ==========================================================================================================================================조건 부합 코인 저장
-
-
-class recommendList(Base):
-    __tablename__ = "nc_f_recommend_coin_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    coin_name = Column(String(100))
-    catch_price = Column(String(100))
-    option_name = Column(String(100))
-    user_idx = Column(Integer)
-
-# class recommendList(Base):
-#     __tablename__ = "nc_f_recommend_coin_list_t"
-
-#     idx = Column(Integer, primary_key=True)
-
-#     coin_name = Column(String(100))
-#     catch_price = Column(String(100))
-#     option_name = Column(String(100))
-
-# nmsVersion performance ================================================================================================
-
-
-class coinCurrentPrice(Base):
-    __tablename__ = "nc_p_coin_current_price_t"
-
-    coin_name = Column(String(100), primary_key=True)
-
-    S_time = Column(Integer)
-    time = Column(String(100))
-    Open = Column(Float)
-    Close = Column(Float)
-    High = Column(Float)
-    Low = Column(Float)
-    Volume = Column(Float)
-    Transaction_amount = Column(Float)
-
-
-class coinPrice1M(Base):
-    __tablename__ = "nc_p_1m_coin_price_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    coin_name = Column(String(100))
-    S_time = Column(Integer)
-    time = Column(String(100))
-    Open = Column(Float)
-    Close = Column(Float)
-    High = Column(Float)
-    Low = Column(Float)
-    Ask_price = Column(Float)
-    Avg_price = Column(Float)
-    Volume = Column(Float)
-    Transaction_amount = Column(Float)
-    Disparity = Column(Float)
-
-
-class coinPrice30M(Base):
-    __tablename__ = "nc_p_30m_coin_price_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    coin_name = Column(String(100))
-    S_time = Column(Integer)
-    time = Column(String(100))
-    Open = Column(Float)
-    Close = Column(Float)
-    High = Column(Float)
-    Low = Column(Float)
-    Ask_price = Column(Float)
-    Avg_price = Column(Float)
-    Volume = Column(Float)
-    Transaction_amount = Column(Float)
-    Disparity = Column(Float)
-
-
-class coinPrice1H(Base):
-    __tablename__ = "nc_p_1h_coin_price_t"
-
-    idx = Column(Integer, primary_key=True)
-
-    coin_name = Column(String(100))
-    S_time = Column(Integer)
-    time = Column(String(100))
-    Open = Column(Float)
-    Close = Column(Float)
-    High = Column(Float)
-    Low = Column(Float)
-    Ask_price = Column(Float)
-    Avg_price = Column(Float)
-    Volume = Column(Float)
-    Transaction_amount = Column(Float)
-    Disparity = Column(Float)
-
-
-class tradingOption(Base):
-    __tablename__ = "nc_b_trading_option_t"
     idx = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100))
-    insert_time = Column(String(100))
-    update_time = Column(String(100))
+    stime = Column(Integer)
+    open_price = Column(String(255))
+    close_price = Column(String(255))
+    high_price = Column(String(255))
+    low_price = Column(String(255))
+    volume = Column(String(255))
+    coin_name = Column(String(255))
+    time_stamp = Column(String(255))
+    empty_count = Column(Integer, default=0)
 
 
-class tradingAccountOption(Base):
-    __tablename__ = "nc_c_account_option_t"
+class cp_f_recommend_coin_t(Base):
+    __tablename__ = "cp_f_recommend_coin_t"
 
-    idx = Column(Integer, primary_key=True)
+    idx = Column(Integer, primary_key=True, autoincrement=True)
+    coin_name = Column(String(255))
+    catch_price = Column(String(255))
+    option_name = Column(String(255))
+
+
+class cp_p_coin_current_price_t(Base):
+    __tablename__ = "cp_p_coin_current_price_t"
+
+    coin_name = Column(String(255), primary_key=True)
+    s_time = Column(Integer)
+    time_stamp = Column(String(255))
+    open_price = Column(Float)
+    close_price = Column(Float)
+    high_price = Column(Float)
+    low_price = Column(Float)
+    volume = Column(Float)
+    transaction_amount = Column(Float)
+
+
+class cp_b_trading_option_t(Base):
+    __tablename__ = "cp_b_trading_option_t"
+
+    idx = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255))
+    insert_time = Column(String(255))
+    update_time = Column(String(255))
+
+
+class cp_c_account_option_t(Base):
+    __tablename__ = "cp_c_account_option_t"
+
+    idx = Column(Integer, primary_key=True, autoincrement=True)
     price_count = Column(Integer)
     loss_cut_under_percent = Column(Integer)
     loss = Column(Integer)
@@ -354,128 +164,71 @@ class tradingAccountOption(Base):
     loss_cut_over_call_price_specific_coin = Column(Integer)
     buy_cancle_time = Column(Integer)
     sell_cancle_time = Column(Integer)
-    loss = Column(Integer)
-    gain = Column(Integer)
 
 
-class tradingBuyOption(Base):
-    __tablename__ = "nc_c_buy_option_t"
+class cp_c_buy_option_t(Base):
+    __tablename__ = "cp_c_buy_option_t"
 
-    idx = Column(Integer, primary_key=True)
+    idx = Column(Integer, primary_key=True, autoincrement=True)
     percent_to_buy_method = Column(Integer)
     price_to_buy_method = Column(Integer)
     callmoney_to_buy_method = Column(Integer)
     checkbox = Column(Integer)
 
 
-class tradingSellOption(Base):
-    __tablename__ = "nc_c_sell_option_t"
+class cp_c_sell_option_t(Base):
+    __tablename__ = "cp_c_sell_option_t"
 
-    idx = Column(Integer, primary_key=True)
+    idx = Column(Integer, primary_key=True, autoincrement=True)
     upper_percent_to_price_condition = Column(Integer)
     down_percent_to_price_condition = Column(Integer)
     disparity_for_upper_case = Column(Integer)
     upper_percent_to_disparity_condition = Column(Integer)
     disparity_for_down_case = Column(Integer)
     down_percent_to_disparity_condition = Column(Integer)
-    call_money_to_sell_method = Column(String(100))
+    call_money_to_sell_method = Column(String(255))
     percent_to_split_sell = Column(Integer)
-    shot_MACD_value = Column(Integer)
-    long_MACD_value = Column(Integer)
-    MACD_signal_value = Column(Integer)
-    trailing_start_percent = Column(String(100))
-    trailing_stop_percent = Column(String(100))
-    trailing_order_call_price = Column(String(100))
+    shot_macd_value = Column(Integer)
+    long_macd_value = Column(Integer)
+    macd_signal_value = Column(Integer)
+    trailing_start_percent = Column(String(255))
+    trailing_stop_percent = Column(String(255))
+    trailing_order_call_price = Column(String(255))
 
 
-class possessionCoin(Base):
-    __tablename__ = 'nc_r_possession_coin_t'
-    coin = Column(String(100))
-    unit = Column(String(100))
-    price = Column(String(100))
-    total = Column(String(100))
-    fee = Column(String(100))
-    status = Column(Integer)
-    transaction_time = Column(String(100))
-    conclusion_time = Column(String(100))
-    order_id = Column(String(100))
-    cancel_time = Column(String(100))
-    macd_chart = Column(String(100))
-    disparity_chart = Column(String(100))
-    optionName = Column(String(100))
-    trailingstop_flag = Column(Integer)
-    max = Column(String(100))
-    user_idx = Column(Integer)
-    __table_args__ = (
-        PrimaryKeyConstraint(coin, user_idx),
-        {},
-    )
+class cp_r_possession_coin_t(Base):
+    __tablename__ = "cp_r_possession_coin_t"
 
-class possessionLog(Base):
-    __tablename__ = 'nc_p_possession_coin_his_t'
-
-    idx = Column(Integer, primary_key=True)
-
-    coin = Column(String(100))
-    unit = Column(String(100))
-    price = Column(String(100))
-    total = Column(String(100))
-    fee = Column(String(100))
-    status = Column(Integer)
-    transaction_time = Column(String(100))
-    conclusion_time = Column(String(100))
-    type = Column(String(100))
-    order_id = Column(String(100))
-    sell_reason = Column(String(100))
-    user_idx = Column(Integer)
-
-class orderCoin(Base):
-    __tablename__ = 'nc_r_order_coin_t'
-
-    coin = Column(String(100), primary_key=True)
-
-    status = Column(Integer)
-    transaction_time = Column(String(100))
-    conclusion_time = Column(String(100))
-    order_id = Column(String(100))
-    cancel_time = Column(String(100))
-    sell_reason = Column(String(100))
-    user_idx = Column(Integer)
-
-
-class autoTradingStatus(Base):
-    __tablename__ = 'nc_b_now_auto_status_t'
-
+    coin = Column(String(255), primary_key=True)
     user_idx = Column(Integer, primary_key=True)
-
+    unit = Column(String(255))
+    price = Column(String(255))
+    total = Column(String(255))
+    fee = Column(String(255))
     status = Column(Integer)
-    start_date = Column(String(100))
+    transaction_time = Column(String(255))
+    conclusion_time = Column(String(255))
+    order_id = Column(String(255))
+    cancel_time = Column(String(255))
+    macd_chart = Column(String(255))
+    disparity_chart = Column(String(255))
+    option_name = Column(String(255))
+    trailingstop_flag = Column(Integer)
+    max_price = Column(String(255))
 
-class USER_T(Base):
-  __tablename__ = "nc_b_user_t"
-  idx = Column(Integer, primary_key=True, index=True, autoincrement=True)
-  active = Column(Integer)
-  start_date = Column(String(100))
-  name = Column(String(100))
-  email = Column(String(100))
-  phone = Column(String(100))
-  password = Column(String(100))
-  salt = Column(String(100))
-  public_key = Column(String(100), default=None, nullable=True)
-  secret_key = Column(String(100), default=None, nullable=True)
-  search_option = Column(Integer, default=None, nullable=True)
-  trading_option = Column(Integer, default=None, nullable=True)
-  jwt_token = Column(String(100), default=None, nullable=True)
-  refresh_token = Column(String(100), default=None, nullable=True)
 
-class account_rate(Base):
-  __tablename__ = "nc_r_account_rate_t"
-  idx = Column(Integer, primary_key=True, index=True, autoincrement=True)
-  account_balance = Column(Integer)
-  rate = Column(Integer)
-  deposit = Column(Integer)
-  insert_date = Column(String(100))
-  user_idx = Column(Integer)
-  invest = Column(Integer)
-  withdraw = Column(Integer)
-  revenue = Column(Integer)
+class cp_b_user_t(Base):
+    __tablename__ = "cp_b_user_t"
+
+    idx = Column(Integer, primary_key=True, autoincrement=True)
+    active = Column(Integer)
+    name = Column(String(255))
+    email = Column(String(255))
+    password = Column(String(255))
+    salt = Column(String(255))
+    public_key = Column(String(255), default=None)
+    secret_key = Column(String(255), default=None)
+    search_option = Column(Integer, default=None)
+    trading_option = Column(Integer, default=None)
+    jwt_token = Column(String(255), default=None)
+    refresh_token = Column(String(255), default=None)

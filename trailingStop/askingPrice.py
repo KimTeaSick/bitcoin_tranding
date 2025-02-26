@@ -6,7 +6,7 @@ pwd = "/Users/josephkim/Desktop/bitcoin_trading_back" if IS_DEV == "True" else "
 
 import sys
 sys.path.append(pwd) 
-from BitThumbPrivate import BitThumbPrivate
+from platformPrivate import BitThumbPrivate
 from routers.user.userApi import user
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
 connenctKey = "9ae8ae53e7e0939722284added991d55"

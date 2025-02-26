@@ -1,4 +1,4 @@
-from BitThumbPrivate import BitThumbPrivate
+from platformPrivate import BitThumbPrivate
 
 secretKey = "07c1879d34d18036405f1c4ae20d3023"
 connenctKey = "9ae8ae53e7e0939722284added991d55"

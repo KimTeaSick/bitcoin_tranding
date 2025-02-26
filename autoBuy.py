@@ -1,5 +1,5 @@
 import recommend
-from database import engine, SessionLocal
+from database import SessionLocal
 from sqlalchemy.orm import Session
 import models
 import datetime
@@ -7,9 +7,6 @@ import asyncio
 import askingPrice
 from pybithumb import Bithumb
 from buy.optionStandardization import OptionStandardization
-import requests
-import time
-import json
 
 now1 = datetime.datetime.now()
 try:
@@ -24,16 +21,16 @@ async def recommendCoins(options, mMax, hMax):
     coins = await recommend.recommendCoin(options, mMax, hMax)
     return coins
 
-active_users = db.query(models.USER_T).filter(models.USER_T.active == 1).all()
+active_users = db.query(models.cp_b_user_t).filter(models.cp_b_user_t.active == 1).all()
 
 for active_user in active_users:
     bithumb = Bithumb(active_user.public_key, active_user.secret_key)
 # 사용 db 가져오기
-    possession_coins = db.query(models.possessionCoin).filter(models.possessionCoin.user_idx == active_user.idx).all()
-    useRecommendOPtion = db.query(models.searchOption).filter(
-        models.searchOption.idx == active_user.search_option).first()
-    useTradingOption = db.query(models.tradingOption).filter(
-        models.tradingOption.idx == active_user.trading_option).first()
+    possession_coins = db.query(models.cp_r_possession_coin_t).filter(models.cp_r_possession_coin_t.user_idx == active_user.idx).all()
+    useRecommendOPtion = db.query(models.cp_b_search_option_t).filter(
+        models.cp_b_search_option_t.idx == active_user.search_option).first()
+    useTradingOption = db.query(models.cp_b_trading_option_t).filter(
+        models.cp_b_trading_option_t.idx == active_user.trading_option).first()
     autoStatus = db.query(models.autoTradingStatus).filter(
         models.autoTradingStatus.status == 1).first()
     userIdx = 2
@@ -45,10 +42,10 @@ for active_user in active_users:
         hadCoin.append(coin.coin)
 
     # 매수 조건
-    accountOption = db.query(models.tradingAccountOption).filter(
-        models.tradingAccountOption.idx == useTradingOption.idx).first()
-    buyOption = db.query(models.tradingBuyOption).filter(
-        models.tradingBuyOption.idx == useTradingOption.idx).first()
+    accountOption = db.query(models.cp_c_account_option_t).filter(
+        models.cp_c_account_option_t.idx == useTradingOption.idx).first()
+    buyOption = db.query(models.cp_c_buy_option_t).filter(
+        models.cp_c_buy_option_t.idx == useTradingOption.idx).first()
 
     # 보유 코인 지정 갯수 초과시 종료
     if coinCount > accountOption.price_count:
@@ -58,23 +55,23 @@ for active_user in active_users:
         break
 
     # 검색 조건
-    priceOption = db.query(models.PriceOption).filter(
-        models.PriceOption.idx == useRecommendOPtion.idx).first()
+    priceOption = db.query(models.cp_c_pr_price_t).filter(
+        models.cp_c_pr_price_t.idx == useRecommendOPtion.idx).first()
 
-    transactionAmountOption = db.query(models.TransactionAmountOption).filter(
-        models.TransactionAmountOption.idx == useRecommendOPtion.idx).first()
+    transactionAmountOption = db.query(models.cp_c_pr_transaction_amount_t).filter(
+        models.cp_c_pr_transaction_amount_t.idx == useRecommendOPtion.idx).first()
 
-    maspOption = db.query(models.MASPOption).filter(
-        models.MASPOption.idx == useRecommendOPtion.idx).first()
+    maspOption = db.query(models.cp_c_masp_t).filter(
+        models.cp_c_masp_t.idx == useRecommendOPtion.idx).first()
 
-    trendOption = db.query(models.TrendOption).filter(
-        models.TrendOption.idx == useRecommendOPtion.idx).first()
+    trendOption = db.query(models.cp_c_trend_t).filter(
+        models.cp_c_trend_t.idx == useRecommendOPtion.idx).first()
 
-    disparityOption = db.query(models.DisparityOption).filter(
-        models.DisparityOption.idx == useRecommendOPtion.idx).first()
+    disparityOption = db.query(models.cp_c_disparity_t).filter(
+        models.cp_c_disparity_t.idx == useRecommendOPtion.idx).first()
 
-    macdOption = db.query(models.MACDOption).filter(
-        models.MACDOption.idx == useRecommendOPtion.idx).first()
+    macdOption = db.query(models.cp_c_macd_t).filter(
+        models.cp_c_macd_t.idx == useRecommendOPtion.idx).first()
 
     # 검색
     # 검색에 필요한 정보 설정
@@ -86,7 +83,7 @@ for active_user in active_users:
     print(options)
     print(f'mMax: {mMax}, hMax: {hMax}')
 
-    prevCoin = db.query(models.recommendList).filter(models.recommendList.user_idx == active_user.idx).all()
+    prevCoin = db.query(models.cp_f_recommend_coin_t).filter(models.cp_f_recommend_coin_t.user_idx == active_user.idx).all()
     if len(prevCoin) != 0:
         for coin in prevCoin:
             db.delete(coin)

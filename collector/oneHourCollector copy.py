@@ -1,6 +1,6 @@
 import requests
 import datetime
-from database import engine, SessionLocal
+from database import  SessionLocal
 from sqlalchemy.orm import Session
 import models
 import threading
@@ -43,7 +43,6 @@ class MyThread(threading.Thread):
                     newtime = int(time.timestamp() / 3600) * 3600
 
                     print(data[-1][0]/1000, newtime, coin.coin_name)
-                    #insertdata.append({'STime':dat[0]/1000, 'Open':dat[1], 'Close': dat[2], 'High':dat[3], 'Low':dat[4], 'Volume':dat[5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(dat[0]/1000)})
 
                     for dat in data:
                         insertdata.append({'STime':dat[0]/1000, 'Open':dat[1], 'Close': dat[2], 'High':dat[3], 'Low':dat[4], 'Volume':dat[5], 'coin_name':coin.coin_name, 'time':datetime.datetime.fromtimestamp(dat[0]/1000)})
